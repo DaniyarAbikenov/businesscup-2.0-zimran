@@ -56,6 +56,63 @@ function Ledger({ c, sit, chosen, onPick }: { c: Case; sit: Situation; chosen: s
   );
 }
 
+function DecisionRanking({ c }: { c: Case }) {
+  const r = c.result as any;
+  return (
+    <div className="decision-box">
+      <table className="ledger">
+        <caption className="visually-hidden">Options ranked by weighted score</caption>
+        <thead><tr><th scope="col">Option</th><th scope="col">Score (0 to 100)</th>{r.criteria.map((k: any) => <th key={k.name} scope="col">{k.name} <span className="small muted">weight {k.weight}</span></th>)}</tr></thead>
+        <tbody>
+          {r.ranking.map((o: any) => (
+            <tr key={o.index}>
+              <td data-label="Option"><b>{o.rank}. {o.name}</b>{o.marginToNext != null && <div className="small muted">{o.marginToNext} ahead of the next</div>}</td>
+              <td data-label="Score" className="num"><div className="bar" role="img" aria-label={`${o.score} out of 100`}><span style={{ width: `${o.score}%` }} /></div>{o.score}</td>
+              {o.scores.map((s: any) => <td key={s.criterion} data-label={s.criterion} className={'num' + (s.score <= 2 ? ' late' : '')}>{s.score}</td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="banner ok" role="note" style={{ marginTop: 16 }}>
+        <strong>What would change the winner</strong>
+        <ul className="plain">{r.notes.map((n: string, i: number) => <li key={i}>{n}</li>)}</ul>
+      </div>
+    </div>
+  );
+}
+
+function DecisionLedger({ c, sit, chosen, onPick }: { c: Case; sit: Situation; chosen: string | null; onPick: (k: string) => void }) {
+  const opts = c.result.options;
+  const label = (k: string) => sit.options[k].label;
+  const cell = (o: Option, content: React.ReactNode, num = true) => (
+    <td key={o.key} data-label={label(o.key)} className={(num ? 'num ' : '') + (chosen === o.key ? 'sel' : '')}>{content}</td>
+  );
+  return (
+    <table className="ledger">
+      <caption className="visually-hidden">Comparison of {opts.length} ways to pick</caption>
+      <thead>
+        <tr>
+          <th scope="col"><span className="visually-hidden">Measure</span></th>
+          {opts.map((o) => (
+            <th key={o.key} scope="col" className={chosen === o.key ? 'sel' : ''}>
+              {label(o.key)}
+              {c.result.lowestRiskKey === o.key && <span className="tag">Lowest risk on these numbers</span>}
+              {o.sameAs && o.sameAs.length > 0 && <span className="tag muted-tag">Same pick as {o.sameAs.map(label).join(', ').toLowerCase()}</span>}
+              <div><Button className="pickbtn" variant={chosen === o.key ? 'primary' : 'secondary'} aria-pressed={chosen === o.key} onClick={() => onPick(o.key)} type="button">{chosen === o.key ? 'Selected' : 'Choose'}</Button></div>
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>It picks</td>{opts.map((o) => cell(o, <b>{o.pick}</b>, false))}</tr>
+        <tr><td>Its score</td>{opts.map((o) => cell(o, <>{o.score}<div className="small muted">rank {o.rank}</div></>))}</tr>
+        <tr><td>Risk</td>{opts.map((o) => cell(o, <Badge level={o.riskLevel} />))}</tr>
+        <tr><td>What to watch</td>{opts.map((o) => cell(o, <ul className="risks">{o.risks.map((r, i) => <li key={i}>{r.text}</li>)}</ul>, false))}</tr>
+      </tbody>
+    </table>
+  );
+}
+
 function EstimateLedger({ c, sit, chosen, onPick }: { c: Case; sit: Situation; chosen: string | null; onPick: (k: string) => void }) {
   const opts = c.result.options;
   const label = (k: string) => sit.options[k].label;
@@ -159,12 +216,15 @@ function Draft({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: Ca
   return (
     <>
       <PageHeader eyebrow="Step 2 of 3 · Compare" title={c.title} lead={summary(c, sit)} />
-      <Panel title={`Your ${c.result.options.length} options`} lead={sit.engine === 'estimate'
+      <Panel title={`Your ${c.result.options.length} options`} lead={sit.engine === 'decision'
+        ? 'Your scores ranked, then four ways to pick. All numbers follow from your own weights and scores. The risk label is a rule-of-thumb check, and the decision is yours.'
+        : sit.engine === 'estimate'
         ? 'Each column is something you could say. Dates and chances are calculated from your three-point estimate and your real free hours. The risk label is a rule-of-thumb check, and the decision is yours.'
         : sit.engine === 'priorities'
         ? 'Each column is a different order of work. Every date is calculated from your hours and estimates. The risk label is a rule-of-thumb check, and the decision is yours.'
         : `${c.result.workdaysToRelease} working days to release. The change adds about ${c.result.addedWorkdays} working days of work. Every figure is calculated from your inputs. The risk label is a rule-of-thumb check, and the decision is yours.`}>
-        {sit.engine === 'estimate' ? <EstimateLedger c={c} sit={sit} chosen={chosen} onPick={setChosen} />
+        {sit.engine === 'decision' ? <><DecisionRanking c={c} /><DecisionLedger c={c} sit={sit} chosen={chosen} onPick={setChosen} /></>
+          : sit.engine === 'estimate' ? <EstimateLedger c={c} sit={sit} chosen={chosen} onPick={setChosen} />
           : sit.engine === 'priorities' ? <PriorityLedger c={c} sit={sit} chosen={chosen} onPick={setChosen} /> : <Ledger c={c} sit={sit} chosen={chosen} onPick={setChosen} />}
         <details><summary>How was this calculated?</summary><p className="small muted">{c.result.assumptions}</p></details>
       </Panel>
@@ -238,7 +298,9 @@ function Decided({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: 
       <PageHeader eyebrow="Decision saved" title={c.title} />
       <div className="banner ok" role="status">
         {sit.options[c.chosenOption!].label}.{' '}
-        {sit.engine === 'estimate'
+        {sit.engine === 'decision'
+          ? <>{chosen.pick} (score {chosen.score} out of 100, rank {chosen.rank}).</>
+          : sit.engine === 'estimate'
           ? <>{chosen.dateFrom ? `${fmtDate(chosen.dateFrom)} to ${fmtDate(chosen.date!)}` : fmtDate(chosen.date!)}, about {chosen.probability}% chance to make it.</>
           : sit.engine === 'priorities'
           ? <>{chosen.lateCount ? `${chosen.lateCount} task${chosen.lateCount === 1 ? '' : 's'} late by ${chosen.totalLateDays} working days in total.` : 'Every task on time.'}</>

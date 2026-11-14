@@ -1,7 +1,7 @@
 """Engine registry: a situation pack names its engine; each engine has compute(inputs) and optional check(inputs)."""
-from . import change_request, estimate, priorities
+from . import change_request, decision, estimate, priorities
 
-ENGINES = {"change_request": change_request, "priorities": priorities, "estimate": estimate}
+ENGINES = {"change_request": change_request, "priorities": priorities, "estimate": estimate, "decision": decision}
 
 
 def run(sit: dict, inputs: dict) -> dict:

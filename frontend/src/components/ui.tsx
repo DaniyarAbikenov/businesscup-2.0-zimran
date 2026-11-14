@@ -49,9 +49,9 @@ export function Field({ id, label, help, error, children }: FieldProps) {
 }
 
 /** Renders one question from the situation pack. A "list" question renders repeatable rows. */
-export function QuestionField({ q, value, error, errors, onChange }: { q: Question; value: any; error?: string; errors?: Record<string, string>; onChange: (v: any) => void }) {
-  if (q.type === 'list') return <ListField q={q} rows={value ?? []} error={error} errors={errors ?? {}} onChange={onChange} />;
-  const label = q.label + (q.required ? '' : ' (optional)');
+export function QuestionField({ q, value, error, errors, onChange, answers }: { q: Question; value: any; error?: string; errors?: Record<string, string>; onChange: (v: any) => void; answers?: Record<string, any> }) {
+  if (q.type === 'list') return <ListField q={q} rows={value ?? []} error={error} errors={errors ?? {}} onChange={onChange} answers={answers ?? {}} />;
+  const label = q.label + (q.required || q.labelFrom ? '' : ' (optional)');
   return (
     <Field id={'q_' + q.id} label={label} help={q.help} error={error}>
       {(a) =>
@@ -74,7 +74,17 @@ export function QuestionField({ q, value, error, errors, onChange }: { q: Questi
 
 const emptyRow = (fields: Question[]) => Object.fromEntries(fields.map((f) => [f.id, String(f.default ?? '')]));
 
-function ListField({ q, rows, error, errors, onChange }: { q: Question; rows: Record<string, string>[]; error?: string; errors: Record<string, string>; onChange: (v: any) => void }) {
+/** A row field can take its label from another list (a score column named after the criterion typed so far) and is hidden when that criterion row does not exist. */
+function dynamicField(f: Question, answers: Record<string, any>): Question | null {
+  const l = f.labelFrom;
+  if (!l) return f;
+  const rows: Record<string, string>[] = answers[l.list] ?? [];
+  if (rows.length <= l.index) return null;
+  const name = (rows[l.index]?.[l.field] ?? '').trim() || `criterion ${l.index + 1}`;
+  return { ...f, label: l.template.replace('{name}', name) };
+}
+
+function ListField({ q, rows, error, errors, onChange, answers }: { q: Question; rows: Record<string, string>[]; error?: string; errors: Record<string, string>; onChange: (v: any) => void; answers: Record<string, any> }) {
   const fields = q.fields!;
   const item = q.itemLabel ?? 'Item';
   const set = (n: number, id: string, v: string) => onChange(rows.map((r, i) => (i === n ? { ...r, [id]: v } : r)));
@@ -97,7 +107,7 @@ function ListField({ q, rows, error, errors, onChange }: { q: Question; rows: Re
               </span>
             </div>
             <div className="grid-3">
-              {fields.map((f) => (
+              {fields.map((f0) => dynamicField(f0, answers)).filter((f): f is Question => !!f).map((f) => (
                 <QuestionField key={f.id} q={{ ...f, id: `${q.id}.${n}.${f.id}` }} value={r[f.id] ?? ''} error={errors[`${q.id}.${n}.${f.id}`]} onChange={(v) => set(n, f.id, v)} />
               ))}
             </div>
@@ -121,7 +131,7 @@ export function QuestionGroups({ sit, answers, fields, onChange, skipCollapsed }
   const groups = sit.groups ?? [{ id: '', title: '' }];
   const render = (g: { id: string; columns?: number }) => {
     const qs = sit.questions.filter((q) => (q.group ?? '') === g.id);
-    const body = qs.map((q) => <QuestionField key={q.id} q={q} value={answers[q.id]} error={fields[q.id]} errors={fields} onChange={(v) => onChange({ ...answers, [q.id]: v })} />);
+    const body = qs.map((q) => <QuestionField key={q.id} q={q} value={answers[q.id]} error={fields[q.id]} errors={fields} answers={answers} onChange={(v) => onChange({ ...answers, [q.id]: v })} />);
     return g.columns === 2 ? <div className="grid-2">{body}</div> : <>{body}</>;
   };
   return (

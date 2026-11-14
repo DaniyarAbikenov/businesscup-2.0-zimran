@@ -52,7 +52,7 @@ def test_ai_values_are_validated_by_code(client, monkeypatch):
                 "unclear": ["How many hours does the report take?"]}
     monkeypatch.setattr(llm, "extract_situation", fake)
     out = client.post("/api/intake", json={"text": TEXT, "useAi": True, "privacyAck": True}).json()
-    assert seen["ids"] == ["client-change-request", "competing-priorities", "asked-for-a-deadline"]
+    assert seen["ids"] == ["client-change-request", "competing-priorities", "asked-for-a-deadline", "choose-between-options"]
     assert out["source"] == "ai" and out["situationId"] == "competing-priorities"
     a = out["answers"]
     assert a["title"] == "Three asks, one week" and a["hoursPerWeek"] == 40
@@ -108,7 +108,7 @@ def test_llm_request_shape_and_refusal(monkeypatch):
     assert out["situationId"] == "competing-priorities"
     b = sent["body"]
     assert b["model"] == config.LLM_MODEL and b["fallbacks"] == "default" and "server-side-fallback" in sent["beta"]
-    assert b["output_config"]["format"]["schema"]["properties"]["situationId"]["enum"] == ["client-change-request", "competing-priorities", "asked-for-a-deadline"]
+    assert b["output_config"]["format"]["schema"]["properties"]["situationId"]["enum"] == ["client-change-request", "competing-priorities", "asked-for-a-deadline", "choose-between-options"]
     assert "<description>" in b["messages"][0]["content"]
     reply.update(stop_reason="refusal", text="")
     try:

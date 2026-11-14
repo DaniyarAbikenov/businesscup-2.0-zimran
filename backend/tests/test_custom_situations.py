@@ -107,7 +107,7 @@ def test_full_flow_draft_save_case_decide_document(client, make_client, monkeypa
     signup(client, "flow@example.com")
     calls = ai_on(monkeypatch)
     d = draft(client).json()
-    assert [s["engine"] for s in calls[0][1]] == ["change_request", "priorities", "estimate"]  # the AI only sees the supported engines
+    assert [s["engine"] for s in calls[0][1]] == ["change_request", "priorities", "estimate", "decision"]  # the AI only sees the supported engines
     assert d["situation"]["aiMade"] is True and d["situation"]["title"] == "Two bosses, one week"
     assert d["situation"]["storylines"][0]["answers"]["tasks"][0]["deadline"] > "2000"  # dates resolved for the browser
     assert "my-two-bosses-one-week" not in [s["id"] for s in client.get("/api/packs").json()["situations"]]  # a draft is not saved
@@ -180,7 +180,7 @@ def test_llm_request_shape(monkeypatch):
     b = sent["body"]
     assert b["model"] == config.LLM_MODEL and b["fallbacks"] == "default" and "server-side-fallback" in sent["beta"]
     props = b["output_config"]["format"]["schema"]["properties"]
-    assert props["engine"]["enum"] == ["change_request", "priorities", "estimate"] and {"labels", "options", "storyline", "pitfalls", "reflectionPrompts"} <= set(props)
+    assert props["engine"]["enum"] == ["change_request", "priorities", "estimate", "decision"] and {"labels", "options", "storyline", "pitfalls", "reflectionPrompts"} <= set(props)
     content = b["messages"][0]["content"]
     assert "<description>" in content and "client-change-request" not in content and '"engine": "priorities"' in content
     reply.update(stop_reason="refusal", text="")

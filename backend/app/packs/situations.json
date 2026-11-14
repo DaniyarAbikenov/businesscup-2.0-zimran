@@ -946,6 +946,498 @@
           }
         }
       ]
+    },
+    {
+      "id": "choose-between-options",
+      "engine": "decision",
+      "category": "Decisions",
+      "title": "I have to choose between options",
+      "summary": "Accept an offer, pick a tool, choose who gets the job. List what matters, score each option, and see which one wins, how safe the win is and what would change it. Then send a clear decision note.",
+      "applies_to": [
+        "*"
+      ],
+      "titleField": "title",
+      "documentName": "Decision note",
+      "groups": [
+        {
+          "id": "situation",
+          "title": "The decision"
+        },
+        {
+          "id": "criteria",
+          "title": "What matters (criteria and weights)"
+        },
+        {
+          "id": "options",
+          "title": "Your options and scores"
+        },
+        {
+          "id": "stakes",
+          "title": "The stakes",
+          "columns": 2
+        }
+      ],
+      "questions": [
+        {
+          "id": "title",
+          "group": "situation",
+          "type": "text",
+          "label": "What do you have to decide?",
+          "required": true,
+          "max": 120,
+          "placeholder": "Which BI tool should our team use?"
+        },
+        {
+          "id": "context",
+          "group": "situation",
+          "type": "textarea",
+          "label": "Background (optional)",
+          "help": "What is at stake, who else has a say. It goes into your decision note.",
+          "max": 800
+        },
+        {
+          "id": "criteria",
+          "group": "criteria",
+          "type": "list",
+          "label": "Criteria",
+          "itemLabel": "Criterion",
+          "minRows": 2,
+          "maxRows": 6,
+          "help": "What matters for this decision. Weight 5 is critical, 1 is nice to have. Decide the weights before you score the options.",
+          "fields": [
+            {
+              "id": "name",
+              "type": "text",
+              "label": "Criterion",
+              "required": true,
+              "max": 60,
+              "placeholder": "Fits our data"
+            },
+            {
+              "id": "weight",
+              "type": "number",
+              "label": "Weight (1-5)",
+              "required": true,
+              "min": 1,
+              "max": 5,
+              "step": 1,
+              "default": 3
+            }
+          ]
+        },
+        {
+          "id": "options",
+          "group": "options",
+          "type": "list",
+          "label": "Options",
+          "itemLabel": "Option",
+          "minRows": 2,
+          "maxRows": 5,
+          "help": "Score every option from 1 to 5 on each criterion above, in the same order. 5 is best for you, even for things like cost or risk.",
+          "fields": [
+            {
+              "id": "name",
+              "type": "text",
+              "label": "Option",
+              "required": true,
+              "max": 60,
+              "placeholder": "Tool A"
+            },
+            {
+              "id": "note",
+              "type": "text",
+              "label": "Note",
+              "max": 200
+            },
+            {
+              "id": "s1",
+              "type": "number",
+              "label": "Score for criterion 1 (1-5)",
+              "min": 1,
+              "max": 5,
+              "step": 1,
+              "required": false,
+              "labelFrom": {
+                "list": "criteria",
+                "field": "name",
+                "index": 0,
+                "template": "Score on \"{name}\" (1-5)"
+              },
+              "help": "5 is best for you"
+            },
+            {
+              "id": "s2",
+              "type": "number",
+              "label": "Score for criterion 2 (1-5)",
+              "min": 1,
+              "max": 5,
+              "step": 1,
+              "required": false,
+              "labelFrom": {
+                "list": "criteria",
+                "field": "name",
+                "index": 1,
+                "template": "Score on \"{name}\" (1-5)"
+              }
+            },
+            {
+              "id": "s3",
+              "type": "number",
+              "label": "Score for criterion 3 (1-5)",
+              "min": 1,
+              "max": 5,
+              "step": 1,
+              "required": false,
+              "labelFrom": {
+                "list": "criteria",
+                "field": "name",
+                "index": 2,
+                "template": "Score on \"{name}\" (1-5)"
+              }
+            },
+            {
+              "id": "s4",
+              "type": "number",
+              "label": "Score for criterion 4 (1-5)",
+              "min": 1,
+              "max": 5,
+              "step": 1,
+              "required": false,
+              "labelFrom": {
+                "list": "criteria",
+                "field": "name",
+                "index": 3,
+                "template": "Score on \"{name}\" (1-5)"
+              }
+            },
+            {
+              "id": "s5",
+              "type": "number",
+              "label": "Score for criterion 5 (1-5)",
+              "min": 1,
+              "max": 5,
+              "step": 1,
+              "required": false,
+              "labelFrom": {
+                "list": "criteria",
+                "field": "name",
+                "index": 4,
+                "template": "Score on \"{name}\" (1-5)"
+              }
+            },
+            {
+              "id": "s6",
+              "type": "number",
+              "label": "Score for criterion 6 (1-5)",
+              "min": 1,
+              "max": 5,
+              "step": 1,
+              "required": false,
+              "labelFrom": {
+                "list": "criteria",
+                "field": "name",
+                "index": 5,
+                "template": "Score on \"{name}\" (1-5)"
+              }
+            }
+          ]
+        },
+        {
+          "id": "reversibility",
+          "group": "stakes",
+          "type": "select",
+          "label": "How hard is it to undo?",
+          "required": true,
+          "default": "costly",
+          "options": [
+            {
+              "value": "easy",
+              "label": "Easy to undo"
+            },
+            {
+              "value": "costly",
+              "label": "Costly to undo"
+            },
+            {
+              "value": "cannot",
+              "label": "Cannot be undone"
+            }
+          ]
+        },
+        {
+          "id": "whoAffected",
+          "group": "stakes",
+          "type": "select",
+          "label": "Who is affected?",
+          "required": true,
+          "default": "team",
+          "options": [
+            {
+              "value": "me",
+              "label": "Only me"
+            },
+            {
+              "value": "team",
+              "label": "My team"
+            },
+            {
+              "value": "other_teams",
+              "label": "Other teams"
+            },
+            {
+              "value": "client",
+              "label": "A client"
+            }
+          ]
+        },
+        {
+          "id": "confidence",
+          "group": "stakes",
+          "type": "select",
+          "label": "How sure are you of your scores?",
+          "help": "Based on facts and trials, or a gut feeling?",
+          "required": true,
+          "default": "medium",
+          "options": [
+            {
+              "value": "low",
+              "label": "Low, mostly a guess"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "high",
+              "label": "High, I checked"
+            }
+          ]
+        },
+        {
+          "id": "decideBy",
+          "group": "stakes",
+          "type": "date",
+          "label": "Decide by (optional)",
+          "required": false
+        }
+      ],
+      "options": {
+        "best": {
+          "label": "Go with the best weighted score",
+          "nextSteps": [
+            "Check the top score against your gut. If they disagree, find out which criterion is missing.",
+            "Write down why you chose it and what would change your mind.",
+            "Tell the people it affects before they hear it from someone else.",
+            "Set a date to review the decision, and what you will look at."
+          ]
+        },
+        "safest": {
+          "label": "Go with the safest option",
+          "nextSteps": [
+            "Check that the safest option still delivers what you need most, not only that it has no weak spot.",
+            "Write down why you chose it and what would change your mind.",
+            "Tell the people it affects before they hear it from someone else.",
+            "Set a date to review the decision, and what you will look at."
+          ]
+        },
+        "equal": {
+          "label": "Go with the best if all criteria weigh the same",
+          "nextSteps": [
+            "Ask yourself why your weights differ from equal, and whether someone else would weigh them differently.",
+            "Write down why you chose it and what would change your mind.",
+            "Tell the people it affects before they hear it from someone else.",
+            "Set a date to review the decision, and what you will look at."
+          ]
+        },
+        "heaviest": {
+          "label": "Go with the best on the two heaviest criteria",
+          "nextSteps": [
+            "Check what you give up on the other criteria and tell the people who care about them.",
+            "Write down why you chose it and what would change your mind.",
+            "Tell the people it affects before they hear it from someone else.",
+            "Set a date to review the decision, and what you will look at."
+          ]
+        }
+      },
+      "pitfalls": [
+        "Anchoring on the first option you looked at and scoring the rest against it.",
+        "Setting the weights after you have seen the scores, so they confirm what you already wanted.",
+        "Scoring what you know best instead of what matters most.",
+        "Treating a 3-point lead as certain when the scores are guesses.",
+        "Deciding alone when other people carry the consequences."
+      ],
+      "reflectionPrompts": [
+        {
+          "id": "learned",
+          "label": "What did the scores and the flip points show you that you had not seen?"
+        },
+        {
+          "id": "different",
+          "label": "What will you do differently the next time you have to choose between options?"
+        }
+      ],
+      "storylines": [
+        {
+          "id": "tool",
+          "title": "An analyst chooses a BI tool for the team",
+          "story": "Your team of five outgrew spreadsheets. Two dashboard tools and \"keep spreadsheets\" are on the table, and your manager wants a recommendation.",
+          "answers": {
+            "title": "Which BI tool should our team use?",
+            "context": "Five people, mostly monthly reports. A trial of both tools is possible.",
+            "criteria": [
+              {
+                "name": "Fits our data",
+                "weight": 5
+              },
+              {
+                "name": "Cost",
+                "weight": 3
+              },
+              {
+                "name": "Learning effort",
+                "weight": 3
+              },
+              {
+                "name": "Vendor support",
+                "weight": 2
+              }
+            ],
+            "options": [
+              {
+                "name": "Dashboard tool A",
+                "note": "",
+                "s1": 5,
+                "s2": 2,
+                "s3": 3,
+                "s4": 4
+              },
+              {
+                "name": "Dashboard tool B",
+                "note": "",
+                "s1": 4,
+                "s2": 4,
+                "s3": 4,
+                "s4": 3
+              },
+              {
+                "name": "Keep spreadsheets",
+                "note": "",
+                "s1": 2,
+                "s2": 5,
+                "s3": 5,
+                "s4": 1
+              }
+            ],
+            "reversibility": "costly",
+            "whoAffected": "team",
+            "confidence": "medium"
+          }
+        },
+        {
+          "id": "hire",
+          "title": "A new team lead picks between two candidates",
+          "story": "You lead your first team and must fill one role: a colleague who knows the product, or an outside hire with deeper skills but no history with you.",
+          "answers": {
+            "title": "Who gets the open role on my team?",
+            "context": "One role, decision needed this month. Both interviewed well.",
+            "criteria": [
+              {
+                "name": "Skills today",
+                "weight": 4
+              },
+              {
+                "name": "Growth potential",
+                "weight": 3
+              },
+              {
+                "name": "Team fit",
+                "weight": 4
+              },
+              {
+                "name": "Time to be productive",
+                "weight": 2
+              }
+            ],
+            "options": [
+              {
+                "name": "Sam (internal)",
+                "note": "",
+                "s1": 4,
+                "s2": 3,
+                "s3": 5,
+                "s4": 5
+              },
+              {
+                "name": "Riley (external)",
+                "note": "",
+                "s1": 5,
+                "s2": 4,
+                "s3": 3,
+                "s4": 2
+              }
+            ],
+            "reversibility": "costly",
+            "whoAffected": "team",
+            "confidence": "medium"
+          }
+        },
+        {
+          "id": "offer",
+          "title": "A specialist weighs two job offers against staying",
+          "story": "You have an offer with higher pay, an offer with better growth, and your current job. You have a week to answer.",
+          "answers": {
+            "title": "Which job should I take?",
+            "context": "Both offers expire next week.",
+            "criteria": [
+              {
+                "name": "Pay",
+                "weight": 4
+              },
+              {
+                "name": "Growth",
+                "weight": 5
+              },
+              {
+                "name": "Stability",
+                "weight": 3
+              },
+              {
+                "name": "Flexibility",
+                "weight": 2
+              }
+            ],
+            "options": [
+              {
+                "name": "Offer A (higher pay)",
+                "note": "",
+                "s1": 5,
+                "s2": 3,
+                "s3": 3,
+                "s4": 2
+              },
+              {
+                "name": "Offer B (better growth)",
+                "note": "",
+                "s1": 3,
+                "s2": 5,
+                "s3": 3,
+                "s4": 4
+              },
+              {
+                "name": "Stay in my job",
+                "note": "",
+                "s1": 3,
+                "s2": 2,
+                "s3": 5,
+                "s4": 5
+              }
+            ],
+            "reversibility": "cannot",
+            "whoAffected": "me",
+            "confidence": "medium"
+          }
+        }
+      ]
     }
   ]
 }

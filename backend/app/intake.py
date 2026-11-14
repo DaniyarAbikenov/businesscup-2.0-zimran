@@ -20,6 +20,10 @@ KEYWORDS = {
         "my manager", "boss", "asked me", "tasks", "workload", "no time", "urgent", "this week", "by friday",
         "which first", "juggl", "swamped", "behind",
     ],
+    "choose-between-options": [
+        "choose", "which one", "decide between", "offer", "vendor", "option a", "option b", "should i", "pros and cons",
+        "compare", "two candidates", "which tool", "which candidate", "either", "or stay", "trade-off", "tradeoff",
+    ],
     "asked-for-a-deadline": [
         "how long", "when can you", "estimate", "timeline", "eta", "by when", "name a date", "commit to a date", "give a date",
         "how many days", "how many hours", "when will it be done", "when it will be ready", "launch date", "quote a date",
@@ -88,6 +92,8 @@ def sanitize(sit: dict, proposed: dict, rows: list | None = None) -> tuple[dict,
     answers, filled, rejected = {}, [], []
     for q in sit["questions"]:
         if q["type"] == "list":
+            if q["id"] != "tasks":  # the AI's task rows only fit the task list, not criteria or options
+                continue
             kept = []
             for raw in (rows or [])[: q.get("maxRows", 10)]:
                 if not isinstance(raw, dict):

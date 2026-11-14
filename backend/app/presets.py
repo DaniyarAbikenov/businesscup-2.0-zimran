@@ -20,12 +20,15 @@ from . import intake, packs
 from .errors import ApiError
 from .models import CustomSituation
 
-TEMPLATES = {"change_request": "client-change-request", "priorities": "competing-priorities", "estimate": "asked-for-a-deadline"}
+TEMPLATES = {"change_request": "client-change-request", "priorities": "competing-priorities", "estimate": "asked-for-a-deadline",
+             "decision": "choose-between-options"}
 ENGINE_HELP = {
     "change_request": "Someone asks for extra work late in a project. The person decides: accept it, defer it or decline it. "
                       "The engine calculates effort, new date, cost and risk from team size, rate, budget, buffer and effort.",
     "priorities": "Two to five tasks from different people compete for the person's limited free hours. The engine compares four "
                   "orders of work (earliest deadline, most senior requester, biggest consequence, the person's own) and shows what ends up late.",
+    "decision": "The person has to choose between 2-5 options (an offer, a tool, a candidate, an approach) against 2-6 weighted criteria. The engine "
+                "scores the options, shows how robust the winner is and what would change it, and compares four ways to pick.",
     "estimate": "Someone asks the person for a date or a duration for one task (any job: report, feature, campaign, review). The engine takes a "
                 "three-point estimate and the real free hours, and compares promising the best-case date, the likely date, a safe date or a range with a re-check.",
 }
@@ -95,7 +98,7 @@ def _story(t: dict, raw) -> tuple[dict, dict]:
             answers[fid] = {"daysFromNow": marker} if marker is not None else clean
             keep.append({"id": fid, "value": f"+{marker}" if marker is not None else str(clean)})
     rows, keep_rows = [], []
-    lq = next((q for q in t["questions"] if q["type"] == "list"), None)
+    lq = next((q for q in t["questions"] if q["type"] == "list" and q["id"] == "tasks"), None)
     for raw_row in (raw.get("tasks") if isinstance(raw.get("tasks"), list) else [])[: lq.get("maxRows", 5) if lq else 0]:
         if not isinstance(raw_row, dict):
             continue

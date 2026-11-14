@@ -13,6 +13,8 @@ def build_document(inputs, result, option_key, rationale, role, user_email, date
     sit = sit or get_situation(situation_id)
     if sit["engine"] == "priorities":
         return _priorities_document(sit, inputs, result, option_key, rationale, user_email, date)
+    if sit["engine"] == "decision":
+        return _decision_document(sit, inputs, result, option_key, rationale, user_email, date)
     if sit["engine"] == "estimate":
         return _estimate_document(sit, inputs, result, option_key, rationale, user_email, date)
     opt = next(o for o in result["options"] if o["key"] == option_key)
@@ -53,6 +55,8 @@ def build_debrief(result, option_key, inputs, situation_id="client-change-reques
     sit = sit or get_situation(situation_id)
     if sit["engine"] == "priorities":
         return _priorities_debrief(sit, result, option_key)
+    if sit["engine"] == "decision":
+        return _decision_debrief(sit, result, option_key, inputs)
     if sit["engine"] == "estimate":
         return _estimate_debrief(sit, result, option_key, inputs)
     opt = next(o for o in result["options"] if o["key"] == option_key)
@@ -192,4 +196,53 @@ def _estimate_debrief(sit, result, option_key, inputs) -> dict:
         pts.append(f"Put {opt['recheckDate']} in your calendar now. A range without the check-in is just a vague answer.")
     if inputs.get("askedDeadline") and opt["lateDays"]:
         pts.append("Your date is after the one they asked for. Offer a smaller first delivery by their date instead of squeezing the estimate.")
+    return {"points": pts, "pitfalls": sit["pitfalls"], "nextSteps": sit["options"][option_key]["nextSteps"]}
+
+
+
+# ---------------- Decision calculator ----------------
+def _decision_document(sit, inputs, result, option_key, rationale, user_email, date) -> str:
+    opt = next(o for o in result["options"] if o["key"] == option_key)
+    crit = result["criteria"]
+    L = [f"# Decision note: {inputs['title']}", "", f"Date: {date}", f"From: {user_email}"]
+    if inputs.get("decideBy"):
+        L.append(f"Decision needed by: {inputs['decideBy']}")
+    L += ["", "## Decision needed", inputs["title"]]
+    if inputs.get("context"):
+        L.append(inputs["context"])
+    L += ["", "## Recommendation",
+          f"I recommend **{opt['pick']}** ({sit['options'][option_key]['label'].lower()}). It scores {opt['score']:g} out of 100 and ranks {opt['rank']} of {len(result['ranking'])} on the criteria below.",
+          "", "## Options compared", "| Option | Score | Rank | " + " | ".join(f"{c['name']} ({c['weight']})" for c in crit) + " |",
+          "|---|---|---|" + "---|" * len(crit)]
+    for r in result["ranking"]:
+        L.append(f"| {r['name']} | {r['score']:g} | {r['rank']} | " + " | ".join(str(s["score"]) for s in r["scores"]) + " |")
+    L += ["", "Scores are 1 to 5 (5 is best for me). The number in brackets is the weight of the criterion (5 is critical).",
+          "", "## Result", result["notes"][0], "", "Four ways to pick, and what each chooses:"]
+    L += [f"- {sit['options'][o['key']]['label']}: {o['pick']}" for o in result["options"]]
+    L += ["", "## What would change the result", f"- {result['notes'][1]}", f"- {result['notes'][2]}",
+          "", "## Risks and how I will handle them"]
+    L += [f"- {r['text']}" for r in opt["risks"]]
+    L += ["", "## What I need from you", "Confirm this, or tell me which score or weight you would change, and I will rerun it.",
+          "", "## Why this one", rationale or "(add your reasoning)", "", f"Assumptions: {result['assumptions']}"]
+    return "\n".join(L)
+
+
+def _decision_debrief(sit, result, option_key, inputs) -> dict:
+    opt = next(o for o in result["options"] if o["key"] == option_key)
+    best = next(o for o in result["options"] if o["key"] == result["lowestRiskKey"])
+    label = lambda k: sit["options"][k]["label"]
+    pts = []
+    if option_key == best["key"] or opt["riskScore"] == best["riskScore"]:
+        pts.append(f"Your strategy, \"{label(option_key)}\", has the lowest risk on your numbers.")
+    else:
+        pts.append(f"On your numbers, \"{label(best['key'])}\" scored lower risk ({best['riskLevel']}) than your choice ({opt['riskLevel']}). "
+                   "That is fine if you know something the numbers do not. Put it in your note.")
+    pts.append(result["notes"][0])
+    pts += [f"Watch out: {r['text']}" for r in opt["risks"] if r["severity"] >= 1]
+    if not result["agree"]:
+        pts.append("The four strategies do not agree. That means the choice depends on what you value most, so say it out loud to the people affected.")
+    if result["robustness"]["label"] != "robust":
+        pts.append("The lead is small. A quick check of one score you are unsure about is worth more than a new spreadsheet.")
+    if inputs["reversibility"] == "cannot":
+        pts.append("Because this cannot be undone, write down what you will check in two weeks and what would make you wish you had chosen differently.")
     return {"points": pts, "pitfalls": sit["pitfalls"], "nextSteps": sit["options"][option_key]["nextSteps"]}
