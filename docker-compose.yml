@@ -27,7 +27,7 @@ services:
       timeout: 3s
       retries: 10
     ports:
-      - "127.0.0.1:${DB_PORT:-5432}:5432"
+      - "127.0.0.1:${DB_PORT:-5433}:5432"
 
   redis:
     image: redis:7-alpine
