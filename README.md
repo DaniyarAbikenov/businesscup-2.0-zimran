@@ -107,7 +107,7 @@ Short step-by-step tips (popovers anchored to real elements) appear once, the fi
 
 ## User guide
 
-How to use the service (Russian and English): [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
+How to use the service: [Russian](docs/USER_GUIDE.ru.md), [English](docs/USER_GUIDE.en.md).
 
 ## Deploy on Vercel
 
