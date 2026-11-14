@@ -3,7 +3,10 @@
 name: roleshift
 
 x-backend-env: &backend-env
-  DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-roleshift}:${POSTGRES_PASSWORD:-roleshift}@db:5432/${POSTGRES_DB:-roleshift}
+  POSTGRES_HOST: db
+  POSTGRES_USER: ${POSTGRES_USER:-roleshift}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-roleshift}
+  POSTGRES_DB: ${POSTGRES_DB:-roleshift}
   REDIS_URL: redis://redis:6379/0
   COOKIE_SECURE: ${COOKIE_SECURE:-false}
   ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
