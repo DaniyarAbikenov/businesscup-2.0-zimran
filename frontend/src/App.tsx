@@ -3,6 +3,7 @@ import { Link, NavLink, Navigate, Route, Routes, useNavigate } from 'react-route
 import { Me, Pack, api } from './api';
 import Auth from './pages/Auth';
 import CasePage from './pages/Case';
+import DocumentsPage from './pages/Documents';
 import Home from './pages/Home';
 import JournalPage from './pages/Journal';
 import NewCase from './pages/NewCase';
@@ -44,6 +45,7 @@ export default function App() {
               <Route path="/new/:situationId" element={<NewCase />} />
               <Route path="/case/:id" element={<CasePage />} />
               <Route path="/journal" element={<JournalPage />} />
+              <Route path="/documents" element={<DocumentsPage />} />
               <Route path="/login" element={<Navigate to="/" replace />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </>
@@ -68,6 +70,7 @@ function TopBar() {
         <Link to="/" className="brand">Role<span>Shift</span></Link>
         <nav className="nav" aria-label="Main">
           <NavLink to="/" end>Home</NavLink>
+          <NavLink to="/documents">Documents</NavLink>
           <NavLink to="/journal">Journal{due > 0 && <span className="count" aria-label={`${due} follow-ups due`}>{due}</span>}</NavLink>
           <button onClick={async () => { await api('POST', '/auth/logout', {}); await refresh(); nav('/'); }}>Sign out</button>
         </nav>

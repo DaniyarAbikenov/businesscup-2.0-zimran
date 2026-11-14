@@ -59,13 +59,14 @@ users 1--1 profiles
 users 1--* cases 1--0..1 decisions        option (accept | defer | decline), rationale, document, follow-up due date
                  1--0..1 reflections      learned, different, confidence_after (1-5)
                  1--0..1 followups        outcome (worked | partly | not_yet | not_applied), notes (self-reported)
+                 1--* documents           Change Request (generated, then edited by the user) and client message; 1--* document_revisions keeps every saved version
 users 1--* journal   timeline events, optionally linked to a case
 ```
 
 - `cases` keeps two JSON snapshots: `inputs` (what the user entered) and `result` (what the engine calculated), so an old case never changes when the formulas change. `cases.status` is `draft` until a decision exists.
 - Constraints live in the database: allowed options and outcomes, confidence 1 to 5, one decision, reflection and follow-up per case, cascade delete from user to everything.
 - Roles and situations are content packs (JSON), not tables.
-- Migrations: `0001` initial schema, `0002` moves decision, reflection and follow-up out of `cases` and keeps existing data (and reverses it on downgrade). `backend/tests/test_migrations.py` runs both directions with data on a scratch database.
+- Migrations: `0001` initial schema, `0002` moves decision, reflection and follow-up out of `cases` and keeps existing data (and reverses it on downgrade), `0003` adds documents and revisions and backfills one Change Request per existing decision. `backend/tests/test_migrations.py` runs both directions with data on a scratch database.
 
 ## How it works
 
@@ -75,6 +76,12 @@ users 1--* journal   timeline events, optionally linked to a case
 - **AI (optional):** set `ANTHROPIC_API_KEY` to enable "Draft a message to the client". Without a key the button is hidden and nothing else changes. When used, the change title, decision, date, cost and your reasoning are sent to the API.
 - **Security:** scrypt password hashes, random session tokens (stored hashed) in HttpOnly SameSite cookies, JSON-only writes, per-user ownership checks, login throttling, server-side validation. Set `COOKIE_SECURE=true` behind HTTPS.
 - **Privacy:** the UI warns users not to enter confidential employer or client data.
+
+## Logs
+
+- Browser: open DevTools, every event is `[roleshift] event - message`. Errors, failed requests and key actions are also posted to `POST /api/client-log`.
+- Server: `docker compose logs -f backend` shows one line per API request (`rid=...`, the same id the browser logs) and the client events.
+- Nothing the user types is logged, only event names, ids, statuses and timings.
 
 ## Limitations
 

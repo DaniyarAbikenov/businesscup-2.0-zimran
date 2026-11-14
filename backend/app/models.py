@@ -1,6 +1,6 @@
 from datetime import date, datetime, timezone
 
-from sqlalchemy import JSON, CheckConstraint, Date, DateTime, ForeignKey, Integer, SmallInteger, String, Text
+from sqlalchemy import JSON, CheckConstraint, Date, DateTime, ForeignKey, Integer, SmallInteger, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
@@ -49,6 +49,7 @@ class Case(Base):
     decision: Mapped["Decision | None"] = relationship(uselist=False, cascade="all, delete-orphan", lazy="selectin")
     reflection: Mapped["Reflection | None"] = relationship(uselist=False, cascade="all, delete-orphan", lazy="selectin")
     followup: Mapped["FollowUp | None"] = relationship(uselist=False, cascade="all, delete-orphan", lazy="selectin")
+    documents: Mapped[list["Document"]] = relationship(cascade="all, delete-orphan", lazy="selectin", order_by="Document.id")
 
 
 class Decision(Base):
@@ -94,4 +95,32 @@ class JournalEntry(Base):
     case_id: Mapped[int | None] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=True)
     type: Mapped[str] = mapped_column(String(20))
     text: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class Document(Base):
+    """Anything the user writes or saves for a case: the Change Request (starts as the generated text,
+    then edited by the user) and the client message. One current text per (case, kind);
+    every saved change is kept in DocumentRevision."""
+    __tablename__ = "documents"
+    __table_args__ = (
+        CheckConstraint("kind IN ('change_request','client_message')", name="ck_documents_kind"),
+        UniqueConstraint("case_id", "kind", name="uq_documents_case_kind"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    case_id: Mapped[int] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), index=True)
+    kind: Mapped[str] = mapped_column(String(20))
+    body: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    revisions: Mapped[list["DocumentRevision"]] = relationship(cascade="all, delete-orphan", order_by="DocumentRevision.id")
+
+
+class DocumentRevision(Base):
+    __tablename__ = "document_revisions"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    document_id: Mapped[int] = mapped_column(ForeignKey("documents.id", ondelete="CASCADE"), index=True)
+    body: Mapped[str] = mapped_column(Text)
+    source: Mapped[str] = mapped_column(String(10), default="user")  # generated | ai | user
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)

@@ -6,7 +6,8 @@ from .. import packs, reminders
 from ..cache import get_redis
 from ..db import get_db
 from ..deps import current_user
-from ..models import Case, JournalEntry
+from ..documents import KINDS
+from ..models import Case, Document, JournalEntry
 
 router = APIRouter(prefix="/api")
 
@@ -38,3 +39,12 @@ def journal(user=Depends(current_user), db: Session = Depends(get_db)):
 @router.get("/reminders")
 def reminder_badge(user=Depends(current_user), r=Depends(get_redis)):
     return {"due": reminders.due_count(r, user.id)}
+
+
+@router.get("/documents")
+def library(user=Depends(current_user), db: Session = Depends(get_db)):
+    """Everything the user has created, newest first."""
+    docs = db.scalars(select(Document).where(Document.user_id == user.id).order_by(Document.updated_at.desc())).all()
+    titles = {c.id: c.inputs["changeTitle"] for c in db.scalars(select(Case).where(Case.user_id == user.id))}
+    return {"documents": [{"id": d.id, "caseId": d.case_id, "kind": d.kind, "label": KINDS[d.kind], "caseTitle": titles.get(d.case_id, ""),
+                           "body": d.body, "revisions": len(d.revisions), "createdAt": d.created_at.isoformat(), "updatedAt": d.updated_at.isoformat()} for d in docs]}

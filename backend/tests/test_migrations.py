@@ -52,6 +52,9 @@ def test_upgrade_and_downgrade_preserve_data(scratch_url):
         assert c.execute("SELECT learned, different, confidence_after FROM reflections").fetchall() == [("L", "D", 4)]
         assert c.execute("SELECT outcome, notes FROM followups").fetchall() == [("worked", "N")]
         assert c.execute("SELECT count(*) FROM cases").fetchone()[0] == 2
+        # 0003: the existing decision got a document with a first (generated) revision
+        assert c.execute("SELECT kind, body FROM documents").fetchall() == [("change_request", "DOC")]
+        assert c.execute("SELECT source FROM document_revisions").fetchall() == [("generated",)]
         # constraints
         with pytest.raises(psycopg.errors.CheckViolation):
             c.execute("INSERT INTO decisions (case_id, option, document, followup_due) VALUES (2, 'maybe', 'd', '2026-12-01')")

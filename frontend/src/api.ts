@@ -69,6 +69,7 @@ export interface Case {
   result: { workdaysToRelease: number; addedWorkdays: number; assumptions: string; lowestRiskKey: string; options: Option[] };
   reflection: { learned: string; different: string; confidenceAfter: number } | null;
   followup: { outcome: string; notes: string } | null;
+  documentUpdatedAt?: string | null; documentRevisions?: number; clientMessage?: string | null;
   debrief?: { points: string[]; pitfalls: string[]; nextSteps: string[] };
 }
 export interface Journal {
@@ -81,3 +82,8 @@ export interface Journal {
 export const usd = (n: number) => (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString('en-US');
 export const fmtDate = (s: string) => new Date(s + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 export const fmtStamp = (s: string) => new Date(s).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+export interface SavedDoc {
+  id: number; caseId: number; kind: 'change_request' | 'client_message'; label: string; caseTitle: string; body: string;
+  revisions: number; createdAt: string; updatedAt: string;
+}

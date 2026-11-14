@@ -115,7 +115,10 @@ function Decided({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: 
   const chosen = c.result.options.find((o) => o.key === c.chosenOption)!;
   const [doc, setDoc] = useState(c.document ?? '');
   const toast = useToast();
-  const [hint, setHint] = useState('');
+  const [hint, setHint] = useState(c.clientMessage ?? '');
+  const [savedDoc, setSavedDoc] = useState(c.document ?? '');
+  const [savedHint, setSavedHint] = useState(c.clientMessage ?? '');
+  const [saving, setSaving] = useState('');
   const [hintErr, setHintErr] = useState('');
   const [hintBusy, setHintBusy] = useState(false);
   const d = c.debrief!;
@@ -132,7 +135,17 @@ function Decided({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: 
   };
   const getHint = async () => {
     setHintBusy(true); setHintErr('');
-    try { setHint((await api('POST', `/cases/${c.id}/hint`, {})).text); } catch (x: any) { setHintErr(x.message); } finally { setHintBusy(false); }
+    try { const t = (await api('POST', `/cases/${c.id}/hint`, {})).text; setHint(t); setSavedHint(t); notify('Draft saved with this case.'); }
+    catch (x: any) { setHintErr(x.message); } finally { setHintBusy(false); }
+  };
+  const saveDoc = async (kind: 'change_request' | 'client_message', body: string) => {
+    setSaving(kind); setHintErr('');
+    try {
+      const next: Case = (await api('PUT', `/cases/${c.id}/documents/${kind}`, { body })).case;
+      onChange(next);
+      if (kind === 'change_request') setSavedDoc(body); else setSavedHint(body);
+      notify(kind === 'change_request' ? 'Change Request saved.' : 'Message saved.');
+    } catch (x: any) { notify(x.message, 'bad'); } finally { setSaving(''); }
   };
 
   return (
@@ -142,15 +155,30 @@ function Decided({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: 
         {sit.options[c.chosenOption!].label}.{' '}
         {chosen.newReleaseDate !== c.inputs.releaseDate && <>New release date {fmtDate(chosen.newReleaseDate)}. </>}Extra cost {usd(chosen.extraCost)}.
       </div>
-      <Panel title="Your Change Request" lead="Edit it if you like, then copy it into an email or download it. Check the facts before you send it.">
+      <Panel title="Your Change Request" lead="Edit it if you like and save. Your changes are kept with this case. Check the facts before you send it.">
         <textarea className="input doc" aria-label="Change Request document" spellCheck={false} wrap="off" value={doc} onChange={(e) => setDoc(e.target.value)} />
         <div className="row" style={{ marginTop: 16 }}>
-          <Button onClick={copy}>Copy</Button>
+          <Button onClick={() => saveDoc('change_request', doc)} busy={saving === 'change_request'} disabled={doc === savedDoc || !doc.trim()}>Save changes</Button>
+          <span className="small muted" role="status">
+            {doc !== savedDoc ? 'Unsaved changes' : c.documentUpdatedAt ? `Saved ${new Date(c.documentUpdatedAt).toLocaleString()}${(c.documentRevisions ?? 1) > 1 ? ` · ${c.documentRevisions} versions` : ''}` : 'Saved'}
+          </span>
+        </div>
+        <div className="row" style={{ marginTop: 12 }}>
+          <Button variant="secondary" onClick={copy}>Copy</Button>
           <Button variant="secondary" onClick={download}>Download .md</Button>
           {me.llmEnabled && <Button variant="secondary" onClick={getHint} busy={hintBusy}>Draft a message to the client (AI)</Button>}
         </div>
         {hintErr && <div className="field error" role="alert">{hintErr}</div>}
-        {hint && <div className="field"><div className="label">AI draft. Edit before sending.</div><textarea className="input" style={{ minHeight: 160 }} value={hint} onChange={(e) => setHint(e.target.value)} /></div>}
+        {(hint || savedHint) && (
+          <div className="field">
+            <div className="label">Message to the client. Edit before sending.</div>
+            <textarea className="input" style={{ minHeight: 160 }} aria-label="Message to the client" value={hint} onChange={(e) => setHint(e.target.value)} />
+            <div className="row" style={{ marginTop: 8 }}>
+              <Button variant="secondary" onClick={() => saveDoc('client_message', hint)} busy={saving === 'client_message'} disabled={hint === savedHint || !hint.trim()}>Save message</Button>
+              <span className="small muted">{hint !== savedHint ? 'Unsaved changes' : 'Saved'}</span>
+            </div>
+          </div>
+        )}
       </Panel>
       <Panel title="Debrief">
         <ul className="plain">{d.points.map((p, i) => <li key={i}>{p}</li>)}</ul>

@@ -124,3 +124,34 @@ def test_client_log_accepts_events_without_login(client):
     assert r.headers["x-request-id"]
     assert client.post("/api/client-log", json={"events": [{"event": "x"}] * 21}).status_code == 400  # batch too large
     assert client.post("/api/client-log", data="x", headers={"content-type": "text/plain"}).status_code == 415
+
+
+def test_documents_are_saved_and_versioned(client, make_client):
+    signup(client, "docs@example.com")
+    cid = client.post("/api/cases", json={"situationId": "client-change-request", "confidenceBefore": 3, "inputs": ANSWERS}).json()["case"]["id"]
+    assert client.put(f"/api/cases/{cid}/documents/change_request", json={"body": "x"}).status_code == 409  # not decided yet
+    case = client.post(f"/api/cases/{cid}/decision", json={"option": "accept"}).json()["case"]
+    generated = case["document"]
+    assert case["documentRevisions"] == 1
+
+    edited = generated + "\n\nMy note"
+    saved = client.put(f"/api/cases/{cid}/documents/change_request", json={"body": edited}).json()["case"]
+    assert saved["document"] == edited and saved["documentRevisions"] == 2
+    # saving identical text adds nothing; the edit survives a fresh load
+    assert client.put(f"/api/cases/{cid}/documents/change_request", json={"body": edited}).json()["case"]["documentRevisions"] == 2
+    assert client.get(f"/api/cases/{cid}").json()["case"]["document"] == edited
+    revs = client.get(f"/api/cases/{cid}/documents/change_request/revisions").json()["revisions"]
+    assert [r["source"] for r in revs] == ["user", "generated"] and revs[1]["body"] == generated
+
+    assert client.put(f"/api/cases/{cid}/documents/client_message", json={"body": "Hi [Name]"}).json()["case"]["clientMessage"] == "Hi [Name]"
+    assert client.put(f"/api/cases/{cid}/documents/change_request", json={"body": "  "}).status_code == 400
+    assert client.put(f"/api/cases/{cid}/documents/nope", json={"body": "x"}).status_code == 404
+
+    lib = client.get("/api/documents").json()["documents"]
+    assert {d["kind"] for d in lib} == {"change_request", "client_message"}
+    assert any(e["type"] == "document" for e in client.get("/api/journal").json()["entries"])
+
+    other = signup(make_client(), "docs2@example.com")
+    assert other.put(f"/api/cases/{cid}/documents/change_request", json={"body": "hijack"}).status_code == 404
+    assert other.get(f"/api/cases/{cid}/documents/change_request/revisions").status_code == 404
+    assert other.get("/api/documents").json()["documents"] == []

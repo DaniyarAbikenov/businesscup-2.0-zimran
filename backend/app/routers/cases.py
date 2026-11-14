@@ -10,6 +10,7 @@ from ..cache import get_redis
 from ..db import get_db
 from ..deps import current_user, own_case
 from ..document import build_debrief, build_document
+from ..documents import KINDS, MAX_LEN, get_doc, save_document
 from ..engine.change_request import compute
 from ..errors import ApiError
 from ..models import Case, Decision, FollowUp, JournalEntry, Profile, Reflection
@@ -34,6 +35,11 @@ def case_dict(c: Case) -> dict:
         "createdAt": c.created_at.isoformat(),
     }
     if d:
+        cr, cm = get_doc(c, "change_request"), get_doc(c, "client_message")
+        out["document"] = cr.body if cr else d.document
+        out["documentUpdatedAt"] = cr.updated_at.isoformat() if cr else None
+        out["documentRevisions"] = len(cr.revisions) if cr else 0
+        out["clientMessage"] = cm.body if cm else None
         out["debrief"] = build_debrief(c.result, d.option, c.inputs)
     return out
 
@@ -103,6 +109,7 @@ def decide(body: dict, c: Case = Depends(own_case), user=Depends(current_user), 
         document=build_document(c.inputs, c.result, option, rationale, profile and packs.get_role(profile.role_id), user.email, packs.today()),
     )
     c.status = "decided"
+    save_document(db, c, "change_request", c.decision.document, source="generated")
     log(db, user.id, c.id, "decision", f"Decided: {sit['options'][option]['label']}. {c.inputs['changeTitle']}")
     db.commit()
     reminders.schedule(r, user.id, c.id, due.isoformat())
@@ -139,14 +146,14 @@ def followup(body: dict, c: Case = Depends(own_case), user=Depends(current_user)
 
 
 @router.post("/cases/{case_id}/hint")
-def hint(c: Case = Depends(own_case), r=Depends(get_redis)):
+def hint(c: Case = Depends(own_case), db: Session = Depends(get_db), r=Depends(get_redis)):
     if not llm.enabled():
         raise ApiError(404, "AI suggestions are not configured")
     if c.status != "decided":
         raise ApiError(409, "Make a decision first")
     sit = packs.get_situation(c.situation_id)
     opt = next(o for o in c.result["options"] if o["key"] == c.decision.option)
-    args = (c.inputs["changeTitle"], sit["options"][c.decision.option]["label"], opt["newReleaseDate"], opt["extraCost"], c.rationale)
+    args = (c.inputs["changeTitle"], sit["options"][c.decision.option]["label"], opt["newReleaseDate"], opt["extraCost"], c.decision.rationale)
     key = "hint:" + sha(json.dumps(args))
     text = r.get(key)
     if text is None:
@@ -156,4 +163,30 @@ def hint(c: Case = Depends(own_case), r=Depends(get_redis)):
             print("LLM error:", type(e).__name__)
             raise ApiError(502, "AI suggestion is unavailable right now. Your document is not affected.")
         r.set(key, text, ex=86400)
+    save_document(db, c, "client_message", text, source="ai")  # kept in Postgres: the Redis cache expires
+    db.commit()
     return {"text": text}
+
+
+@router.put("/cases/{case_id}/documents/{kind}")
+def save_doc(kind: str, body: dict, c: Case = Depends(own_case), db: Session = Depends(get_db)):
+    if kind not in KINDS:
+        raise ApiError(404, "Unknown document")
+    if c.status != "decided":
+        raise ApiError(409, "Make a decision first")
+    text = body.get("body")
+    if not isinstance(text, str) or not text.strip():
+        raise ApiError(400, "The document cannot be empty")
+    if len(text) > MAX_LEN:
+        raise ApiError(400, f"The document is too long (max {MAX_LEN} characters)")
+    save_document(db, c, kind, text.replace("\r\n", "\n"), source="user")
+    db.commit()
+    return {"case": case_dict(c)}
+
+
+@router.get("/cases/{case_id}/documents/{kind}/revisions")
+def revisions(kind: str, c: Case = Depends(own_case)):
+    doc = get_doc(c, kind)
+    if not doc:
+        raise ApiError(404, "Not found")
+    return {"revisions": [{"id": r.id, "source": r.source, "createdAt": r.created_at.isoformat(), "body": r.body} for r in reversed(doc.revisions)]}
