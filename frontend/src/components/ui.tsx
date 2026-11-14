@@ -86,7 +86,9 @@ export function QuestionField({ q, value, error, errors, onChange, answers }: { 
   return (
     <Field id={'q_' + q.id} label={label} help={q.help} why={q.why} error={error}>
       {(a) =>
-        q.type === 'select' && segmented(q) ? (
+        q.type === 'select' && q.slider ? (
+          <ChoiceSlider q={q} a={a} value={value} onChange={onChange} />
+        ) : q.type === 'select' && segmented(q) ? (
           <div className="segs" role="radiogroup" aria-labelledby={a.id + '-l'} id={a.id}>
             {q.options!.map((o) => <button key={o.value} type="button" role="radio" aria-checked={value === o.value} className={'seg' + (value === o.value ? ' on' : '')} onClick={() => onChange(o.value)}>{o.label}</button>)}
           </div>
@@ -99,10 +101,13 @@ export function QuestionField({ q, value, error, errors, onChange, answers }: { 
         ) : q.type === 'textarea' ? (
           <textarea className="input" {...a} maxLength={q.max} value={value} onChange={(e) => onChange(e.target.value)} />
         ) : (
+          <>
           <input className="input" {...a} type={q.type === 'number' ? 'number' : q.type === 'date' ? 'date' : 'text'}
             inputMode={q.type === 'number' ? 'decimal' : undefined} min={q.min} max={q.type === 'number' ? q.max : undefined}
             step={q.type === 'number' ? q.step ?? 'any' : undefined} maxLength={q.type === 'text' ? q.max : undefined}
             placeholder={q.placeholder} value={value} onChange={(e) => onChange(e.target.value)} />
+          {q.type === 'date' && <DateChips onPick={onChange} />}
+          </>
         )
       }
     </Field>
@@ -114,6 +119,33 @@ const segmented = (q: Question) => !q.id.includes('.') && !!q.options && q.optio
 /** A bounded number with a step and a range of up to 100 steps is a slider; the exact number can still be typed. */
 const sliderOf = (q: Question) => q.step !== undefined && q.max !== undefined && q.min !== undefined && q.max - q.min <= 100 && q.max - q.min >= 2 * q.step;
 
+const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+/** Quick dates next to a date picker: today, tomorrow, the coming Friday, and one and two weeks from today. */
+export function chipDates(now = new Date()): { label: string; value: string }[] {
+  const plus = (n: number) => { const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + n); return iso(d); };
+  return [
+    { label: t('Today'), value: plus(0) }, { label: t('Tomorrow'), value: plus(1) },
+    { label: t('This Friday'), value: plus((5 - now.getDay() + 7) % 7) },
+    { label: t('In 1 week'), value: plus(7) }, { label: t('In 2 weeks'), value: plus(14) },
+  ];
+}
+function DateChips({ onPick }: { onPick: (v: string) => void }) {
+  return <div className="chips">{chipDates().map((c) => <button key={c.label} type="button" className="chip" onClick={() => onPick(c.value)}>{c.label}</button>)}</div>;
+}
+
+/** A short ordered list of options (low / medium / high) as a slider: the live word shows the chosen option; the stored value stays the option's key. */
+function ChoiceSlider({ q, a, value, onChange }: { q: Question; a: { id: string; 'aria-invalid'?: boolean; 'aria-describedby'?: string }; value: any; onChange: (v: any) => void }) {
+  const opts = q.sliderReverse ? q.options!.slice().reverse() : q.options!;
+  const i = Math.max(0, opts.findIndex((o) => o.value === value));
+  return (
+    <div className="slider">
+      <input type="range" {...a} min={0} max={opts.length - 1} step={1} value={i} aria-valuetext={opts[i].label} onChange={(e) => onChange(opts[Number(e.target.value)].value)} />
+      <div className="slider-ends" style={{ margin: '-6px 0 0' }} aria-hidden="true"><span>{q.anchors?.[0] ?? opts[0].label}</span><span>{q.anchors?.[1] ?? opts[opts.length - 1].label}</span></div>
+      <output className="slider-word" aria-live="polite">{opts[i].label}</output>
+    </div>
+  );
+}
+
 function Slider({ q, a, value, onChange }: { q: Question; a: { id: string; 'aria-invalid'?: boolean; 'aria-describedby'?: string }; value: any; onChange: (v: any) => void }) {
   const min = q.min!, max = q.max!;
   const empty = value === '' || value === undefined || Number.isNaN(Number(value));
@@ -124,7 +156,8 @@ function Slider({ q, a, value, onChange }: { q: Question; a: { id: string; 'aria
         <input type="range" {...a} min={min} max={max} step={q.step} value={shown} onChange={(e) => onChange(e.target.value)} className={empty ? 'unset' : ''} />
         <input className="input slider-num" type="number" inputMode="decimal" aria-label={q.label} min={min} max={max} step={q.step} value={value} placeholder={t('not set')} onChange={(e) => onChange(e.target.value)} />
       </div>
-      <div className="slider-ends" aria-hidden="true"><span>{min}</span><span>{max}</span></div>
+      <div className="slider-ends" aria-hidden="true"><span>{q.anchors?.[0] ?? min}</span><span>{q.anchors?.[1] ?? max}</span></div>
+      {!empty && q.words && q.words[Math.round((shown - min) / (q.step || 1))] && <output className="slider-word" aria-live="polite">{q.words[Math.round((shown - min) / (q.step || 1))]}</output>}
     </div>
   );
 }

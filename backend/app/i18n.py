@@ -42,6 +42,9 @@ def _question(q: dict, ov: dict) -> dict:
     for k in ("label", "help", "why", "placeholder", "itemLabel"):
         if ov.get(k):
             q[k] = ov[k]
+    for k in ("anchors", "words"):  # slider end labels and the word for each step
+        if q.get(k) and ov.get(k) and len(ov[k]) == len(q[k]):
+            q[k] = ov[k]
     if q.get("defaultRows") and ov.get("defaultRows"):
         q["defaultRows"] = [{**r, "name": ov["defaultRows"].get(r["name"], r["name"])} for r in q["defaultRows"]]
     if q.get("labelFrom") and ov.get("labelTemplate"):

@@ -44,7 +44,7 @@ export interface Question {
   id: string; group?: string; type: 'text' | 'textarea' | 'number' | 'date' | 'select' | 'list';
   fields?: Question[]; minRows?: number; maxRows?: number; itemLabel?: string;
   label: string; help?: string; required?: boolean; placeholder?: string; max?: number; min?: number; step?: number;
-  default?: string | number; defaultRows?: Record<string, any>[]; options?: { value: string; label: string }[];
+  default?: string | number; slider?: boolean; sliderReverse?: boolean; anchors?: string[]; words?: string[]; defaultRows?: Record<string, any>[]; options?: { value: string; label: string }[];
   why?: string;
   labelFrom?: { list: string; field: string; index: number; template: string };
 }

@@ -95,3 +95,23 @@ def test_decision_form_starts_with_time_cost_quality():
     s = packs.public_situation(packs.get_situation("choose-between-options"))
     q = next(x for x in s["questions"] if x["id"] == "criteria")
     assert [r["name"] for r in q["defaultRows"]] == ["Time", "Cost", "Quality"] and all(r["weight"] == 3 for r in q["defaultRows"])
+
+
+def test_ordered_choices_are_sliders_and_keep_their_stored_values():
+    """A choice slider stores the option's key, so the engines see exactly the same values as with the old drop-down."""
+    from app.validate import validate_answers
+    from app.packs import public_situation
+    for s in packs.situations:
+        pub = public_situation(s)
+        for q in pub["questions"]:
+            if q["type"] == "select" and q.get("slider"):
+                keys = [o["value"] for o in q["options"]]
+                assert 2 <= len(keys) <= 5 and len(q["anchors"]) == 2
+                for k in keys:  # every position of the slider is a value the validator accepts
+                    vals, errs = validate_answers([{**q, "required": True}], {q["id"]: k})
+                    assert not errs and vals[q["id"]] == k
+            if q.get("words"):
+                assert len(q["words"]) == int((q["max"] - q["min"]) / q["step"]) + 1
+            for f in q.get("fields", []):
+                if f.get("words"):
+                    assert len(f["words"]) == int((f["max"] - f["min"]) / f["step"]) + 1

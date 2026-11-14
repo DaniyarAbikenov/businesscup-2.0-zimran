@@ -61,6 +61,12 @@
               "value": "nice",
               "label": "Nice-to-have"
             }
+          ],
+          "slider": true,
+          "sliderReverse": true,
+          "anchors": [
+            "Nice to have",
+            "Must have"
           ]
         },
         {
@@ -136,7 +142,11 @@
           "min": 0,
           "max": 100,
           "step": 5,
-          "default": 0
+          "default": 0,
+          "anchors": [
+            "Pays nothing",
+            "Pays all"
+          ]
         },
         {
           "id": "delayPenaltyPerDay",
@@ -171,7 +181,11 @@
           "min": 0,
           "max": 100,
           "step": 5,
-          "default": 60
+          "default": 60,
+          "anchors": [
+            "Nothing in parallel",
+            "Everything in parallel"
+          ]
         },
         {
           "id": "focusPct",
@@ -182,7 +196,11 @@
           "min": 10,
           "max": 100,
           "step": 5,
-          "default": 70
+          "default": 70,
+          "anchors": [
+            "Constantly interrupted",
+            "Fully focused"
+          ]
         }
       ],
       "options": {
@@ -914,7 +932,11 @@
           "max": 80,
           "step": 5,
           "default": 20,
-          "why": "People lose time to messages and switching tasks. Counting it makes the date honest."
+          "why": "People lose time to messages and switching tasks. Counting it makes the date honest.",
+          "anchors": [
+            "None",
+            "Most of my time"
+          ]
         },
         {
           "id": "startDate",
@@ -966,6 +988,11 @@
               "value": "high",
               "label": "Serious: contract, launch, money"
             }
+          ],
+          "slider": true,
+          "anchors": [
+            "Small inconvenience",
+            "Serious"
           ]
         },
         {
@@ -1031,7 +1058,11 @@
           "required": false,
           "min": 10,
           "max": 100,
-          "step": 5
+          "step": 5,
+          "anchors": [
+            "Much smaller",
+            "Almost everything"
+          ]
         }
       ],
       "options": {
@@ -1247,7 +1278,14 @@
               "max": 5,
               "step": 1,
               "default": 3,
-              "why": "Weights say what matters most. Set them before you score the options, so the scores do not bend them."
+              "why": "Weights say what matters most. Set them before you score the options, so the scores do not bend them.",
+              "words": [
+                "Nice to have",
+                "Minor",
+                "Important",
+                "Very important",
+                "Critical"
+              ]
             }
           ],
           "defaultRows": [
@@ -1303,7 +1341,14 @@
                 "index": 0,
                 "template": "Score on \"{name}\" (1-5)"
               },
-              "help": "5 is best for you"
+              "help": "5 is best for you",
+              "words": [
+                "Poor",
+                "Weak",
+                "Okay",
+                "Good",
+                "Excellent"
+              ]
             },
             {
               "id": "s2",
@@ -1318,7 +1363,14 @@
                 "field": "name",
                 "index": 1,
                 "template": "Score on \"{name}\" (1-5)"
-              }
+              },
+              "words": [
+                "Poor",
+                "Weak",
+                "Okay",
+                "Good",
+                "Excellent"
+              ]
             },
             {
               "id": "s3",
@@ -1333,7 +1385,14 @@
                 "field": "name",
                 "index": 2,
                 "template": "Score on \"{name}\" (1-5)"
-              }
+              },
+              "words": [
+                "Poor",
+                "Weak",
+                "Okay",
+                "Good",
+                "Excellent"
+              ]
             },
             {
               "id": "s4",
@@ -1348,7 +1407,14 @@
                 "field": "name",
                 "index": 3,
                 "template": "Score on \"{name}\" (1-5)"
-              }
+              },
+              "words": [
+                "Poor",
+                "Weak",
+                "Okay",
+                "Good",
+                "Excellent"
+              ]
             },
             {
               "id": "s5",
@@ -1363,7 +1429,14 @@
                 "field": "name",
                 "index": 4,
                 "template": "Score on \"{name}\" (1-5)"
-              }
+              },
+              "words": [
+                "Poor",
+                "Weak",
+                "Okay",
+                "Good",
+                "Excellent"
+              ]
             },
             {
               "id": "s6",
@@ -1378,7 +1451,14 @@
                 "field": "name",
                 "index": 5,
                 "template": "Score on \"{name}\" (1-5)"
-              }
+              },
+              "words": [
+                "Poor",
+                "Weak",
+                "Okay",
+                "Good",
+                "Excellent"
+              ]
             }
           ]
         },
@@ -1402,6 +1482,11 @@
               "value": "cannot",
               "label": "Cannot be undone"
             }
+          ],
+          "slider": true,
+          "anchors": [
+            "Easy to undo",
+            "Cannot be undone"
           ]
         },
         {
@@ -1451,6 +1536,11 @@
               "value": "high",
               "label": "High, I checked"
             }
+          ],
+          "slider": true,
+          "anchors": [
+            "A guess",
+            "I checked"
           ]
         },
         {

@@ -219,4 +219,11 @@ ol.path .card.first { border-color: var(--accent-700); }
 .slider input[type=range] { flex: 1; min-width: 0; height: 44px; accent-color: var(--accent-700); cursor: pointer; }
 .slider input[type=range].unset { opacity: .45; }
 .slider-num { width: 92px; flex: none; text-align: right; }
-.slider-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--n-800); margin: -6px 104px 0 0; }
+.slider-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--n-800); margin: -6px 104px 0 0; gap: 12px; }
+.slider-ends span { max-width: 48%; }
+.slider-word { display: block; font-weight: 600; color: var(--accent-700); margin-top: 2px; min-height: 22px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.chip { background: var(--n-100); border: 1px solid var(--n-400); border-radius: 999px; padding: 6px 12px; min-height: 32px; font: inherit; font-size: 13px; color: var(--n-1000); cursor: pointer; }
+.chip:hover { border-color: var(--accent-700); }
+
+.slider > input[type=range] { width: 100%; height: 44px; accent-color: var(--accent-700); cursor: pointer; }
