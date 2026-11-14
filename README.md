@@ -104,7 +104,7 @@ Short step-by-step tips (popovers anchored to real elements) appear once, the fi
 
 ## User guide
 
-How to use the service: [English guide](docs/USER_GUIDE.en.md) (a Russian text version, [docs/USER_GUIDE.ru.md](docs/USER_GUIDE.ru.md), is kept but the product itself is English only).
+For an independent tester or AI agent: [docs/AGENT_GUIDE.md](docs/AGENT_GUIDE.md) (access, steps, correct answers to check, how to report). How to use the service: [English guide](docs/USER_GUIDE.en.md) (a Russian text version, [docs/USER_GUIDE.ru.md](docs/USER_GUIDE.ru.md), is kept but the product itself is English only).
 
 ## Deploy on Vercel
 
