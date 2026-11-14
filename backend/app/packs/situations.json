@@ -17,10 +17,11 @@
           "id": "changeTitle",
           "group": "change",
           "type": "text",
-          "label": "What is the change, in one line?",
+          "label": "What is the change?",
           "required": true,
           "max": 120,
-          "placeholder": "Add CSV export to the reports screen"
+          "placeholder": "Add CSV export to the reports screen",
+          "example": "Add a CSV export to the reports screen"
         },
         {
           "id": "changeDescription",
@@ -29,7 +30,9 @@
           "label": "What exactly does the client want?",
           "help": "Ask the client for specifics: which screens or deliverables, what is the acceptance criterion, what happens if it is not there.",
           "required": false,
-          "max": 1000
+          "max": 1000,
+          "example": "Which screens, what counts as done",
+          "detail": true
         },
         {
           "id": "requestedBy",
@@ -38,13 +41,14 @@
           "label": "Who asked for it?",
           "required": true,
           "max": 80,
-          "placeholder": "Jordan, VP Operations (client)"
+          "placeholder": "Jordan, VP Operations (client)",
+          "example": "Jordan, VP Operations (client)"
         },
         {
           "id": "priority",
           "group": "change",
           "type": "select",
-          "label": "How critical is it for the client?",
+          "label": "How critical is this for the client?",
           "help": "Ask: what happens to them if this is not in this release?",
           "required": true,
           "default": "important",
@@ -73,7 +77,7 @@
           "id": "releaseDate",
           "group": "numbers",
           "type": "date",
-          "label": "Current release date",
+          "label": "When is the release?",
           "required": true,
           "defaultDaysFromNow": 14
         },
@@ -81,62 +85,69 @@
           "id": "teamSize",
           "group": "numbers",
           "type": "number",
-          "label": "People working on the project",
+          "label": "How many people work on the project?",
           "required": true,
           "min": 1,
           "max": 200,
           "step": 1,
-          "default": 6
+          "default": 6,
+          "unit": "people"
         },
         {
           "id": "dailyRate",
           "group": "numbers",
           "type": "number",
-          "label": "Average cost per person-day (USD)",
+          "label": "What does one person-day cost?",
           "help": "Use the internal blended rate or your best estimate.",
           "required": true,
           "min": 1,
           "max": 20000,
-          "default": 600
+          "default": 600,
+          "unit": "USD",
+          "example": "Salary plus overhead, divided by working days"
         },
         {
           "id": "budgetRemaining",
           "group": "numbers",
           "type": "number",
-          "label": "Budget remaining for the project (USD)",
+          "label": "How much budget is left?",
           "required": true,
           "min": 0,
           "max": 1000000000,
-          "default": 40000
+          "default": 40000,
+          "unit": "USD"
         },
         {
           "id": "changeEffortDays",
           "group": "numbers",
           "type": "number",
-          "label": "Estimated effort for the change (person-days)",
+          "label": "How much work is the change?",
           "help": "Ask the team for a quick estimate. Do not guess alone.",
           "required": true,
           "min": 0.5,
           "max": 5000,
           "step": 0.5,
-          "default": 10
+          "default": 10,
+          "unit": "person-days",
+          "example": "Ask the team: one person for one day is 1"
         },
         {
           "id": "bufferDays",
           "group": "numbers",
           "type": "number",
-          "label": "Schedule buffer left before the release (working days)",
+          "label": "How many spare days are left before the release?",
           "required": true,
           "min": 0,
           "max": 365,
           "step": 1,
-          "default": 2
+          "default": 2,
+          "unit": "days"
         },
         {
           "id": "clientCoversPct",
           "group": "numbers",
           "type": "number",
-          "label": "Share of the change cost the client will pay (%)",
+          "label": "How much of the cost will the client pay?",
           "help": "0 if the contract does not allow billing the change.",
           "required": true,
           "min": 0,
@@ -146,23 +157,26 @@
           "anchors": [
             "Pays nothing",
             "Pays all"
-          ]
+          ],
+          "unit": "%"
         },
         {
           "id": "delayPenaltyPerDay",
           "group": "numbers",
           "type": "number",
-          "label": "Contract penalty per day of delay (USD, optional)",
+          "label": "Is there a contract penalty for each day of delay?",
           "required": false,
           "min": 0,
           "max": 100000000,
-          "default": 0
+          "default": 0,
+          "unit": "USD per day",
+          "detail": true
         },
         {
           "id": "partlyPct",
           "group": "numbers",
           "type": "number",
-          "label": "If you accept only part of it: share you would deliver now (%, optional)",
+          "label": "If you took only part of it, how much would you deliver now?",
           "help": "Leave empty if the change cannot be split. The rest is left out or comes later.",
           "why": "A smaller version changes the date, the cost and the quality risk. With this share we show it as its own row in the comparison.",
           "required": false,
@@ -172,26 +186,30 @@
           "anchors": [
             "A small slice",
             "Almost all"
-          ]
+          ],
+          "unit": "%",
+          "detail": true
         },
         {
           "id": "overheadPct",
           "group": "assumptions",
           "type": "number",
-          "label": "Testing and coordination overhead (%)",
+          "label": "How much extra is needed for testing and coordination?",
           "help": "Extra effort on top of the raw estimate for QA, regression, docs and meetings.",
           "required": true,
           "min": 0,
           "max": 200,
           "step": 5,
           "default": 25,
-          "why": "Testing, reviews and coordination come on top of the raw estimate on almost every change."
+          "why": "Testing, reviews and coordination come on top of the raw estimate on almost every change.",
+          "unit": "%",
+          "detail": true
         },
         {
           "id": "parallelPct",
           "group": "assumptions",
           "type": "number",
-          "label": "Share of the work that can be split across the team (%)",
+          "label": "How much of the work can the team share?",
           "help": "Not all work can be shared. 100 means perfectly splittable.",
           "required": true,
           "min": 0,
@@ -201,13 +219,15 @@
           "anchors": [
             "Nothing in parallel",
             "Everything in parallel"
-          ]
+          ],
+          "unit": "%",
+          "detail": true
         },
         {
           "id": "focusPct",
           "group": "assumptions",
           "type": "number",
-          "label": "Productive share of a working day (%)",
+          "label": "How much of a working day is really productive?",
           "required": true,
           "min": 10,
           "max": 100,
@@ -216,7 +236,9 @@
           "anchors": [
             "Constantly interrupted",
             "Fully focused"
-          ]
+          ],
+          "unit": "%",
+          "detail": true
         }
       ],
       "options": {
@@ -346,19 +368,16 @@
           "title": "The change",
           "groups": [
             "change"
-          ]
+          ],
+          "detailNote": "A description helps the document you will send."
         },
         {
-          "title": "Your project numbers",
+          "title": "Your numbers",
           "groups": [
-            "numbers"
-          ]
-        },
-        {
-          "title": "Assumptions",
-          "groups": [
+            "numbers",
             "assumptions"
-          ]
+          ],
+          "detailNote": "A penalty, a partial delivery and the assumptions change the date, the cost and the quality row."
         }
       ]
     },
@@ -405,18 +424,20 @@
           "id": "title",
           "group": "situation",
           "type": "text",
-          "label": "In one line, what is going on?",
+          "label": "What is going on, in one line?",
           "placeholder": "Three urgent asks landed in my first month",
           "required": true,
-          "max": 120
+          "max": 120,
+          "example": "Three asks this week and not enough hours"
         },
         {
           "id": "context",
           "group": "situation",
           "type": "textarea",
-          "label": "Background (optional)",
+          "label": "Anything the reader should know?",
           "help": "Who is involved, what was promised, what you are unsure about. It goes into your proposal.",
-          "max": 800
+          "max": 800,
+          "detail": true
         },
         {
           "id": "tasks",
@@ -431,7 +452,7 @@
             {
               "id": "name",
               "type": "text",
-              "label": "Task",
+              "label": "What is the task?",
               "required": true,
               "max": 80,
               "placeholder": "Quarterly report draft"
@@ -439,23 +460,24 @@
             {
               "id": "effortHours",
               "type": "number",
-              "label": "Hours of work",
+              "label": "How many hours of work?",
               "required": true,
               "min": 0.5,
               "max": 400,
               "step": 0.5,
-              "help": "Your honest estimate"
+              "help": "Your honest estimate",
+              "unit": "h"
             },
             {
               "id": "deadline",
               "type": "date",
-              "label": "Deadline",
+              "label": "When is it due?",
               "required": true
             },
             {
               "id": "requester",
               "type": "select",
-              "label": "Who asked",
+              "label": "Who asked?",
               "required": true,
               "default": "manager",
               "options": [
@@ -484,7 +506,7 @@
             {
               "id": "impact",
               "type": "select",
-              "label": "If it is late",
+              "label": "What happens if it is late?",
               "required": true,
               "default": "reputation",
               "options": [
@@ -509,29 +531,34 @@
             {
               "id": "note",
               "type": "text",
-              "label": "Note (optional)",
-              "max": 200
+              "label": "A note",
+              "max": 200,
+              "detail": true
             },
             {
               "id": "costPerLateDay",
               "type": "number",
-              "label": "Cost per working day late (optional)",
+              "label": "What does each working day late cost?",
               "help": "Money lost or damage per day, any currency.",
               "required": false,
               "min": 0,
               "max": 1000000000,
               "step": 1,
-              "default": 0
+              "default": 0,
+              "unit": "USD",
+              "detail": true
             },
             {
               "id": "minEffortHours",
               "type": "number",
-              "label": "Hours of the minimum acceptable version (optional)",
+              "label": "How many hours would a minimum version take?",
               "help": "Leave empty if it cannot be cut.",
               "required": false,
               "min": 0,
               "max": 400,
-              "step": 0.5
+              "step": 0.5,
+              "unit": "h",
+              "detail": true
             }
           ],
           "collapsible": true,
@@ -544,39 +571,44 @@
           "id": "hoursPerWeek",
           "group": "time",
           "type": "number",
-          "label": "Your working hours per week",
+          "label": "How many hours a week do you work?",
           "required": true,
           "min": 5,
           "max": 80,
           "step": 1,
           "default": 40,
-          "why": "Your own free time sets how fast the work can go. If you enter all 40 hours, every date will be too optimistic."
+          "why": "Your own free time sets how fast the work can go. If you enter all 40 hours, every date will be too optimistic.",
+          "unit": "h"
         },
         {
           "id": "committedHours",
           "group": "time",
           "type": "number",
-          "label": "Hours per week already taken",
+          "label": "How many of those hours are already taken?",
           "help": "Meetings, support, ongoing work that will not stop",
           "required": true,
           "min": 0,
           "max": 79,
           "step": 1,
           "default": 15,
-          "why": "Meetings and ongoing work do not stop because a new request arrived. We only plan with what is left."
+          "why": "Meetings and ongoing work do not stop because a new request arrived. We only plan with what is left.",
+          "unit": "h",
+          "example": "Meetings, support, ongoing work that will not stop"
         },
         {
           "id": "hiddenHours",
           "group": "forgot",
           "type": "number",
-          "label": "Hours per week I may be forgetting",
+          "label": "How many hours a week might you be forgetting?",
           "help": "Recurring work, favours you do for others, things you promised out loud.",
           "why": "Plans fail on the hours nobody wrote down. If you think about it for a minute, you can usually name some. We take these hours off your free time.",
           "required": false,
           "min": 0,
           "max": 40,
           "step": 1,
-          "default": 0
+          "default": 0,
+          "unit": "h",
+          "detail": true
         },
         {
           "id": "forgotten",
@@ -585,31 +617,37 @@
           "label": "What else might be missing?",
           "help": "Verbal promises, recurring work, work you cover for others, things you depend on, holidays.",
           "required": false,
-          "max": 500
+          "max": 500,
+          "detail": true
         },
         {
           "id": "extraHourCost",
           "group": "money",
           "type": "number",
-          "label": "Cost of one extra hour (overtime, contractor)",
+          "label": "What would one extra hour cost?",
           "help": "Any currency. Leave empty if you cannot add hours.",
           "why": "Time is only one of three things you can trade. With a price per hour we show what paying to fix lateness costs.",
           "required": false,
           "min": 0,
           "max": 100000,
           "step": 1,
-          "default": 0
+          "default": 0,
+          "unit": "USD",
+          "example": "Overtime or a contractor, any currency",
+          "detail": true
         },
         {
           "id": "extraHoursPerWeek",
           "group": "money",
           "type": "number",
-          "label": "Extra hours per week you could add by paying",
+          "label": "How many extra hours a week could you add by paying?",
           "required": false,
           "min": 0,
           "max": 40,
           "step": 1,
-          "default": 0
+          "default": 0,
+          "unit": "h",
+          "detail": true
         }
       ],
       "options": {
@@ -857,24 +895,21 @@
       "skill": "prioritising",
       "steps": [
         {
-          "title": "Situation and tasks",
+          "title": "Your tasks",
           "groups": [
             "situation",
             "tasks"
-          ]
+          ],
+          "detailNote": "Minimum versions and the cost of lateness unlock the time, money and quality table."
         },
         {
           "title": "Your time",
           "groups": [
-            "time"
-          ]
-        },
-        {
-          "title": "Optional details",
-          "groups": [
+            "time",
             "forgot",
             "money"
-          ]
+          ],
+          "detailNote": "Hours you may be forgetting and the price of an extra hour unlock the paid options."
         }
       ]
     },
@@ -930,68 +965,76 @@
           "label": "What are you being asked to do?",
           "required": true,
           "max": 120,
-          "placeholder": "Quarterly churn report for the VP"
+          "placeholder": "Quarterly churn report for the VP",
+          "example": "Build the churn report for the VP"
         },
         {
           "id": "context",
           "group": "task",
           "type": "textarea",
-          "label": "Background (optional)",
+          "label": "Anything the reader should know?",
           "help": "What is included, what you depend on, what is unclear. It goes into your reply.",
-          "max": 800
+          "max": 800,
+          "detail": true
         },
         {
           "id": "optimisticHours",
           "group": "estimate",
           "type": "number",
-          "label": "Best case (hours)",
+          "label": "Best case: how many hours?",
           "help": "Everything goes well, no surprises.",
           "required": true,
           "min": 0.5,
           "max": 2000,
           "step": 0.5,
-          "why": "Three estimates show how uncertain the work is. The gap between them decides how much buffer you need."
+          "why": "Three estimates show how uncertain the work is. The gap between them decides how much buffer you need.",
+          "unit": "h",
+          "example": "Everything goes right"
         },
         {
           "id": "likelyHours",
           "group": "estimate",
           "type": "number",
-          "label": "Most likely (hours)",
+          "label": "Most likely: how many hours?",
           "help": "What you would bet on.",
           "required": true,
           "min": 0.5,
           "max": 2000,
-          "step": 0.5
+          "step": 0.5,
+          "unit": "h"
         },
         {
           "id": "pessimisticHours",
           "group": "estimate",
           "type": "number",
-          "label": "Worst realistic case (hours)",
+          "label": "Worst realistic case: how many hours?",
           "help": "Things go wrong in the usual ways, not a disaster.",
           "required": true,
           "min": 0.5,
           "max": 4000,
-          "step": 0.5
+          "step": 0.5,
+          "unit": "h",
+          "example": "Things go wrong in the usual ways, not a disaster"
         },
         {
           "id": "hoursPerWeek",
           "group": "time",
           "type": "number",
-          "label": "Free hours per week for this task",
+          "label": "How many hours a week can you give this?",
           "help": "After meetings and other work that will not stop.",
           "required": true,
           "min": 1,
           "max": 80,
           "step": 1,
           "default": 15,
-          "why": "Your own free time sets how fast the work can go. If you enter all 40 hours, every date will be too optimistic."
+          "why": "Your own free time sets how fast the work can go. If you enter all 40 hours, every date will be too optimistic.",
+          "unit": "h"
         },
         {
           "id": "interruptionsPct",
           "group": "time",
           "type": "number",
-          "label": "Lost to interruptions and context switches (%)",
+          "label": "How much of that time do interruptions eat?",
           "help": "Be honest: most people lose 15 to 30 %.",
           "required": true,
           "min": 0,
@@ -1002,7 +1045,8 @@
           "anchors": [
             "None",
             "Most of my time"
-          ]
+          ],
+          "unit": "%"
         },
         {
           "id": "startDate",
@@ -1065,22 +1109,25 @@
           "id": "askedDeadline",
           "group": "ask",
           "type": "date",
-          "label": "The date they asked for (optional)",
+          "label": "Did they name a date?",
           "help": "Leave empty if they only asked how long it takes.",
-          "required": false
+          "required": false,
+          "example": "Leave empty if they did not"
         },
         {
           "id": "hiddenHours",
           "group": "forgot",
           "type": "number",
-          "label": "Hours per week I may be forgetting",
+          "label": "How many hours a week might you be forgetting?",
           "help": "Recurring work, favours you do for others, things you promised out loud.",
           "why": "Plans fail on the hours nobody wrote down. If you think about it for a minute, you can usually name some. We take these hours off your free time.",
           "required": false,
           "min": 0,
           "max": 40,
           "step": 1,
-          "default": 0
+          "default": 0,
+          "unit": "h",
+          "detail": true
         },
         {
           "id": "forgotten",
@@ -1089,37 +1136,43 @@
           "label": "What else might be missing?",
           "help": "Verbal promises, recurring work, work you cover for others, things you depend on, holidays.",
           "required": false,
-          "max": 500
+          "max": 500,
+          "detail": true
         },
         {
           "id": "hourlyCost",
           "group": "money",
           "type": "number",
-          "label": "Cost of one extra hour (optional)",
+          "label": "What would one extra hour cost?",
           "help": "Any currency.",
           "why": "Time is only one of three things you can trade. With a price per hour we show what speeding up costs.",
           "required": false,
           "min": 0,
           "max": 100000,
           "step": 1,
-          "default": 0
+          "default": 0,
+          "unit": "USD",
+          "example": "Any currency",
+          "detail": true
         },
         {
           "id": "extraHoursPerWeek",
           "group": "money",
           "type": "number",
-          "label": "Extra hours per week you could add by paying",
+          "label": "How many extra hours a week could you add by paying?",
           "required": false,
           "min": 0,
           "max": 40,
           "step": 1,
-          "default": 0
+          "default": 0,
+          "unit": "h",
+          "detail": true
         },
         {
           "id": "goodEnoughPct",
           "group": "money",
           "type": "number",
-          "label": "Share of the hours a good-enough version needs (%)",
+          "label": "What share of the hours would a good-enough version need?",
           "help": "For example 70. Leave empty if there is no smaller version.",
           "required": false,
           "min": 10,
@@ -1128,7 +1181,9 @@
           "anchors": [
             "Much smaller",
             "Almost everything"
-          ]
+          ],
+          "unit": "%",
+          "detail": true
         }
       ],
       "options": {
@@ -1274,21 +1329,18 @@
           "groups": [
             "task",
             "estimate"
-          ]
+          ],
+          "detailNote": "Background helps the reply you will send."
         },
         {
-          "title": "Time and who is asking",
+          "title": "Your time and who is asking",
           "groups": [
             "time",
-            "ask"
-          ]
-        },
-        {
-          "title": "Optional details",
-          "groups": [
+            "ask",
             "forgot",
             "money"
-          ]
+          ],
+          "detailNote": "Extra-hour cost and a good-enough share unlock the time, money and quality table."
         }
       ]
     },
@@ -1330,15 +1382,17 @@
           "label": "What do you have to decide?",
           "required": true,
           "max": 120,
-          "placeholder": "Which BI tool should our team use?"
+          "placeholder": "Which BI tool should our team use?",
+          "example": "Which BI tool should our team use?"
         },
         {
           "id": "context",
           "group": "situation",
           "type": "textarea",
-          "label": "Background (optional)",
+          "label": "Anything the reader should know?",
           "help": "What is at stake, who else has a say. It goes into your decision note.",
-          "max": 800
+          "max": 800,
+          "detail": true
         },
         {
           "id": "criteria",
@@ -1353,7 +1407,7 @@
             {
               "id": "name",
               "type": "text",
-              "label": "Criterion",
+              "label": "What matters?",
               "required": true,
               "max": 60,
               "placeholder": "Fits our data"
@@ -1361,7 +1415,7 @@
             {
               "id": "weight",
               "type": "number",
-              "label": "Weight (1-5)",
+              "label": "How much does it matter?",
               "required": true,
               "min": 1,
               "max": 5,
@@ -1405,7 +1459,7 @@
             {
               "id": "name",
               "type": "text",
-              "label": "Option",
+              "label": "What is the option?",
               "required": true,
               "max": 60,
               "placeholder": "Tool A"
@@ -1413,8 +1467,9 @@
             {
               "id": "note",
               "type": "text",
-              "label": "Note",
-              "max": 200
+              "label": "A note",
+              "max": 200,
+              "detail": true
             },
             {
               "id": "s1",
@@ -1638,8 +1693,9 @@
           "id": "decideBy",
           "group": "stakes",
           "type": "date",
-          "label": "Decide by (optional)",
-          "required": false
+          "label": "Is there a date to decide by?",
+          "required": false,
+          "detail": true
         }
       ],
       "options": {
@@ -1973,23 +2029,26 @@
       "skill": "choosing",
       "steps": [
         {
-          "title": "The decision and criteria",
+          "title": "The decision and what matters",
           "groups": [
             "situation",
             "criteria"
-          ]
+          ],
+          "detailNote": "Background goes into your decision note."
         },
         {
-          "title": "Options and scores",
+          "title": "Your options",
           "groups": [
             "options"
-          ]
+          ],
+          "detailNote": "Notes help you remember why you scored as you did."
         },
         {
           "title": "The stakes",
           "groups": [
             "stakes"
-          ]
+          ],
+          "detailNote": "A decision date goes into the note."
         }
       ]
     }

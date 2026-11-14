@@ -44,13 +44,13 @@ export interface Question {
   id: string; group?: string; type: 'text' | 'textarea' | 'number' | 'date' | 'select' | 'list';
   fields?: Question[]; minRows?: number; maxRows?: number; itemLabel?: string;
   label: string; help?: string; required?: boolean; placeholder?: string; max?: number; min?: number; step?: number;
-  default?: string | number; collapsible?: boolean; summaryFields?: string[]; slider?: boolean; sliderReverse?: boolean; anchors?: string[]; words?: string[]; defaultRows?: Record<string, any>[]; options?: { value: string; label: string }[];
+  default?: string | number; unit?: string; detail?: boolean; example?: string; collapsible?: boolean; summaryFields?: string[]; slider?: boolean; sliderReverse?: boolean; anchors?: string[]; words?: string[]; defaultRows?: Record<string, any>[]; options?: { value: string; label: string }[];
   why?: string;
   labelFrom?: { list: string; field: string; index: number; template: string };
 }
 export interface Storyline { id: string; title: string; story: string; answers: Record<string, any> }
 export interface Situation {
-  steps?: { title: string; groups: string[] }[];
+  steps?: { title: string; groups: string[]; detailNote?: string }[];
   id: string; engine: 'change_request' | 'priorities' | 'estimate' | 'decision'; aiMade?: boolean; category?: string; title: string; summary: string; applies_to: string[]; questions: Question[];
   skill?: string; titleField?: string; documentName?: string; storylines?: Storyline[];
   groups?: { id: string; title: string; columns?: number; collapsed?: boolean }[];

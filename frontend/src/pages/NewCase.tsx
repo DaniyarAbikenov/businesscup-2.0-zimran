@@ -123,7 +123,7 @@ function NewCase() {
         </Panel>
       )}
       {story && <div className="banner ok" role="note"><strong>{t('Example: {title}.', { title: story.title })}</strong> {t('These are example numbers, not yours. Edit them freely.')}</div>}
-      <Wizard sit={sit} answers={answers} setAnswers={setAnswers} serverFields={fields} conf={conf} setConf={setConf} ack={ack} setAck={setAck} error={error} busy={busy} onSubmit={submit} />
+      <Wizard sit={sit} answers={answers} setAnswers={setAnswers} serverFields={fields} conf={conf} setConf={setConf} ack={ack} setAck={setAck} error={error} busy={busy} onSubmit={submit} onExample={sit.storylines && sit.storylines.length ? () => pick(sit.storylines![0]) : undefined} />
     </div>
   );
 }

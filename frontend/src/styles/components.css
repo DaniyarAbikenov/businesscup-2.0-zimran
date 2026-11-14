@@ -243,3 +243,20 @@ ol.path .card.first { border-color: var(--accent-700); }
 .review-row { display: grid; grid-template-columns: minmax(140px, 40%) 1fr; gap: 12px; border-bottom: 1px solid var(--n-400); padding-bottom: 8px; }
 .review dt { color: var(--n-800); font-size: 14px; }
 .review dd { margin: 0; overflow-wrap: anywhere; }
+
+/* Number stepper, hints, "Add more detail" */
+.stepper-num { display: flex; align-items: center; gap: 6px; }
+.stepper-num .input { width: 140px; text-align: right; }
+.step-btn { width: 40px; height: 40px; border-radius: var(--r-control); border: 1px solid var(--n-400); background: var(--n-100); color: var(--n-1000); font-size: 20px; line-height: 1; cursor: pointer; }
+.step-btn:hover { border-color: var(--accent-700); }
+.hint { font-size: 13px; color: var(--n-800); margin: 0 0 6px; font-style: italic; }
+.more { margin-top: 16px; border-top: 1px solid var(--n-400); padding-top: 10px; }
+.more > summary { cursor: pointer; font-weight: 600; color: var(--accent-700); }
+.more-note { font-weight: 400; color: var(--n-800); font-size: 13px; margin-left: 8px; }
+.more .field:first-of-type { margin-top: 12px; }
+.listq-row .segs { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+.review-edit { margin-left: 8px; font-size: 13px; }
+.linkbtn { background: none; border: 0; padding: 0 0 0 12px; font: inherit; font-size: 13px; color: var(--accent-700); cursor: pointer; text-decoration: underline; }
+.review-block { margin: 0 0 16px; }
+.review-block h3 { font-size: 16px; margin: 0 0 8px; }
+.listq-row .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }

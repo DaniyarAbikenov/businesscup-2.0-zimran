@@ -66,12 +66,13 @@ export function Button({ variant = 'primary', busy, children, className, ...rest
 
 export const Badge = ({ level }: { level: 'low' | 'medium' | 'high' }) => <span className={`badge ${level}`}>{t('Risk on your numbers: {level}', { level: t(level) })}</span>;
 
-interface FieldProps { id: string; label: string; help?: string; why?: string; error?: string; children: (a: { id: string; 'aria-invalid'?: boolean; 'aria-describedby'?: string }) => ReactNode }
-export function Field({ id, label, help, why, error, children }: FieldProps) {
+interface FieldProps { id: string; label: string; help?: string; hint?: string; why?: string; error?: string; children: (a: { id: string; 'aria-invalid'?: boolean; 'aria-describedby'?: string }) => ReactNode }
+export function Field({ id, label, help, hint, why, error, children }: FieldProps) {
   return (
     <div className="field">
       <label htmlFor={id} id={id + '-l'}>{label}</label>
       {help && <div className="help" id={id + '-h'}>{help}</div>}
+      {hint && <div className="hint">{hint}</div>}
       {children({ id, 'aria-invalid': error ? true : undefined, 'aria-describedby': error ? id + '-e' : help ? id + '-h' : undefined })}
       {why && <Why>{why}</Why>}
       {error && <div className="error" id={id + '-e'}>{error}</div>}
@@ -82,9 +83,9 @@ export function Field({ id, label, help, why, error, children }: FieldProps) {
 /** Renders one question from the scenario pack. A "list" question renders repeatable rows. */
 export function QuestionField({ q, value, error, errors, onChange, answers }: { q: Question; value: any; error?: string; errors?: Record<string, string>; onChange: (v: any) => void; answers?: Record<string, any> }) {
   if (q.type === 'list') return <ListField q={q} rows={value ?? []} error={error} errors={errors ?? {}} onChange={onChange} answers={answers ?? {}} />;
-  const label = q.label + (q.required || q.labelFrom || /\(optional\)/i.test(q.label) ? '' : ' (' + t('optional') + ')');
+  const label = q.label;
   return (
-    <Field id={'q_' + q.id} label={label} help={q.help} why={q.why} error={error}>
+    <Field id={'q_' + q.id} label={label} help={q.help} hint={q.example} why={q.why} error={error}>
       {(a) =>
         q.type === 'select' && q.slider ? (
           <ChoiceSlider q={q} a={a} value={value} onChange={onChange} />
@@ -94,6 +95,8 @@ export function QuestionField({ q, value, error, errors, onChange, answers }: { 
           </div>
         ) : q.type === 'number' && sliderOf(q) ? (
           <Slider q={q} a={a} value={value} onChange={onChange} />
+        ) : q.type === 'number' ? (
+          <NumberStepper q={q} a={a} value={value} onChange={onChange} />
         ) : q.type === 'select' ? (
           <select className="input" {...a} value={value} onChange={(e) => onChange(e.target.value)}>
             {q.options!.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -102,9 +105,7 @@ export function QuestionField({ q, value, error, errors, onChange, answers }: { 
           <textarea className="input" {...a} maxLength={q.max} value={value} onChange={(e) => onChange(e.target.value)} />
         ) : (
           <>
-          <input className="input" {...a} type={q.type === 'number' ? 'number' : q.type === 'date' ? 'date' : 'text'}
-            inputMode={q.type === 'number' ? 'decimal' : undefined} min={q.min} max={q.type === 'number' ? q.max : undefined}
-            step={q.type === 'number' ? q.step ?? 'any' : undefined} maxLength={q.type === 'text' ? q.max : undefined}
+          <input className="input" {...a} type={q.type === 'date' ? 'date' : 'text'} maxLength={q.type === 'text' ? q.max : undefined}
             placeholder={q.placeholder} value={value} onChange={(e) => onChange(e.target.value)} />
           {q.type === 'date' && <DateChips onPick={onChange} compact={q.id.includes('.')} />}
           </>
@@ -115,7 +116,7 @@ export function QuestionField({ q, value, error, errors, onChange, answers }: { 
 }
 
 /** A short list of choices (up to 5) outside a table row is shown as buttons, so one click picks it. */
-const segmented = (q: Question) => !q.id.includes('.') && !!q.options && q.options.length <= 5;
+const segmented = (q: Question) => !!q.options && q.options.length <= 5;
 /** A bounded number with a step and a range of up to 100 steps is a slider; the exact number can still be typed. */
 const sliderOf = (q: Question) => q.step !== undefined && q.max !== undefined && q.min !== undefined && q.max - q.min <= 100 && q.max - q.min >= 2 * q.step;
 
@@ -147,7 +148,28 @@ function ChoiceSlider({ q, a, value, onChange }: { q: Question; a: { id: string;
 }
 
 /** The unit shown next to a number: % for ...Pct fields, h for hours. Money fields name their currency in the label, so they get none. */
-const unitOf = (id: string): string => (/Pct$/.test(id) ? '%' : /Hours(PerWeek)?$/.test(id) ? t('h') : /Days$/.test(id) ? t('days') : '');
+const unitOf = (id: string, q?: Question): string => q?.unit ?? (/Pct$/.test(id) ? '%' : /Hours(PerWeek)?$/.test(id) ? t('h') : /Days$/.test(id) ? t('days') : '');
+
+/** A number without a small range: type it, or step it up and down. The unit sits next to the value. */
+function NumberStepper({ q, a, value, onChange }: { q: Question; a: { id: string; 'aria-invalid'?: boolean; 'aria-describedby'?: string }; value: any; onChange: (v: any) => void }) {
+  const step = q.step ?? 1;
+  const bump = (d: number) => {
+    const cur = value === '' || Number.isNaN(Number(value)) ? (q.min ?? 0) : Number(value);
+    let n = Math.round((cur + d * step) * 1000) / 1000;
+    if (q.min !== undefined) n = Math.max(q.min, n);
+    if (q.max !== undefined) n = Math.min(q.max, n);
+    onChange(String(n));
+  };
+  const u = unitOf(q.id.split('.').pop()!, q);
+  return (
+    <div className="stepper-num">
+      <button type="button" className="step-btn" aria-label={t('Decrease')} onClick={() => bump(-1)}>−</button>
+      <input className="input" {...a} type="number" inputMode="decimal" min={q.min} max={q.max} step={q.step ?? 'any'} value={value} placeholder={t('not set')} onChange={(e) => onChange(e.target.value)} />
+      <button type="button" className="step-btn" aria-label={t('Increase')} onClick={() => bump(1)}>+</button>
+      {u && <span className="slider-unit" aria-hidden="true">{u}</span>}
+    </div>
+  );
+}
 
 function Slider({ q, a, value, onChange }: { q: Question; a: { id: string; 'aria-invalid'?: boolean; 'aria-describedby'?: string }; value: any; onChange: (v: any) => void }) {
   const min = q.min!, max = q.max!;
@@ -158,7 +180,7 @@ function Slider({ q, a, value, onChange }: { q: Question; a: { id: string; 'aria
       <div className="slider-top">
         <input type="range" {...a} min={min} max={max} step={q.step} value={shown} onChange={(e) => onChange(e.target.value)} className={empty ? 'unset' : ''} />
         <input className="input slider-num" type="number" inputMode="decimal" aria-label={q.label} min={min} max={max} step={q.step} value={value} placeholder={t('not set')} onChange={(e) => onChange(e.target.value)} />
-        {unitOf(q.id.split('.').pop()!) && <span className="slider-unit" aria-hidden="true">{unitOf(q.id.split('.').pop()!)}</span>}
+        {unitOf(q.id.split('.').pop()!, q) && <span className="slider-unit" aria-hidden="true">{unitOf(q.id.split('.').pop()!, q)}</span>}
       </div>
       <div className="slider-ends" aria-hidden="true"><span>{q.anchors?.[0] ?? min}</span><span>{q.anchors?.[1] ?? max}</span></div>
       {!empty && q.words && q.words[Math.round((shown - min) / (q.step || 1))] && <output className="slider-word" aria-live="polite">{q.words[Math.round((shown - min) / (q.step || 1))]}</output>}
@@ -202,7 +224,7 @@ function ListField({ q, rows, error, errors, onChange, answers }: { q: Question;
         {rows.map((r, n) => (
           <li key={n} className="listq-row">
             <div className="listq-head">
-              <b>{item} {n + 1}{collapsible && !isOpen(n) && <span className="listq-sum"> · {summary(r)}</span>}</b>
+              <b>{collapsible && !isOpen(n) ? (r.name?.trim() || `${item} ${n + 1}`) : `${item} ${n + 1}`}{collapsible && !isOpen(n) && <span className="listq-sum"> · {summary(r).split(' · ').slice(1).join(' · ')}</span>}</b>
               <span className="row">
                 {collapsible && ((rows[n]?.name ?? '').trim() ? <Button type="button" variant="quiet" aria-expanded={isOpen(n)} onClick={() => toggle(n)}>{isOpen(n) ? t('Collapse') : t('Edit')}</Button> : null)}
                 <Button type="button" variant="quiet" disabled={n === 0} onClick={() => move(n, -1)} aria-label={t('Move {item} {n} up', { item: item.toLowerCase(), n: n + 1 })}>{t('Up')}</Button>
@@ -210,11 +232,18 @@ function ListField({ q, rows, error, errors, onChange, answers }: { q: Question;
                 <Button type="button" variant="quiet" disabled={rows.length <= (q.minRows ?? 1)} onClick={() => { setOpen(new Set()); onChange(rows.filter((_, i) => i !== n)); }} aria-label={t('Remove {item} {n}', { item: item.toLowerCase(), n: n + 1 })}>{t('Remove')}</Button>
               </span>
             </div>
-            {isOpen(n) && <div className="grid-3">
-              {fields.map((f0) => dynamicField(f0, answers)).filter((f): f is Question => !!f).map((f) => (
-                <QuestionField key={f.id} q={{ ...f, id: `${q.id}.${n}.${f.id}` }} value={r[f.id] ?? ''} error={errors[`${q.id}.${n}.${f.id}`]} onChange={(v) => set(n, f.id, v)} />
-              ))}
-            </div>}
+            {isOpen(n) && <>
+              <div className="grid-3">
+                {fields.filter((f) => !f.detail).map((f0) => dynamicField(f0, answers)).filter((f): f is Question => !!f).map((f) => (
+                  <QuestionField key={f.id} q={{ ...f, id: `${q.id}.${n}.${f.id}` }} value={r[f.id] ?? ''} error={errors[`${q.id}.${n}.${f.id}`]} onChange={(v) => set(n, f.id, v)} />
+                ))}
+              </div>
+              {fields.some((f) => f.detail) && <details className="more"><summary>{t('Add more detail')}</summary>
+                <div className="grid-3">
+                  {fields.filter((f) => f.detail).map((f) => <QuestionField key={f.id} q={{ ...f, id: `${q.id}.${n}.${f.id}` }} value={r[f.id] ?? ''} error={errors[`${q.id}.${n}.${f.id}`]} onChange={(v) => set(n, f.id, v)} />)}
+                </div>
+              </details>}
+            </>}
           </li>
         ))}
       </ol>
