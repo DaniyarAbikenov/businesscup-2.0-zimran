@@ -6,6 +6,7 @@ import { Intake, Storyline, api } from '../api';
 import { notify } from '../components/Toaster';
 import { TourScreen } from '../tour/TourHost';
 import { Wizard } from '../components/Wizard';
+import { LivePanel } from '../components/LivePanel';
 import { Button, DateChips, Field, PageHeader, Panel, PrivacyBanner, QuestionGroups, Stepper, initialAnswers } from '../components/ui';
 
 /** Keyed by scenario so moving between scenarios starts a fresh form. */
@@ -100,7 +101,7 @@ function NewCase() {
   }
 
   return (
-    <div className="narrow">
+    <div className="wide">
       {!exampleId && <TourScreen name="form" />}
       <Stepper current={1} />
       <PageHeader eyebrow={t('Fill in{category}', { category: sit.category ? ' · ' + sit.category : '' })} title={sit.title} lead={sit.summary} />
@@ -123,7 +124,9 @@ function NewCase() {
         </Panel>
       )}
       {story && <div className="banner ok" role="note"><strong>{t('Example: {title}.', { title: story.title })}</strong> {t('These are example numbers, not yours. Edit them freely.')}</div>}
-      <Wizard sit={sit} answers={answers} setAnswers={setAnswers} serverFields={fields} conf={conf} setConf={setConf} ack={ack} setAck={setAck} error={error} busy={busy} onSubmit={submit} onExample={sit.storylines && sit.storylines.length ? () => pick(sit.storylines![0]) : undefined} />
+      <div className="form-cols"><div className="form-main">
+        <Wizard sit={sit} answers={answers} setAnswers={setAnswers} serverFields={fields} conf={conf} setConf={setConf} ack={ack} setAck={setAck} error={error} busy={busy} onSubmit={submit} onExample={sit.storylines && sit.storylines.length ? () => pick(sit.storylines![0]) : undefined} />
+      </div><LivePanel sit={sit} answers={answers} /></div>
     </div>
   );
 }

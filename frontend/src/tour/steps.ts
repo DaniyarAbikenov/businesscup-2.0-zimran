@@ -16,6 +16,7 @@ export const tours = (): Record<TourKey, TourStep[]> => ({
   form: [
     { target: d('stepper'), title: t('Four steps'), text: t('Fill in, compare, decide, follow up. You are on the first one.') },
     { target: d('form-steps'), title: t('A few short steps'), text: t('The form is split into steps. Use Next and Back, and check everything on the last step before you compare.') },
+    { target: d('form-live'), title: t('Where this stands'), text: t('This panel updates while you type. It shows what the numbers imply so far and what is still missing. Nothing is saved.') },
     { target: d('form-first'), title: t('Use your own numbers'), text: t('Rounded or made-up numbers are fine. Do not enter confidential data.') },
     { target: d('form-why'), title: t('Why we ask'), text: t('Tap "Why we ask" under a field to see why it matters for the result.') },
     { target: d('form-forgot'), title: t('Did I forget anything?'), text: t('Unwritten hours and promises are what break plans. Open this and add what you may be missing.') },

@@ -102,6 +102,37 @@ def check_inputs(body: dict, user=Depends(current_user), db: Session = Depends(g
     return {"ok": True, "engine": sit["engine"], "preview": prediction_preview(sit, inputs)}
 
 
+def preview_facts(sit: dict, inputs: dict, result: dict) -> list[dict]:
+    """Numbers that follow directly from what has been typed so far and do not give away the answer to the guess question."""
+    e = sit["engine"]
+    if e == "priorities":
+        return [{"key": "totalHours", "value": result["totalHours"], "unit": "h"}, {"key": "freeHoursPerDay", "value": result["freeHoursPerDay"], "unit": "h"}]
+    if e == "estimate":
+        return [{"key": "meanHours", "value": result["meanHours"], "unit": "h"}, {"key": "hoursPerDay", "value": result["hoursPerDay"], "unit": "h"}]
+    if e == "decision":
+        return [{"key": "criteria", "value": len(inputs["criteria"]), "unit": ""}, {"key": "options", "value": len(inputs["options"]), "unit": ""}]
+    return [{"key": "workdaysToRelease", "value": result["workdaysToRelease"], "unit": "days"}, {"key": "totalChangeDays", "value": result["totalChangeDays"], "unit": "person-days"}]
+
+
+@router.post("/cases/preview")
+def preview(body: dict, user=Depends(current_user), db: Session = Depends(get_db)):
+    """Live feedback while the form is filled in: nothing is saved and no AI is called. Not ready yet? It says which fields are still needed.
+    `facts` follow from the typed numbers; `result` is the full calculation (the page shows it only when the scenario has no guess step or the person asks)."""
+    sit = presets.resolve(db, user.id, body.get("situationId"))
+    if not sit:
+        raise ApiError(400, "Unknown situation")
+    values, errors = validate_answers(sit["questions"], body.get("inputs"))
+    if not errors:
+        errors = engine.check(sit, values)
+    if errors:
+        labels = {q["id"]: q.get("label", q["id"]) for q in sit["questions"]}
+        needed = list(dict.fromkeys(labels.get(k.split(".")[0], k) for k in errors))
+        return {"ready": False, "needed": needed[:6], "more": max(0, len(needed) - 6)}
+    inputs = {**values, "asOf": packs.today()}
+    result = engine.run(sit, inputs)
+    return {"ready": True, "engine": sit["engine"], "facts": preview_facts(sit, inputs, result), "result": result, "hasGuess": sit["engine"] in prediction.ENGINES}
+
+
 def prediction_preview(sit: dict, inputs: dict) -> dict | None:
     """What the guess screen needs to show (the person's own options), nothing computed."""
     e = sit["engine"]
