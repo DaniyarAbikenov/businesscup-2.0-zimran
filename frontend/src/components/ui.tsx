@@ -241,7 +241,7 @@ function ListField({ q, rows, error, errors, onChange, answers }: { q: Question;
         {rows.map((r, n) => (
           <li key={n} className="listq-row">
             <div className="listq-head">
-              <b>{collapsible && !isOpen(n) ? (r.name?.trim() || `${item} ${n + 1}`) : `${item} ${n + 1}`}{collapsible && !isOpen(n) && <span className="listq-sum"> · {summary(r).split(' · ').slice(1).join(' · ')}</span>}</b>
+              <b>{collapsible && !isOpen(n) ? (r.name?.trim() || `${item} ${n + 1}`) : `${item} ${n + 1}`}{collapsible && !isOpen(n) && summary(r).includes(' · ') && <span className="listq-sum"> · {summary(r).split(' · ').slice(1).join(' · ')}</span>}</b>
               <span className="row">
                 {collapsible && ((rows[n]?.name ?? '').trim() ? <Button type="button" variant="quiet" aria-expanded={isOpen(n)} onClick={() => toggle(n)}>{isOpen(n) ? t('Collapse') : t('Edit')}</Button> : null)}
                 <Button type="button" variant="quiet" disabled={n === 0} onClick={() => move(n, -1)} aria-label={t('Move {item} {n} up', { item: item.toLowerCase(), n: n + 1 })}>{t('Up')}</Button>
