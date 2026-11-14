@@ -15,7 +15,7 @@ export const PrivacyBanner = () => (
 export function Stepper({ current }: { current: 1 | 2 | 3 | 4 }) {
   const steps = [[t('Fill in'), t('Tell us the facts and your numbers.')], [t('Compare'), t('See each option with its outcome.')], [t('Decide'), t('Pick one and get a ready message.')], [t('Follow up'), t('Record how it went.')]];
   return (
-    <ol className="stepper" aria-label={t('Steps')}>
+    <ol className="stepper" aria-label={t('Steps')} data-tour="stepper">
       {steps.map(([t, d], n) => (
         <li key={t} className={n + 1 === current ? 'on' : n + 1 < current ? 'done' : ''} aria-current={n + 1 === current ? 'step' : undefined}>
           <b><span className="num">{n + 1 < current ? '✓' : n + 1}</span> {t}</b><span>{d}</span>
@@ -27,12 +27,12 @@ export function Stepper({ current }: { current: 1 | 2 | 3 | 4 }) {
 
 /** Small expandable "Why we ask", no modal. */
 export function Why({ children }: { children: ReactNode }) {
-  return <details className="why"><summary>{t('Why we ask')}</summary><p>{children}</p></details>;
+  return <details className="why" data-tour="form-why"><summary>{t('Why we ask')}</summary><p>{children}</p></details>;
 }
 
 export function CaseTabs() {
   return (
-    <nav className="subtabs" aria-label={t('My cases')}>
+    <nav className="subtabs" aria-label={t('My cases')} data-tour="cases-tabs">
       <NavLink to="/journal">{t('Journal')}</NavLink><NavLink to="/documents">{t('Documents')}</NavLink>
     </nav>
   );
@@ -167,9 +167,9 @@ export function QuestionGroups({ sit, answers, fields, onChange, skipCollapsed }
   };
   return (
     <>
-      {groups.map((g) => g.collapsed
-        ? (skipCollapsed ? null : <Panel key={g.id}><details><summary style={{ marginTop: 0 }}>{g.title}</summary>{render(g)}</details></Panel>)
-        : <Panel key={g.id} title={g.title || undefined}>{render(g)}</Panel>)}
+      {groups.map((g, n) => <div key={g.id} data-tour={g.id === 'forgot' ? 'form-forgot' : n === 0 ? 'form-first' : undefined}>{g.collapsed
+        ? (skipCollapsed ? null : <Panel><details><summary style={{ marginTop: 0 }}>{g.title}</summary>{render(g)}</details></Panel>)
+        : <Panel title={g.title || undefined}>{render(g)}</Panel>}</div>)}
     </>
   );
 }
@@ -187,7 +187,7 @@ export function LanguageSwitch({ signedIn = true }: { signedIn?: boolean }) {
     window.location.reload();
   };
   return (
-    <select className="langsel" aria-label={tt('Language')} value={getLang()} onChange={(e) => change(e.target.value as Lang)}>
+    <select className="langsel" data-tour="nav-lang" aria-label={tt('Language')} value={getLang()} onChange={(e) => change(e.target.value as Lang)}>
       {LANGS.map((l) => <option key={l.code} value={l.code}>{l.short}</option>)}
     </select>
   );

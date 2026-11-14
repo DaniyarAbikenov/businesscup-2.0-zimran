@@ -33,6 +33,30 @@ def put_profile(body: dict, user=Depends(current_user), db: Session = Depends(ge
     return {"profile": profile_dict(p)}
 
 
+TOUR_KEYS = ["home", "form", "guess", "results", "decided", "progress", "cases"]
+
+
+@router.put("/profile/tours")
+def put_tours(body: dict, user=Depends(current_user), db: Session = Depends(get_db)):
+    """Which guided tours were shown. {seen: [keys]} adds keys, {disable: bool} switches tours off or on, {reset: true} starts all again."""
+    p = db.get(Profile, user.id)
+    if not p:
+        raise ApiError(409, "Set up your profile first")
+    if body.get("reset") is True:
+        p.tours_seen, p.tours_disabled = [], False
+    seen = body.get("seen")
+    if seen is not None:
+        if not isinstance(seen, list) or any(k not in TOUR_KEYS for k in seen):
+            raise ApiError(400, "Unknown tour")
+        p.tours_seen = sorted(set(p.tours_seen or []) | set(seen), key=TOUR_KEYS.index)
+    if "disable" in body:
+        if not isinstance(body["disable"], bool):
+            raise ApiError(400, "Choose on or off")
+        p.tours_disabled = body["disable"]
+    db.commit()
+    return {"toursSeen": p.tours_seen, "toursDisabled": p.tours_disabled}
+
+
 @router.put("/profile/language")
 def put_language(body: dict, user=Depends(current_user), db: Session = Depends(get_db)):
     from .. import i18n

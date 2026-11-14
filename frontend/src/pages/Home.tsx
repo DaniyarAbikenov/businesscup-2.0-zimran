@@ -5,6 +5,7 @@ import { useSession } from '../App';
 import { Billing, Journal, Progress, api, fmtDate } from '../api';
 import Describe from '../components/Describe';
 import { skillLabel } from '../components/skills';
+import { TourScreen } from '../tour/TourHost';
 import { ExampleButton, PROMISE, Welcome, guideDone } from '../components/Guide';
 import { notify } from '../components/Toaster';
 import { Button, PageHeader, Panel } from '../components/ui';
@@ -35,7 +36,8 @@ export default function Home() {
 
   return (
     <>
-      <PageHeader eyebrow={role.label + (profile.industry ? ' · ' + profile.industry : '')} title={t('What are you facing this week?')} lead={PROMISE} />
+      {!(welcome && isNew && !me.isDemo) && <TourScreen name="home" />}
+      <div data-tour="home-heading"><PageHeader eyebrow={role.label + (profile.industry ? ' · ' + profile.industry : '')} title={t('What are you facing this week?')} lead={PROMISE} /></div>
       {me.isDemo && (
         <div className="strip" role="note"><span><strong>{t('You are in the demo.')}</strong> {t('The cases under My cases are sample data. Start here to see a result in seconds.')}</span><ExampleButton label={t('Start here: a worked example')} /></div>
       )}
@@ -44,7 +46,7 @@ export default function Home() {
         <div className="strip" role="note"><span><strong>{t('How did it go?')}</strong> {tn(j.followups.length, '{n} decision is waiting for your note: ', '{n} decisions are waiting for your note: ')}{j.followups.slice(0, 2).map((f, i) => <span key={f.caseId}>{i > 0 && ', '}<Link to={`/case/${f.caseId}`}>{f.title}</Link></span>)}.</span></div>
       )}
       {welcome && isNew && !me.isDemo && <Welcome onClose={() => setWelcome(false)} />}
-      <Panel title={t('Your first week: three exercises')} lead={t('In the order they usually come up: decide what comes first, promise a date, choose between options. Each one starts with a guess, then shows the numbers on yours.')}>
+      <div data-tour="path"><Panel title={t('Your first week: three exercises')} lead={t('In the order they usually come up: decide what comes first, promise a date, choose between options. Each one starts with a guess, then shows the numbers on yours.')}>
         <ol className="path">
           {recommended.slice(0, 3).map((s, n) => (
             <li key={s.id} className={'card' + (n === 0 ? ' first' : '')}>
@@ -54,8 +56,8 @@ export default function Home() {
           ))}
         </ol>
         {isNew && !welcome && <p className="small muted" style={{ marginTop: 16 }}>{t('New here?')} <Link to="/guide">{t('See how it works')}</Link> {t('or')} <ExampleButton label={t('try a worked example')} />.</p>}
-      </Panel>
-      <Describe />
+      </Panel></div>
+      <div data-tour="describe"><Describe /></div>
 
       {open.length > 0 && (
         <Panel title={t('Continue where you left off')}>
@@ -63,13 +65,13 @@ export default function Home() {
         </Panel>
       )}
       {pr && pr.counts.situations > 0 && (
-        <Panel title={t('Your first 90 days')}>
+        <div data-tour="home-progress"><Panel title={t('Your first 90 days')}>
           <p className="small muted" style={{ margin: 0 }}>
             {pr.inWindow ? t('Day {day} of {total}.', { day: pr.day, total: pr.windowDays }) : t('Day {day}, past the first {total}.', { day: pr.day, total: pr.windowDays })} {tn(pr.counts.decisions, '{n} decision made', '{n} decisions made')}
             {pr.averageChange !== null && <>, {t('confidence {change} on average', { change: (pr.averageChange > 0 ? '+' : '') + pr.averageChange })}</>}. {pr.inactiveHint && <>{t('It has been {n} days since your last scenario.', { n: pr.inactiveDays })} </>}
             <Link to="/progress">{t('See your progress')}</Link>
           </p>
-        </Panel>
+        </Panel></div>
       )}
       <details className="more">
         <summary>{t('More exercises')}</summary>

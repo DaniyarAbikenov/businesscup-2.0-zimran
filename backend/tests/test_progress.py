@@ -192,3 +192,20 @@ def test_send_now_endpoint(client):
     decide(client, cid)
     make_due(cid)
     assert client.post("/api/progress/send-reminders-now", json={}).json() == {"sent": 1, "logMailer": True}
+
+
+def test_tours_seen_api(client, make_client):
+    setup_user(client, "tour@example.com")
+    me = client.get("/api/me").json()["profile"]
+    assert me["toursSeen"] == [] and me["toursDisabled"] is False
+    assert client.put("/api/profile/tours", json={"seen": ["home", "bogus"]}).status_code == 400
+    assert client.put("/api/profile/tours", json={"seen": "home"}).status_code == 400
+    assert client.put("/api/profile/tours", json={"disable": "yes"}).status_code == 400
+    assert client.put("/api/profile/tours", json={"seen": ["results", "home"]}).json() == {"toursSeen": ["home", "results"], "toursDisabled": False}
+    assert client.put("/api/profile/tours", json={"seen": ["home", "form"]}).json()["toursSeen"] == ["home", "form", "results"]  # added, never duplicated
+    assert client.put("/api/profile/tours", json={"disable": True}).json()["toursDisabled"] is True
+    assert client.get("/api/me").json()["profile"]["toursDisabled"] is True
+    assert client.put("/api/profile/tours", json={"reset": True}).json() == {"toursSeen": [], "toursDisabled": False}
+    other = setup_user(make_client(), "tour2@example.com")  # isolation: another person's tours are their own
+    assert other.get("/api/me").json()["profile"]["toursSeen"] == []
+    assert make_client().put("/api/profile/tours", json={"seen": ["home"]}).status_code == 401

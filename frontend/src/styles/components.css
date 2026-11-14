@@ -191,3 +191,21 @@ ol.path { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 ol.path .card { grid-template-columns: 1fr; position: relative; }
 ol.path .card.first { border-color: var(--accent-700); }
 .stepno { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-700); color: var(--n-100, #fff); font: 600 14px var(--font-ui, inherit); margin-bottom: 6px; }
+
+.tour { position: fixed; z-index: 50; background: var(--n-100, #1b1a17); color: var(--n-1000, #fff); border: 1px solid var(--accent-700); border-radius: 10px; padding: 14px 16px; box-shadow: 0 8px 30px rgba(0,0,0,.45); display: grid; gap: 6px; }
+.tour p { margin: 0; font-size: 14px; line-height: 20px; color: var(--n-900, #ddd); }
+.tour .row { margin-top: 6px; flex-wrap: wrap; }
+.tour-hl { outline: 2px solid var(--accent-700); outline-offset: 4px; border-radius: 8px; transition: outline-color .2s; }
+.linklike { background: none; border: 0; padding: 0; font: inherit; color: var(--accent-700); text-decoration: underline; cursor: pointer; }
+
+.tour-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 49; }
+.tour { position: fixed; z-index: 60; background: var(--n-100, #1b1a17); color: var(--n-1000, #fff); border: 1px solid var(--accent-700); border-radius: 10px; padding: 14px 40px 14px 16px; box-shadow: 0 8px 30px rgba(0,0,0,.45); display: grid; gap: 6px; max-height: 70vh; overflow: auto; }
+.tour:focus { outline: none; }
+.tour p { margin: 0; font-size: 14px; line-height: 20px; color: var(--n-900, #ddd); }
+.tour .row { margin-top: 6px; flex-wrap: wrap; gap: 8px; }
+.tour .check { margin: 2px 0 0; }
+.tour-x { position: absolute; top: 6px; right: 8px; width: 28px; height: 28px; border: 0; background: none; color: inherit; font-size: 22px; line-height: 1; cursor: pointer; }
+.tour-hl { position: relative; z-index: 51; outline: 2px solid var(--accent-700); outline-offset: 4px; border-radius: 8px; }
+@media (prefers-reduced-motion: reduce) { .tour-hl { transition: none; } }
+.linklike { background: none; border: 0; padding: 0; font: inherit; color: var(--accent-700); text-decoration: underline; cursor: pointer; }
+.tourbtn { background: none; border: 1px solid var(--n-400); border-radius: 50%; width: 26px; height: 26px; padding: 0; color: inherit; font: 600 13px var(--font-ui, inherit); cursor: pointer; }

@@ -108,7 +108,7 @@ def delete_account(body: dict, request: Request, response: Response, user=Depend
 
 
 def profile_dict(p: Profile | None):
-    return None if not p else {"roleId": p.role_id, "industry": p.industry, "tenure": p.tenure, "fears": p.fears, "fearNote": p.fear_note, "emailReminders": p.email_reminders, "language": p.language}
+    return None if not p else {"roleId": p.role_id, "industry": p.industry, "tenure": p.tenure, "fears": p.fears, "fearNote": p.fear_note, "emailReminders": p.email_reminders, "language": p.language, "toursSeen": p.tours_seen or [], "toursDisabled": p.tours_disabled}
 
 
 @router.get("/me")

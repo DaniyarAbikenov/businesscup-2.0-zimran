@@ -62,7 +62,7 @@ export interface Pack {
   fears: { id: string; label: string; roles?: string[] }[];
   situations: Situation[];
 }
-export interface Profile { roleId: string; industry: string; tenure: string; fears: string[]; fearNote: string; emailReminders?: boolean; language?: string | null }
+export interface Profile { roleId: string; industry: string; tenure: string; fears: string[]; fearNote: string; emailReminders?: boolean; language?: string | null; toursSeen?: string[]; toursDisabled?: boolean }
 export interface Me { user: { id: number; email: string }; profile: Profile | null; llmEnabled: boolean; isDemo: boolean }
 export interface ScheduledTask { index: number; name: string; finish: string; deadline: string; lateDays: number; requester: string; impact: string }
 export interface Option {

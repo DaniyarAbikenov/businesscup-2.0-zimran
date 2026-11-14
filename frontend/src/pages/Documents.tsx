@@ -1,3 +1,4 @@
+import { TourScreen } from '../tour/TourHost';
 import { t } from '../i18n';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -18,6 +19,7 @@ export default function DocumentsPage() {
   };
   return (
     <>
+      <TourScreen name="cases" />
       <CaseTabs />
       <PageHeader eyebrow={t('Library')} title={t('Your documents')} lead={t('Every message and document you saved. They stay with your account.')} />
       {docs.length === 0 && <Panel><p className="muted">{t('Nothing saved yet. When you decide on a scenario, the message or document it creates appears here, and you can edit and copy it.')}</p></Panel>}

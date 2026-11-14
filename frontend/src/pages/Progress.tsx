@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useSession } from '../App';
 import { Progress, api, fmtDate } from '../api';
 import { notify } from '../components/Toaster';
+import { TourScreen } from '../tour/TourHost';
 import { PageHeader, Panel } from '../components/ui';
 
 /** Opt-in email reminders: off by default. Used here and on the Account page. */
@@ -60,13 +61,14 @@ export default function ProgressPage() {
 
   return (
     <>
+      <TourScreen name="progress" />
       <PageHeader eyebrow={t('Progress')} title={t('Your first 90 days')} lead={t('Everything here comes from what you entered and reported. RoleShift cannot see your workplace.')} />
       <Panel>
         <p style={{ margin: 0 }}><b>{t('Day {day}', { day: p.day })}</b> {p.inWindow ? t('of {total}', { total: p.windowDays }) : t('(past the first {total})', { total: p.windowDays })} · {t('started {date}', { date: fmtDate(p.startedAt) })}</p>
-        <div className="daybar" role="img" aria-label={t('Day {day} of {windowDays}', { day: p.day, windowDays: p.windowDays })}>
+        <div data-tour="pr-bar"><div className="daybar" role="img" aria-label={t('Day {day} of {windowDays}', { day: p.day, windowDays: p.windowDays })}>
           <span style={{ width: `${pct}%` }} />
           {p.milestones.map((m) => <i key={m} style={{ left: `${(m / p.windowDays) * 100}%` }}><em>{m}</em></i>)}
-        </div>
+        </div></div>
         <div className="stats" style={{ marginTop: 28 }}>
           {stat(p.counts.situations, t('scenarios tried'))}{stat(p.counts.decisions, t('decisions made'))}{stat(p.counts.followups, t('follow-ups done'))}{stat(`${p.counts.documents} / ${p.counts.exported}`, t('documents saved / exported'))}
         </div>
@@ -85,7 +87,7 @@ export default function ProgressPage() {
           <Panel title={t('Confidence')} lead={p.averageChange === null ? t('Rate your confidence after a decision (the reflection step) to see how it changes.') : t('Average change: {v0}{averageChange}. Open circle: before, filled: after.', { v0: p.averageChange > 0 ? '+' : '', averageChange: p.averageChange })}>
             {p.confidence.length > 0 ? <ConfidenceChart items={p.confidence} /> : <p className="muted">{t('No decisions yet.')}</p>}
           </Panel>
-          <Panel title={t('Your intuition vs the numbers')} lead={t('Before the numbers appear you can guess. This shows how often your guess agreed with the calculator on your own numbers. It does not measure how good your decisions are in the real world.')}>
+          <div data-tour="pr-skills"><Panel title={t('Your intuition vs the numbers')} lead={t('Before the numbers appear you can guess. This shows how often your guess agreed with the calculator on your own numbers. It does not measure how good your decisions are in the real world.')}>
             {p.skills.filter((s) => s.cases > 0 || s.guesses > 0).length === 0 && <p className="muted">{t('Make a guess before the numbers in any scenario to see your skills here.')}</p>}
             {p.skills.filter((s) => s.cases > 0 || s.guesses > 0).map((s) => (
               <div key={s.key} className="skillrow">
@@ -95,14 +97,14 @@ export default function ProgressPage() {
                   : <div className="small muted">{t('Not enough guesses yet. Make {n} to see a trend.', { n: p.minForTrend })}</div>}
               </div>
             ))}
-          </Panel>
-          <Panel title={t('Decisions')}>
+          </Panel></div>
+          <div data-tour="pr-timeline"><Panel title={t('Decisions')}>
             <ul className="timeline">{p.timeline.map((tl) => (
               <li key={tl.caseId}><time dateTime={tl.date}>{fmtDate(tl.date)}</time>
                 <span><Link to={`/case/${tl.caseId}`}>{tl.title}</Link><span className="small muted"> · {tl.situation}{tl.chosen ? ` · ${tl.chosen}` : ''}</span><br />
                   <span className={'small ' + (tl.status === 'due' ? 'late' : 'muted')}>{tl.outcomeLabel ? t('{statusLabel}: {outcomeLabel} (as you reported)', { statusLabel: tl.statusLabel, outcomeLabel: tl.outcomeLabel }) : tl.statusLabel}{tl.guess ? ' · ' + t('Guess: {hits} of {parts} right', { hits: tl.guess.hits, parts: tl.guess.parts }) : ''}</span></span></li>
             ))}</ul>
-          </Panel>
+          </Panel></div>
           {p.outcomesTotal > 0 && (
             <Panel title={t('How it turned out')} lead={t('As you reported in your follow-ups.')}>
               <div className="stats">{Object.entries(p.outcomes).filter(([, n]) => n > 0).map(([k, n]) => stat(`${n} of ${p.outcomesTotal}`, ({ worked: t('It worked'), partly: t('Partly worked'), not_yet: t('Not resolved yet'), not_applied: t('Not used at work') } as Record<string, string>)[k]))}</div>
@@ -114,9 +116,9 @@ export default function ProgressPage() {
           </Panel>
         </>
       )}
-      <Panel title={t('Email reminders')} lead={p.logMailer ? t('This server has no mail account set up, so reminders are written to the server log instead of being sent.') : undefined}>
+      <div data-tour="pr-reminders"><Panel title={t('Email reminders')} lead={p.logMailer ? t('This server has no mail account set up, so reminders are written to the server log instead of being sent.') : undefined}>
         <ReminderToggle onChange={load} />
-      </Panel>
+      </Panel></div>
     </>
   );
 }

@@ -1,3 +1,4 @@
+import { TourScreen } from '../tour/TourHost';
 import { t } from '../i18n';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -14,6 +15,7 @@ export default function JournalPage() {
   const stat = (n: string | number, l: string) => <div className="stat"><b>{n}</b><span>{l}</span></div>;
   return (
     <>
+      <TourScreen name="cases" />
       <CaseTabs />
       <PageHeader eyebrow={t('Progress')} title={t('Your journal')} lead={t('Follow-up entries are what you told us. RoleShift cannot see your workplace.')} />
       <Panel>

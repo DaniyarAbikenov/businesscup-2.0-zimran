@@ -69,6 +69,15 @@ The promise: "Facing a decision in a new role? Try your options with your own nu
 - **Every case** shows four steps (Fill in, Compare, Decide, Follow up), a "Best by the numbers" sentence and a two-sentence "how to read this" above the results, and small "Why we ask" notes on the fields that need one.
 - Notes on what was confusing and what changed: `UX_NOTES.md`.
 
+## Guided tours
+
+Short step-by-step tips (popovers anchored to real elements) appear once, the first time a person reaches a screen: Home, the exercise form, the guess step, results, a decided case, Progress and My cases. Each popover has a title, one or two sentences, "Step 2 of 5", Back / Next / Skip tour, a close button and "Do not show tours again". Finishing or skipping the Welcome starts the Home tour. A "?" button in the header replays the tour for the current screen; "Restart all tours" is on the Account page and "Start the tour" on How it works.
+
+- **Own code, no library**: `src/tour/steps.ts` (all steps, texts through `t()`), `src/tour/TourHost.tsx` (state, positioning, keyboard, focus), `data-tour="..."` anchors on the elements (never CSS classes). A step whose target is not on the page (for example the "Did I forget anything?" group in a calculator that has none) is skipped silently. If the person leaves the screen mid-tour, the tour ends and counts as seen.
+- **Persistence**: per user in `profiles.tours_seen` / `profiles.tours_disabled` (migration 0010, `PUT /api/profile/tours` with `{seen: [...]}`, `{disable: bool}` or `{reset: true}`, returned by `/api/me`), mirrored in localStorage as a fallback. Demo accounts start with no tours seen, so every demo session shows them.
+- **Behaviour**: non-modal dialog (`role="dialog"`, labelled), focus moves into the popover and back on close, Esc closes, arrow keys move between steps, the target gets a ring and the page is dimmed (a click on the dimmed area skips). It sits below, above or beside the target; for tall blocks and on screens up to 560 px wide it docks at the bottom like a sheet so it does not cover the start of the target. Reduced motion turns smooth scrolling off.
+- **Checks**: `node scripts/check-tours.mjs` (every step points at an existing anchor, every tour has a screen) and `node scripts/check-i18n.mjs`.
+
 ## Progress and email reminders
 
 - **Progress** (`/progress`, `GET /api/progress`): read-only aggregation of existing tables, computed on the server. Day count since signup with 30/60/90 markers, confidence before and after per decided case (SVG chart, average change), decisions timeline with status and the outcome as the user reported it, counts (situations, decisions, follow-ups, documents saved and exported), what was practiced by category, milestones (first situation, decision, debrief), outcome shares, a soft hint after 7 days without a situation, and a "try next" suggestion from the user's role catalog. New users get an empty state with a button to the catalog. A compact card is on Home.

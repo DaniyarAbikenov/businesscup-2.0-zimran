@@ -4,6 +4,7 @@ import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-route
 import { useSession } from '../App';
 import { Intake, Storyline, api } from '../api';
 import { notify } from '../components/Toaster';
+import { TourScreen } from '../tour/TourHost';
 import { Button, Field, PageHeader, Panel, PrivacyBanner, QuestionGroups, Stepper, initialAnswers } from '../components/ui';
 
 /** Keyed by scenario so moving between scenarios starts a fresh form. */
@@ -90,6 +91,7 @@ function NewCase() {
     return (
       <div className="narrow">
         <Stepper current={1} />
+        <TourScreen name="guess" />
         <PageHeader eyebrow={t('Your guess first')} title={t('What do you think the numbers will say?')} lead={t('Ten seconds. It trains your intuition: afterwards you see your guess next to the calculation. You can skip it.')} />
         <GuessStep sit={sit} g={guessing} value={guess} onChange={setGuess} busy={busy} error={error} onGo={() => create(guess)} onSkip={() => create(null)} onBack={() => setGuessing(null)} />
       </div>
@@ -98,6 +100,7 @@ function NewCase() {
 
   return (
     <div className="narrow">
+      {!exampleId && <TourScreen name="form" />}
       <Stepper current={1} />
       <PageHeader eyebrow={t('Fill in{category}', { category: sit.category ? ' · ' + sit.category : '' })} title={sit.title} lead={sit.summary} />
       {exampleId && busy && <div className="banner ok" role="status">{t('Loading a worked example with made-up numbers. You will see the result in a moment.')}</div>}
@@ -127,7 +130,7 @@ function NewCase() {
           </Field>
           <label className="check"><input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} /> {t('I did not enter confidential employer or client information.')}</label>
           {error && <div className="field error" role="alert">{error}</div>}
-          <div className="row" style={{ marginTop: 24 }}><Button type="submit" busy={busy}>{t('Compare my options')}</Button></div>
+          <div className="row" style={{ marginTop: 24 }} data-tour="form-submit"><Button type="submit" busy={busy}>{t('Compare my options')}</Button></div>
         </Panel>
       </form>
     </div>
@@ -182,11 +185,11 @@ function GuessStep({ sit, g, value, onChange, busy, error, onGo, onSkip, onBack 
   }
   return (
     <>
-      {body}
+      <div data-tour="guess-controls">{body}</div>
       {error && <div className="banner bad" role="alert">{error}</div>}
       <div className="row" style={{ marginTop: 16 }}>
         <Button onClick={onGo} busy={busy} disabled={!ready}>{t('Save my guess and show the numbers')}</Button>
-        <Button variant="secondary" onClick={onSkip} busy={busy}>{t('Skip, show me the numbers')}</Button>
+        <span data-tour="guess-skip"><Button variant="secondary" onClick={onSkip} busy={busy}>{t('Skip, show me the numbers')}</Button></span>
         <Button variant="quiet" onClick={onBack}>{t('Back to the form')}</Button>
       </div>
     </>

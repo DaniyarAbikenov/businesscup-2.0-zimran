@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSession } from '../App';
 import { Button, Panel } from './ui';
+import { useTour } from '../tour/TourHost';
 
 export const PROMISE = t('Facing a decision in a new role? Try your options with your own numbers before you commit, and get a ready message to send.');
 export const STEPS: [string, string][] = [
@@ -48,6 +49,7 @@ export function Welcome({ onClose }: { onClose: () => void }) {
 
 export function HowItWorksPage() {
   const [, force] = useState(0);
+  const tour = useTour();
   return (
     <div className="narrow">
       <header className="page-header"><div className="caption">{t('How it works')}</div><h1>{t('Test your options before you commit')}</h1><p className="lead">{PROMISE}</p></header>
@@ -60,7 +62,7 @@ export function HowItWorksPage() {
           <li><b>{t('Follow-up')}</b>: {t('a note to yourself about how it turned out. It is what you tell us; we cannot see your workplace.')}</li>
         </ul>
       </Panel>
-      <div className="row"><ExampleButton /><Link className="btn btn-secondary" to="/" onClick={() => force(1)}>{t('Back to Home')}</Link></div>
+      <div className="row"><ExampleButton /><Link className="btn btn-secondary" to="/" onClick={() => { force(1); tour.resetAll(); }}>{t('Start the tour')}</Link><Link className="btn btn-quiet" to="/">{t('Back to Home')}</Link></div>
     </div>
   );
 }

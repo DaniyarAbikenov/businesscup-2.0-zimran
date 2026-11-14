@@ -1,5 +1,6 @@
 import { locale, t, tn } from '../i18n';
 import { skillLabel } from '../components/skills';
+import { TourScreen } from '../tour/TourHost';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useSession } from '../App';
@@ -25,7 +26,7 @@ function WhyLabel({ o }: { o: Option }) {
   const next = o.riskLevel === 'high' ? 3 : o.riskLevel === 'medium' ? 1 : null;
   const biggest = [...o.risks].filter((r) => r.severity > 0).sort((a, b) => b.severity - a.severity)[0];
   return (
-    <details className="why">
+    <details className="why" data-tour="res-why">
       <summary>{t('Why this label')}</summary>
       <ul className="risks">{o.risks.map((r, i) => <li key={i}><b>{r.severity > 0 ? '+' + r.severity : '0'}</b> {r.text}</li>)}</ul>
       <p className="small muted">{t('Total {n} points. 0 to 1 is low, 2 to 3 is medium, 4 or more is high.', { n: o.riskScore })}
@@ -40,7 +41,7 @@ function GuessStrip({ c }: { c: Case }) {
   const p = c.prediction;
   if (!p) return null;
   return (
-    <div className="banner" role="note" style={{ marginBottom: 16 }}>
+    <div className="banner" role="note" style={{ marginBottom: 16 }} data-tour="res-guess">
       <strong>{t('Your guess vs the numbers')}</strong>
       <ul className="plain">{p.items.map((x, i) => (
         <li key={i}>{x.hit ? '✓' : '·'} {x.label}: <b>{t('you said {guess}', { guess: x.guess })}</b>, {t('the numbers say {actual}', { actual: x.actual })}{x.gap ? ` (${x.gap})` : ''}</li>
@@ -85,7 +86,7 @@ function Ledger({ c, sit, chosen, onPick }: { c: Case; sit: Situation; chosen: s
     <td key={o.key} data-label={label} className={(num ? 'num ' : '') + (chosen === o.key ? 'sel' : '')}>{content}</td>
   );
   return (
-    <table className="ledger">
+    <table className="ledger" data-tour="res-ledger">
       <caption className="visually-hidden">{t('Comparison of your three options')}</caption>
       <thead>
         <tr>
@@ -115,7 +116,7 @@ function DecisionRanking({ c }: { c: Case }) {
   const r = c.result as any;
   return (
     <div className="decision-box">
-      <table className="ledger">
+      <table className="ledger" data-tour="res-ledger">
         <caption className="visually-hidden">{t('Options ranked by weighted score')}</caption>
         <thead><tr><th scope="col">{t('Option')}</th><th scope="col">{t('Score (0 to 100)')}</th>{r.criteria.map((k: any) => <th key={k.name} scope="col">{k.name} <span className="small muted">{t('weight {n}', { n: k.weight })}</span></th>)}</tr></thead>
         <tbody>
@@ -143,7 +144,7 @@ function DecisionLedger({ c, sit, chosen, onPick }: { c: Case; sit: Situation; c
     <td key={o.key} data-label={label(o.key)} className={(num ? 'num ' : '') + (chosen === o.key ? 'sel' : '')}>{content}</td>
   );
   return (
-    <table className="ledger">
+    <table className="ledger" data-tour="res-ledger">
       <caption className="visually-hidden">{t('Comparison of {n} ways to pick', { n: opts.length })}</caption>
       <thead>
         <tr>
@@ -176,7 +177,7 @@ function EstimateLedger({ c, sit, chosen, onPick }: { c: Case; sit: Situation; c
     <td key={o.key} data-label={label(o.key)} className={(num ? 'num ' : '') + (chosen === o.key ? 'sel' : '')}>{content}</td>
   );
   return (
-    <table className="ledger">
+    <table className="ledger" data-tour="res-ledger">
       <caption className="visually-hidden">{t('Comparison of {n} dates you could promise', { n: opts.length })}</caption>
       <thead>
         <tr>
@@ -212,7 +213,7 @@ function PriorityLedger({ c, sit, chosen, onPick }: { c: Case; sit: Situation; c
     <td key={o.key} data-label={label(o.key)} className={(num ? 'num ' : '') + (chosen === o.key ? 'sel' : '')}>{content}</td>
   );
   return (
-    <table className="ledger">
+    <table className="ledger" data-tour="res-ledger">
       <caption className="visually-hidden">{t('Comparison of {n} orders of work', { n: opts.length })}</caption>
       <thead>
         <tr>
@@ -251,7 +252,7 @@ function Challenge({ c }: { c: Case }) {
   const [busy, setBusy] = useState(false);
   const run = async () => { setBusy(true); try { setRes(await api('GET', `/cases/${c.id}/challenge`)); } catch (x: any) { notify(x.message, 'bad'); } finally { setBusy(false); } };
   return (
-    <div className="challenge">
+    <div className="challenge" data-tour="res-challenge">
       <Button variant="secondary" type="button" onClick={run} busy={busy}>{t('Challenge my numbers')}</Button>
       <span className="small muted"> {t('Recalculates with worse numbers to see if the conclusion holds.')}</span>
       {res && (
@@ -288,10 +289,11 @@ function Draft({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: Ca
 
   return (
     <>
+      <TourScreen name="results" />
       <Stepper current={2} />
       <PageHeader eyebrow={skillLabel(sit.skill) ? t('Compare') + ' · ' + t('Trains: {skill}', { skill: skillLabel(sit.skill) }) : t('Compare')} title={c.title} lead={summary(c, sit)} />
       <GuessStrip c={c} />
-      <div className="banner ok" role="note"><p className="bestline">{bestLine(c, sit)}</p><p className="howread" style={{ margin: 0 }}>{HOW_READ[sit.engine]} {t('The decision is yours.')}</p>
+      <div className="banner ok" role="note" data-tour="res-best"><p className="bestline">{bestLine(c, sit)}</p><p className="howread" style={{ margin: 0 }}>{HOW_READ[sit.engine]} {t('The decision is yours.')}</p>
         <p className="howread" style={{ margin: '8px 0 0' }}>{t('This is a calculation on your numbers, not a forecast. Real outcomes depend on people and circumstances not listed here.')}</p></div>
       <Panel title={t('Your {n} options', { n: c.result.options.length })} lead={sit.engine === 'decision'
         ? t('Your scores ranked, then four ways to pick. All numbers follow from your own weights and scores. The risk label is a rule-of-thumb check, and the decision is yours.')
@@ -306,7 +308,7 @@ function Draft({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: Ca
         <Challenge c={c} />
         <details><summary>{t('How was this calculated?')}</summary><p className="small muted">{c.result.assumptions}</p></details>
       </Panel>
-      <Panel title={t('Decide')}>
+      <div data-tour="res-choose"><Panel title={t('Decide')}>
         <p className="caption" style={{ marginBottom: 8 }}>{t('Decide: choose one option above and say why.')}</p>
         <Field id="rationale" label={t('Your reasoning')} help={t('It goes into the document. What would change your mind?')}>{(a) => <textarea className="input" {...a} maxLength={600} value={rationale} onChange={(e) => setRationale(e.target.value)} />}</Field>
         <Field id="days" label={t('Ask me how it went')}>{(a) => (
@@ -316,7 +318,7 @@ function Draft({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: Ca
         </Field>
         {error && <div className="field error" role="alert">{error}</div>}
         <div className="row" style={{ marginTop: 24 }}><Button onClick={decide} busy={busy}>{t('Save decision and create {name}', { name: sit.documentName ?? t('the document') })}</Button></div>
-      </Panel>
+      </Panel></div>
       <Panel>
         <details>
           <summary style={{ marginTop: 0 }}>{t('What if the numbers are different? Edit and recalculate')}</summary>
@@ -373,6 +375,7 @@ function Decided({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: 
 
   return (
     <>
+      <TourScreen name="decided" />
       <Stepper current={4} />
       <GuessStrip c={c} />
       <PageHeader eyebrow={t('Decision saved. Next: use your message, then come back to record how it went.')} title={c.title} />
@@ -387,7 +390,7 @@ function Decided({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: 
           : <>{chosen.newReleaseDate !== c.inputs.releaseDate && <>New release date {fmtDate(chosen.newReleaseDate)}. </>}Extra cost {usd(chosen.extraCost)}.</>}
       </div>
       <Panel title={t('Your {document}', { document: sit.documentName ?? 'document' })} lead={t('Edit it if you like and save. Your changes are kept with this case. Check the facts before you send it.')}>
-        <textarea className="input doc" aria-label={t('Change Request document')} spellCheck={false} wrap="off" value={doc} onChange={(e) => setDoc(e.target.value)} />
+        <textarea data-tour="dec-doc" className="input doc" aria-label={t('Change Request document')} spellCheck={false} wrap="off" value={doc} onChange={(e) => setDoc(e.target.value)} />
         <div className="row" style={{ marginTop: 16 }}>
           <Button onClick={() => saveDoc('change_request', doc)} busy={saving === 'change_request'} disabled={doc === savedDoc || !doc.trim()}>{t('Save changes')}</Button>
           <span className="small muted" role="status">
@@ -419,7 +422,7 @@ function Decided({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: 
         <ul className="plain">{d.pitfalls.map((s, i) => <li key={i}>{s}</li>)}</ul>
       </Panel>
       <Reflection c={c} sit={sit} onChange={onChange} />
-      <Followup c={c} onChange={onChange} />
+      <div data-tour="dec-followup"><Followup c={c} onChange={onChange} /></div>
       {toast.node}
     </>
   );

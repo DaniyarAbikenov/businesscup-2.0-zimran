@@ -21,6 +21,8 @@ const load = (name) => {
 const ph = (s) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(',');
 const SKIP = new Set(['Shift', 'RoleShift', 'DELETE', 'low', 'medium', 'high']);
 let bad = 0;
+const JSON_OUT = process.argv.includes('--json');
+const missingKeys = [];
 for (const lang of ['ru', 'kk']) {
   if (!fs.existsSync(`src/i18n/${lang}.ts`)) continue;
   const d = load(lang);
@@ -28,12 +30,13 @@ for (const lang of ['ru', 'kk']) {
   for (const k of keys) {
     if (SKIP.has(k)) continue;
     const v = d[k];
-    if (v === undefined) { console.log(`${lang}: missing "${k.slice(0, 80)}"`); bad++; continue; }
+    if (v === undefined) { if (lang === 'ru') missingKeys.push(k); if (!JSON_OUT) console.log(`${lang}: missing "${k.slice(0, 80)}"`); bad++; continue; }
     const forms = v.split(' | ');
     if (forms.some((f) => ph(f) !== ph(forms[0]))) { console.log(`${lang}: placeholders differ between plural forms "${k.slice(0, 60)}"`); bad++; }
     if (!k.includes(' | ') && forms.length === 1 && ph(v) !== ph(k)) { console.log(`${lang}: placeholders differ "${k.slice(0, 60)}"`); bad++; }
   }
   console.log(`${lang}: ${Object.keys(d).length} texts`);
 }
-console.log(`${keys.size} keys in code, ${bad} problems`);
+if (JSON_OUT) console.log(JSON.stringify(missingKeys));
+else console.log(`${keys.size} keys in code, ${bad} problems`);
 process.exit(bad ? 1 : 0);

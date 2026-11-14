@@ -4,6 +4,7 @@ import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from
 import { Me, Pack, api } from './api';
 import { adopt, getLang } from './i18n';
 import { LanguageSwitch } from './components/ui';
+import { TourProvider, useTour } from './tour/TourHost';
 import Auth from './pages/Auth';
 import CasePage from './pages/Case';
 import AccountPage from './pages/Account';
@@ -44,6 +45,7 @@ export default function App() {
 
   return (
     <Ctx.Provider value={session}>
+      <TourProvider>
       <TopBar />
       <main className="page">
         <Routes>
@@ -71,6 +73,7 @@ export default function App() {
         </Routes>
       </main>
       <footer className="footer">{t('Practice with realistic numbers. Do not enter confidential employer or client data.')} <Link to="/guide">{t('How it works')}</Link> · <Link to="/account">{t('Account and data')}</Link> · <Link to="/pricing">{t('Pricing')}</Link></footer>
+      </TourProvider>
     </Ctx.Provider>
   );
 }
@@ -80,6 +83,7 @@ function TopBar() {
   const nav = useNavigate();
   const [due, setDue] = useState(0);
   const loc = useLocation();
+  const tour = useTour();
   useEffect(() => {
     api<{ due: number }>('GET', '/reminders').then((r) => setDue(r.due)).catch(() => {});
   }, [loc.pathname]);
@@ -90,9 +94,10 @@ function TopBar() {
         <nav className="nav" aria-label={t('Main')}>
           <NavLink to="/" end>{t('Home')}</NavLink>
           <NavLink to="/journal" className={() => (/^\/(journal|documents)/.test(loc.pathname) ? 'active' : '')} aria-current={/^\/(journal|documents)/.test(loc.pathname) ? 'page' : undefined}>{t('My cases')}{due > 0 && <span className="count" aria-label={t('{due} follow-ups due', { due: due })}>{due}</span>}</NavLink>
-          <NavLink to="/progress">{t('Progress')}</NavLink>
+          <NavLink to="/progress" data-tour="nav-progress">{t('Progress')}</NavLink>
           <NavLink to="/guide" className="hide-sm">{t('How it works')}</NavLink>
           <NavLink to="/account">{t('Account')}</NavLink>
+          <button type="button" className="tourbtn" onClick={tour.replay} aria-label={t('Show the tour for this page')} title={t('Show the tour for this page')}>?</button>
           <LanguageSwitch />
           <button onClick={async () => { await api('POST', '/auth/logout', {}); await refresh(); nav('/'); }}>{t('Sign out')}</button>
         </nav>

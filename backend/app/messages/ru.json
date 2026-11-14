@@ -335,5 +335,6 @@
  "Choosing between options": "Выбор между вариантами",
  "Handling late changes": "Работа с поздними изменениями",
  "Invalid": "Недопустимо",
- "Must be between 0 and 100": "Должно быть от 0 до 100"
+ "Must be between 0 and 100": "Должно быть от 0 до 100",
+ "Unknown tour": "Неизвестная подсказка"
 }

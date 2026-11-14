@@ -29,6 +29,8 @@ class Profile(Base):
     fear_note: Mapped[str] = mapped_column(String(500), default="")
     email_reminders: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")  # opt-in, never on by default
     language: Mapped[str | None] = mapped_column(String(2), nullable=True)  # en | ru | kk, null = automatic
+    tours_seen: Mapped[list] = mapped_column(JSONB, default=list, server_default="[]")  # keys of the guided tours already shown
+    tours_disabled: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     day7_nudge_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
 
