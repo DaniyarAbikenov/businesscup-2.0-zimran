@@ -38,26 +38,28 @@ for module in (auth, profile, cases, journal, telemetry, billing, intake, situat
     app.include_router(module.router)
 
 
-def role_of(request: Request):
-    """The signed-in user's position, cached in Redis (set again whenever the profile is saved)."""
+def profile_of(request: Request):
+    """The signed-in user's (position, language), cached in Redis and refreshed whenever the profile or the language is saved."""
+    import json as _json
     from .deps import COOKIE
     from .models import Profile
     from .security import sha
     token = request.cookies.get(COOKIE)
     if not token:
-        return None
+        return None, None
     r = get_redis()
     uid = r.get("sess:" + sha(token))
     if not uid:
-        return None
-    cached = r.get(f"role:{uid}")
+        return None, None
+    cached = r.get(f"prof:{uid}")
     if cached is not None:
-        return cached or None
+        d = _json.loads(cached)
+        return d.get("role"), d.get("language")
     with SessionLocal() as db:
         p = db.get(Profile, int(uid))
-        role = p.role_id if p else ""
-    r.set(f"role:{uid}", role, ex=86400)
-    return role or None
+        d = {"role": p.role_id if p else None, "language": p.language if p else None}
+    r.set(f"prof:{uid}", _json.dumps(d), ex=86400)
+    return d["role"], d["language"]
 
 
 @app.exception_handler(ApiError)
@@ -81,8 +83,9 @@ async def api_rules(request: Request, call_next):
     is_api = path.startswith("/api")
     rid = request.headers.get("x-request-id", "")[:40] or uuid.uuid4().hex[:12]
     started = time.perf_counter()
-    msg.set_lang(i18n.resolve(request))  # the language of this request: engines, documents and errors read it
-    msg.set_role(await run_in_threadpool(role_of, request))  # the position's vocabulary (a context variable set in a dependency would not reach the endpoint's thread)
+    role, saved = await run_in_threadpool(profile_of, request)  # a context variable set in a dependency would not reach the endpoint's thread
+    msg.set_lang(i18n.resolve(request, type("P", (), {"language": saved})()))  # the language of this request: header or ?lang=, then the saved choice, then Accept-Language
+    msg.set_role(role)  # the position's vocabulary
     if is_api and request.method not in ("GET", "HEAD", "OPTIONS") and "application/json" not in request.headers.get("content-type", ""):
         resp = JSONResponse({"error": "JSON required"}, status_code=415)
     else:

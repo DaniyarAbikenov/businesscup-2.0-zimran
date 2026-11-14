@@ -29,7 +29,7 @@ def put_profile(body: dict, user=Depends(current_user), db: Session = Depends(ge
     db.add(p)
     db.add(JournalEntry(user_id=user.id, type="onboarding", text=tr("Set up profile as {role}", role=role['label']) + (tr(" in {industry}", industry=industry) if industry else "") + "."))
     db.commit()
-    get_redis().set(f"role:{user.id}", p.role_id, ex=86400)
+    get_redis().delete(f"prof:{user.id}")
     return {"profile": profile_dict(p)}
 
 
@@ -68,4 +68,5 @@ def put_language(body: dict, user=Depends(current_user), db: Session = Depends(g
         raise ApiError(409, "Set up your profile first")
     p.language = lang
     db.commit()
+    get_redis().delete(f"prof:{user.id}")
     return {"language": p.language}

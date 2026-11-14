@@ -91,9 +91,10 @@ def _server_keys():
     return keys
 
 
-def test_server_texts_have_russian_with_matching_placeholders():
+@pytest.mark.parametrize("lang", ["ru", "kk"])
+def test_server_texts_have_russian_with_matching_placeholders(lang):
     from app import msg
-    table = msg.table("ru")
+    table = msg.table(lang)
     skip = {"options.{r}.s{v}"}  # a field key, not a text
     missing = [k for k in _server_keys() if k not in table and k not in skip and re.search(r"[A-Za-z]{4}", k) and "user=%s" not in k]
     assert not missing, missing[:10]
@@ -203,3 +204,18 @@ def test_dates_follow_the_language(client):
     assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", ru["result"]["options"][0]["date"])  # fields for the interface stay ISO
     done = client.post(f"/api/cases/{ru['id']}/decision", json={"option": "likely", "rationale": "x"}, headers={"x-lang": "ru"}).json()["case"]
     assert re.search(r"\d{2}\.\d{2}\.\d{4}", done["document"]) and not re.search(r"\d{4}-\d{2}-\d{2}", done["document"].split("Дата: ")[1].split("\n")[0])
+
+
+def test_kazakh_end_to_end(client):
+    signup(client, "kk@example.com")
+    client.put("/api/profile", json={"roleId": "public-official", "industry": "", "tenure": "1-3m", "fears": []})
+    assert client.put("/api/profile/language", json={"language": "kk"}).json() == {"language": "kk"}
+    pack = {s["id"]: s for s in client.get("/api/packs").json()["situations"]}
+    assert re.search("[әіңғүұқөһ]", pack["choose-between-options"]["title"] + pack["competing-priorities"]["summary"])
+    answers = {**{q["id"]: q["default"] for q in pack["asked-for-a-deadline"]["questions"] if "default" in q}, **pack["asked-for-a-deadline"]["storylines"][0]["answers"]}
+    case = client.post("/api/cases", json={"situationId": "asked-for-a-deadline", "privacyAck": True, "confidenceBefore": 3, "inputs": answers}).json()["case"]
+    assert re.search("[әіңғүұқөһ]", case["result"]["headline"]) and re.search(r"\d{2}\.\d{2}\.\d{4}", case["result"]["headline"])
+    done = client.post(f"/api/cases/{case['id']}/decision", json={"option": "likely", "rationale": "x"}).json()["case"]
+    assert done["document"].startswith("# Мерзім бойынша жауап:") and re.search("[әіңғүұқөһ]", done["debrief"]["points"][0])
+    bad = client.post("/api/cases", json={"situationId": "asked-for-a-deadline", "privacyAck": True, "confidenceBefore": 3, "inputs": {**answers, "hoursPerWeek": "abc"}})
+    assert bad.status_code == 400 and bad.json()["error"] == "Белгіленген өрістерді тексеріңіз"

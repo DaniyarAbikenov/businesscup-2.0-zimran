@@ -69,6 +69,15 @@ The promise: "Facing a decision in a new role? Try your options with your own nu
 - **Every case** shows four steps (Fill in, Compare, Decide, Follow up), a "Best by the numbers" sentence and a two-sentence "how to read this" above the results, and small "Why we ask" notes on the fields that need one.
 - Notes on what was confusing and what changed: `UX_NOTES.md`.
 
+## Languages
+
+English (source), Russian and Kazakh. The language switcher (EN / RU / KZ) is in the header and on the sign-in and Account pages; the choice is saved in `profiles.language` and in the browser. The API reads the language from `?lang=`, the `X-Lang` header (the frontend always sends it), the saved profile, then `Accept-Language`. English is the default and every text falls back to English if a translation is missing. **RU and KK are machine-written and need review by a native speaker**, see [TRANSLATION_NOTES.md](TRANSLATION_NOTES.md).
+
+- **Interface**: `frontend/src/i18n/` (`t('English text')`, `tn(n, one, many)`; dictionaries `ru.ts`, `kk.ts`). Check: `docker compose exec frontend node scripts/check-i18n.mjs` (every text used in code has a translation with the same `{placeholders}`).
+- **Scenario packs, roles, worries**: overlays by id in `backend/app/packs/i18n/<lang>.json`, merged over the English JSON (`app/i18n.py`).
+- **Server texts** (results, documents, debriefs, emails, errors): `tr("English template {x}", x=...)` with tables in `backend/app/messages/<lang>.json` (`app/msg.py`); dates inside sentences follow the language.
+- **Add a language**: add `xx` to `LANGS` in `app/i18n.py` and `src/i18n/index.ts`, the `profiles.language` constraint (migration), a dictionary `src/i18n/xx.ts`, overlays `packs/i18n/xx.json` and `messages/xx.json`, a switcher entry and tests (`tests/test_i18n.py`: ids, placeholders, Cyrillic or script checks).
+
 ## Guided tours
 
 Short step-by-step tips (popovers anchored to real elements) appear once, the first time a person reaches a screen: Home, the exercise form, the guess step, results, a decided case, Progress and My cases. Each popover has a title, one or two sentences, "Step 2 of 5", Back / Next / Skip tour, a close button and "Do not show tours again". Finishing or skipping the Welcome starts the Home tour. A "?" button in the header replays the tour for the current screen; "Restart all tours" is on the Account page and "Start the tour" on How it works.
