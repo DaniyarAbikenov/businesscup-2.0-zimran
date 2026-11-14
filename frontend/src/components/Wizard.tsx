@@ -63,7 +63,7 @@ export function Wizard({ sit, answers, setAnswers, serverFields, conf, setConf, 
     if (at >= 0) setStep(at);
   }, [serverFields]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const go = (n: number) => { setLocal({}); setStep(n); window.scrollTo(0, 0); };
+  const go = (n: number) => { setLocal({}); setStep(n); setTimeout(() => { const el = document.querySelector('.wiz-progress'); if (el) window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 60); }, 0); };
   const next = () => {
     const errs = stepErrors(qsOf(step), answers);
     if (Object.keys(errs).length) { setLocal(errs); setTimeout(() => document.getElementById('q_' + Object.keys(errs)[0])?.focus(), 0); return; }
