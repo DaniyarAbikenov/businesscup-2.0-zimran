@@ -284,3 +284,11 @@ ol.path .card.first { border-color: var(--accent-700); }
 .whatif-val { min-width: 90px; text-align: right; font-variant-numeric: tabular-nums; }
 .whatif-table th[scope=row] { font-weight: 400; color: var(--n-800); text-align: left; }
 .whatif-diff { font-weight: 700; color: var(--accent-700); }
+
+/* Contrast: the edge of a control that is not text must be 3:1 against the page (WCAG 1.4.11), so these use the input border colour */
+.seg, .chip, .step-btn, .story { border-color: var(--input-border); }
+.seg.on, .story.on { border-color: var(--accent-700); }
+.wiz-seg { background: var(--input-border); }
+.wiz-seg.on { background: var(--accent-700); }
+.seg:focus-visible, .chip:focus-visible, .step-btn:focus-visible, .story:focus-visible, .wiz-seg:focus-visible, .linkbtn:focus-visible { outline: 3px solid var(--accent-700); outline-offset: 2px; }
+input[type=range]:focus-visible { outline: 3px solid var(--accent-700); outline-offset: 4px; border-radius: 4px; }

@@ -90,9 +90,7 @@ export function QuestionField({ q, value, error, errors, onChange, answers }: { 
         q.type === 'select' && q.slider ? (
           <ChoiceSlider q={q} a={a} value={value} onChange={onChange} />
         ) : q.type === 'select' && segmented(q) ? (
-          <div className="segs" role="radiogroup" aria-labelledby={a.id + '-l'} id={a.id}>
-            {q.options!.map((o) => <button key={o.value} type="button" role="radio" aria-checked={value === o.value} className={'seg' + (value === o.value ? ' on' : '')} onClick={() => onChange(o.value)}>{o.label}</button>)}
-          </div>
+          <SegGroup id={a.id} options={q.options!} value={value} onChange={onChange} />
         ) : q.type === 'number' && sliderOf(q) ? (
           <Slider q={q} a={a} value={value} onChange={onChange} />
         ) : q.type === 'number' ? (
@@ -115,6 +113,25 @@ export function QuestionField({ q, value, error, errors, onChange, answers }: { 
   );
 }
 
+/** One tab stop for the whole group; arrow keys move and select, like a native radio group. */
+function SegGroup({ id, options, value, onChange }: { id: string; options: { value: string; label: string }[]; value: string; onChange: (v: string) => void }) {
+  const at = Math.max(0, options.findIndex((o) => o.value === value));
+  const move = (e: React.KeyboardEvent, d: number) => {
+    e.preventDefault();
+    const n = (at + d + options.length) % options.length;
+    onChange(options[n].value);
+    setTimeout(() => (document.getElementById(`${id}-${n}`) as HTMLElement | null)?.focus(), 0);
+  };
+  return (
+    <div className="segs" role="radiogroup" aria-labelledby={id + '-l'} id={id}>
+      {options.map((o, n) => (
+        <button key={o.value} id={`${id}-${n}`} type="button" role="radio" aria-checked={value === o.value} tabIndex={n === at ? 0 : -1} className={'seg' + (value === o.value ? ' on' : '')}
+          onClick={() => onChange(o.value)} onKeyDown={(e) => { if (e.key === 'ArrowRight' || e.key === 'ArrowDown') move(e, 1); else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') move(e, -1); }}>{o.label}</button>
+      ))}
+    </div>
+  );
+}
+
 /** A short list of choices (up to 5) outside a table row is shown as buttons, so one click picks it. */
 const segmented = (q: Question) => !!q.options && q.options.length <= 5;
 /** A bounded number with a step and a range of up to 100 steps is a slider; the exact number can still be typed. */
@@ -131,7 +148,7 @@ export function chipDates(now = new Date()): { label: string; value: string }[] 
   ];
 }
 export function DateChips({ onPick, compact }: { onPick: (v: string) => void; compact?: boolean }) {
-  return <div className="chips">{chipDates().filter((_, i) => !compact || [1, 2, 3].includes(i)).map((c) => <button key={c.label} type="button" className="chip" onClick={() => onPick(c.value)}>{c.label}</button>)}</div>;
+  return <div className="chips">{chipDates().filter((_, i) => !compact || [1, 2, 3].includes(i)).map((c) => <button key={c.label} type="button" className="chip" aria-label={`${c.label}, ${fmtDate(c.value)}`} onClick={() => onPick(c.value)}>{c.label}</button>)}</div>;
 }
 
 /** A short ordered list of options (low / medium / high) as a slider: the live word shows the chosen option; the stored value stays the option's key. */
@@ -163,9 +180,9 @@ function NumberStepper({ q, a, value, onChange }: { q: Question; a: { id: string
   const u = unitOf(q.id.split('.').pop()!, q);
   return (
     <div className="stepper-num">
-      <button type="button" className="step-btn" aria-label={t('Decrease')} onClick={() => bump(-1)}>−</button>
+      <button type="button" className="step-btn" aria-label={`${t('Decrease')}: ${q.label}`} onClick={() => bump(-1)}>−</button>
       <input className="input" {...a} type="number" inputMode="decimal" min={q.min} max={q.max} step={q.step ?? 'any'} value={value} placeholder={t('not set')} onChange={(e) => onChange(e.target.value)} />
-      <button type="button" className="step-btn" aria-label={t('Increase')} onClick={() => bump(1)}>+</button>
+      <button type="button" className="step-btn" aria-label={`${t('Increase')}: ${q.label}`} onClick={() => bump(1)}>+</button>
       {u && <span className="slider-unit" aria-hidden="true">{u}</span>}
     </div>
   );
@@ -178,7 +195,7 @@ function Slider({ q, a, value, onChange }: { q: Question; a: { id: string; 'aria
   return (
     <div className="slider">
       <div className="slider-top">
-        <input type="range" {...a} min={min} max={max} step={q.step} value={shown} onChange={(e) => onChange(e.target.value)} className={empty ? 'unset' : ''} />
+        <input type="range" {...a} min={min} max={max} step={q.step} value={shown} aria-valuetext={empty ? t('not set') : `${shown}${unitOf(q.id.split('.').pop()!, q) ? (q.unit === '%' ? '' : ' ') + unitOf(q.id.split('.').pop()!, q) : ''}${q.words?.[Math.round((shown - min) / (q.step || 1))] ? ', ' + q.words[Math.round((shown - min) / (q.step || 1))] : ''}`} onChange={(e) => onChange(e.target.value)} className={empty ? 'unset' : ''} />
         <input className="input slider-num" type="number" inputMode="decimal" aria-label={q.label} min={min} max={max} step={q.step} value={value} placeholder={t('not set')} onChange={(e) => onChange(e.target.value)} />
         {unitOf(q.id.split('.').pop()!, q) && <span className="slider-unit" aria-hidden="true">{unitOf(q.id.split('.').pop()!, q)}</span>}
       </div>
