@@ -3,6 +3,7 @@ import os
 
 os.environ.setdefault("DATABASE_URL", "postgresql+psycopg://roleshift:roleshift@localhost:5432/roleshift_test")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/1")
+os.environ.setdefault("LANGUAGES", "en,ru,kk")  # the translation tests still exercise the overlays; production default is English only
 
 import pytest
 from alembic import command

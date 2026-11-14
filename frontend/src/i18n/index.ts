@@ -8,13 +8,11 @@ export const LANGS: { code: Lang; short: string; name: string }[] = [{ code: 'en
 const KEY = 'roleshift.lang';
 const dicts: Record<Lang, Record<string, string>> = { en: {}, ru, kk };
 
+/** The product is English only. The Russian and Kazakh dictionaries stay in the repository but are not used: nothing here reads the
+ *  browser language or a stored choice. Set ENABLED to ['en','ru','kk'] to bring the switcher logic back. */
+const ENABLED: Lang[] = ['en'];
 function detect(): Lang {
-  try {
-    const saved = localStorage.getItem(KEY);
-    if (saved === 'en' || saved === 'ru' || saved === 'kk') return saved;
-  } catch { /* storage blocked */ }
-  const nav = (typeof navigator !== 'undefined' ? navigator.language : 'en').slice(0, 2).toLowerCase();
-  return nav === 'ru' ? 'ru' : nav === 'kk' ? 'kk' : 'en';
+  return ENABLED[0];
 }
 
 let current: Lang = detect();
@@ -23,12 +21,13 @@ const warned = new Set<string>();
 export const getLang = (): Lang => current;
 export const locale = () => ({ en: 'en-US', ru: 'ru-RU', kk: 'kk-KZ' }[current]);
 export function setLang(l: Lang) {
+  if (!ENABLED.includes(l)) return;
   current = l;
   try { localStorage.setItem(KEY, l); } catch { /* ignore */ }
 }
 /** The server's saved choice wins once signed in. */
 export function adopt(l: string | null | undefined) {
-  if (l === 'en' || l === 'ru' || l === 'kk') { current = l; try { localStorage.setItem(KEY, l); } catch { /* ignore */ } }
+  if ((l === 'en' || l === 'ru' || l === 'kk') && ENABLED.includes(l)) { current = l; try { localStorage.setItem(KEY, l); } catch { /* ignore */ } }
 }
 
 export function t(s: string, vars?: Record<string, string | number | null | undefined>): string {

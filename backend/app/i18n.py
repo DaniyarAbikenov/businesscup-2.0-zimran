@@ -6,7 +6,7 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
-LANGS = ("en", "ru", "kk")
+LANGS = tuple(x.strip() for x in __import__("os").environ.get("LANGUAGES", "en").split(",") if x.strip()) or ("en",)  # English only by default; the ru and kk overlays stay in the repo, unused
 _dir = Path(__file__).parent / "packs" / "i18n"
 
 

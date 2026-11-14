@@ -1,5 +1,4 @@
 import { t } from '../i18n';
-import { LanguageSwitch } from '../components/ui';
 import { FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';

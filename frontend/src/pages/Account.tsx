@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSession } from '../App';
 import { api } from '../api';
 import { notify } from '../components/Toaster';
-import { Button, Field, LanguageSwitch, PageHeader, Panel } from '../components/ui';
+import { Button, Field, PageHeader, Panel } from '../components/ui';
 import { ReminderToggle } from './Progress';
 import { useTour } from '../tour/TourHost';
 
@@ -26,7 +26,6 @@ export default function AccountPage() {
     <div className="narrow">
       <PageHeader eyebrow={t('Account')} title={t('Account and data')} lead={t('Signed in as {email}.', { email: me.user.email })} />
       <Panel title={t('What we keep')}><p>{t('Your profile, the scenarios you worked through with the numbers you entered, the documents you saved with their earlier versions, your reflections and follow-ups, and your journal. Nothing is shared with other users. If you ask for an AI draft, only the change title, decision, date, cost and your reasoning are sent to the AI provider.')}</p></Panel>
-      <Panel title={t('Language')}><LanguageSwitch /></Panel>
       <Panel title={t('Guided tours')}><p className="small muted">{t('Short tips that appear the first time you reach a screen.')}</p><Button variant="secondary" type="button" onClick={async () => { await tour.resetAll(); notify(t('Tours will show again.')); }}>{t('Restart all tours')}</Button></Panel>
       <Panel title={t('Email reminders')}><ReminderToggle /></Panel>
       <Panel title={t('Delete my account')}>

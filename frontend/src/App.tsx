@@ -3,7 +3,6 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { Me, Pack, api } from './api';
 import { adopt, getLang } from './i18n';
-import { LanguageSwitch } from './components/ui';
 import { TourProvider, useTour } from './tour/TourHost';
 import Auth from './pages/Auth';
 import CasePage from './pages/Case';
@@ -98,7 +97,6 @@ function TopBar() {
           <NavLink to="/guide" className="hide-sm">{t('How it works')}</NavLink>
           <NavLink to="/account">{t('Account')}</NavLink>
           <button type="button" className="tourbtn" onClick={tour.replay} aria-label={t('Show the tour for this page')} title={t('Show the tour for this page')}>?</button>
-          <LanguageSwitch />
           <button onClick={async () => { await api('POST', '/auth/logout', {}); await refresh(); nav('/'); }}>{t('Sign out')}</button>
         </nav>
       </div>
