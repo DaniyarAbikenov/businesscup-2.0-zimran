@@ -95,3 +95,24 @@ def test_recalculate_draft_only(client):
     assert r.json()["case"]["result"]["options"][0]["slipWorkdays"] == 0
     client.post(f"/api/cases/{cid}/decision", json={"option": "decline"})
     assert client.put(f"/api/cases/{cid}/inputs", json={"inputs": ANSWERS}).status_code == 409
+
+
+def test_demo_account_has_every_step(client, monkeypatch):
+    assert client.get("/api/public-config").json() == {"demoEnabled": True}
+    assert client.post("/api/auth/demo", json={}).status_code == 201
+    assert client.get("/api/me").json()["isDemo"] is True
+    j = client.get("/api/journal").json()
+    assert j["stats"]["started"] == 3 and j["stats"]["decided"] == 2 and j["stats"]["followedUp"] == 1
+    assert j["stats"]["confidenceChange"] == 2.0
+    assert len(j["followups"]) == 1 and j["followups"][0]["overdue"] is True
+    assert client.get("/api/reminders").json()["due"] == 1
+    drafts = [c for c in j["cases"] if c["status"] == "draft"]
+    assert len(drafts) == 1
+    case = client.get(f"/api/cases/{drafts[0]['id']}").json()["case"]
+    assert case["result"]["options"] and client.post(f"/api/cases/{drafts[0]['id']}/decision", json={"option": "defer"}).status_code == 200
+
+
+def test_demo_can_be_switched_off(client, monkeypatch):
+    from app import config
+    monkeypatch.setattr(config, "DEMO_MODE", False)
+    assert client.post("/api/auth/demo", json={}).status_code == 404

@@ -23,6 +23,8 @@ docker compose up --build
 
 Open http://localhost:5173 (API docs: http://localhost:8000/api/docs).
 
+**Demo:** click **Try the demo** on the sign-in page. It creates a throwaway account (no sign-up) with a finished case (decision, document, reflection, reported outcome), a decision waiting for its follow-up (due now, shown as a badge in the nav) and a draft ready to compare and decide, so every step can be seen in a minute. Turn it off with `DEMO_MODE=false`.
+
 Startup order is enforced by healthchecks: `db` and `redis` -> `migrate` (runs `alembic upgrade head`, then exits) -> `backend` -> `frontend`.
 
 - **Backend hot reload:** `./backend` is bind-mounted and uvicorn runs with `--reload`.

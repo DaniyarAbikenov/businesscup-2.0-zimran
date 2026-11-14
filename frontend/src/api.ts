@@ -37,7 +37,7 @@ export interface Pack {
   situations: Situation[];
 }
 export interface Profile { roleId: string; industry: string; tenure: string; fears: string[]; fearNote: string }
-export interface Me { user: { id: number; email: string }; profile: Profile | null; llmEnabled: boolean }
+export interface Me { user: { id: number; email: string }; profile: Profile | null; llmEnabled: boolean; isDemo: boolean }
 export interface Option {
   key: 'accept' | 'defer' | 'decline'; riskLevel: 'low' | 'medium' | 'high'; riskScore: number;
   newReleaseDate: string; slipWorkdays: number; extraCost: number; budgetAfter: number; laterCost?: number;

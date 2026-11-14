@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { Button, Field, PrivacyBanner } from '../components/ui';
@@ -9,6 +9,14 @@ export default function Auth({ mode, onDone }: { mode: 'login' | 'register'; onD
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [demoEnabled, setDemoEnabled] = useState(false);
+  useEffect(() => { api('GET', '/public-config').then((c) => setDemoEnabled(c.demoEnabled)).catch(() => {}); }, []);
+
+  async function startDemo() {
+    setError('');
+    setBusy(true);
+    try { await api('POST', '/auth/demo', {}); await onDone(); } catch (x: any) { setError(x.message); setBusy(false); }
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -31,6 +39,13 @@ export default function Auth({ mode, onDone }: { mode: 'login' | 'register'; onD
       <p className="lead muted" style={{ marginTop: 12, fontSize: 18 }}>
         Work through a real situation with your real figures. See what each choice costs, then send a document you can stand behind.
       </p>
+      {demoEnabled && (
+        <div className="panel">
+          <h2>See it in one click</h2>
+          <p className="muted">Opens a demo account with a finished case, a decision waiting for follow-up and a draft ready to decide. No sign-up.</p>
+          <div className="row" style={{ marginTop: 16 }}><Button onClick={startDemo} busy={busy}>Try the demo</Button></div>
+        </div>
+      )}
       <PrivacyBanner />
       <form className="panel" onSubmit={submit} noValidate>
         <h2>{reg ? 'Create your account' : 'Sign in'}</h2>

@@ -18,6 +18,7 @@ export default function Home() {
     <>
       <PageHeader eyebrow={role.label + (profile.industry ? ' · ' + profile.industry : '')} title="What are you facing this week?"
         lead={fears.length ? `You told us you worry about ${fears.join('; ')}. Pick a situation and test your options before you commit.` : 'Pick a situation and test your options before you commit.'} />
+      {me.isDemo && <div className="banner ok" role="note"><strong>Demo account.</strong> The cases below are sample data. Open each one to see every step, or start a new situation. Sign out and create an account to keep your own work.</div>}
       <PrivacyBanner />
       {error && <div className="banner bad" role="alert">{error}</div>}
       {j && j.followups.length > 0 && (

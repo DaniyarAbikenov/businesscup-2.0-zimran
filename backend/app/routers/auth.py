@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import config, llm
+from ..demo import is_demo_email, seed_demo_user
 from ..cache import get_redis
 from ..db import get_db
 from ..deps import COOKIE, current_user
@@ -62,6 +63,25 @@ def login(body: Credentials, request: Request, response: Response, db: Session =
     return {"ok": True}
 
 
+@router.get("/public-config")
+def public_config():
+    return {"demoEnabled": config.DEMO_MODE}
+
+
+@router.post("/auth/demo", status_code=201)
+def demo(request: Request, response: Response, db: Session = Depends(get_db), r=Depends(get_redis)):
+    """Creates a throwaway demo user with sample data at every step, and signs in."""
+    if not config.DEMO_MODE:
+        raise ApiError(404, "Demo mode is off")
+    key = f"demo:{request.client.host if request.client else ''}"
+    if r.incr(key) > 30:
+        raise ApiError(429, "Too many demo accounts from this address. Try again in an hour.")
+    r.expire(key, 3600)
+    user = seed_demo_user(db, r)
+    start_session(response, r, user.id)
+    return {"ok": True}
+
+
 @router.post("/auth/logout")
 def logout(request: Request, response: Response, r=Depends(get_redis)):
     token = request.cookies.get(COOKIE)
@@ -77,7 +97,7 @@ def profile_dict(p: Profile | None):
 
 @router.get("/me")
 def me(user=Depends(current_user), db: Session = Depends(get_db)):
-    return {"user": {"id": user.id, "email": user.email}, "profile": profile_dict(db.get(Profile, user.id)), "llmEnabled": llm.enabled()}
+    return {"user": {"id": user.id, "email": user.email}, "profile": profile_dict(db.get(Profile, user.id)), "llmEnabled": llm.enabled(), "isDemo": is_demo_email(user.email)}
 
 
 @router.get("/packs")
