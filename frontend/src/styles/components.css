@@ -292,3 +292,7 @@ ol.path .card.first { border-color: var(--accent-700); }
 .wiz-seg.on { background: var(--accent-700); }
 .seg:focus-visible, .chip:focus-visible, .step-btn:focus-visible, .story:focus-visible, .wiz-seg:focus-visible, .linkbtn:focus-visible { outline: 3px solid var(--accent-700); outline-offset: 2px; }
 input[type=range]:focus-visible { outline: 3px solid var(--accent-700); outline-offset: 4px; border-radius: 4px; }
+/* A choice group in a card gets the full width, so its buttons sit in a row instead of tall narrow boxes */
+.listq-row .field:has(.segs) { grid-column: 1 / -1; }
+.listq-row .segs { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+.listq-row .seg { min-height: 44px; padding: 8px 10px; }
