@@ -532,6 +532,7 @@ const kk: Record<string, string> = {
  "Cut scope": "Көлемді қысқарту",
  "Pay for extra hours": "Қосымша сағатқа төлеу",
  "Time, money, quality": "Уақыт, ақша, сапа",
- "Every way to fix lateness costs something. This table shows what each way costs in time, money and quality.": "Кешігуді түзетудің әр жолының бағасы бар. Кесте әр жолдың уақыт, ақша және сапа бойынша бағасын көрсетеді."
+ "Every way to fix lateness costs something. This table shows what each way costs in time, money and quality.": "Кешігуді түзетудің әр жолының бағасы бар. Кесте әр жолдың уақыт, ақша және сапа бойынша бағасын көрсетеді.",
+ "not set": "көрсетілмеген"
 };
 export default kk;

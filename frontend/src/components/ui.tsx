@@ -70,7 +70,7 @@ interface FieldProps { id: string; label: string; help?: string; why?: string; e
 export function Field({ id, label, help, why, error, children }: FieldProps) {
   return (
     <div className="field">
-      <label htmlFor={id}>{label}</label>
+      <label htmlFor={id} id={id + '-l'}>{label}</label>
       {help && <div className="help" id={id + '-h'}>{help}</div>}
       {children({ id, 'aria-invalid': error ? true : undefined, 'aria-describedby': error ? id + '-e' : help ? id + '-h' : undefined })}
       {why && <Why>{why}</Why>}
@@ -86,7 +86,13 @@ export function QuestionField({ q, value, error, errors, onChange, answers }: { 
   return (
     <Field id={'q_' + q.id} label={label} help={q.help} why={q.why} error={error}>
       {(a) =>
-        q.type === 'select' ? (
+        q.type === 'select' && segmented(q) ? (
+          <div className="segs" role="radiogroup" aria-labelledby={a.id + '-l'} id={a.id}>
+            {q.options!.map((o) => <button key={o.value} type="button" role="radio" aria-checked={value === o.value} className={'seg' + (value === o.value ? ' on' : '')} onClick={() => onChange(o.value)}>{o.label}</button>)}
+          </div>
+        ) : q.type === 'number' && sliderOf(q) ? (
+          <Slider q={q} a={a} value={value} onChange={onChange} />
+        ) : q.type === 'select' ? (
           <select className="input" {...a} value={value} onChange={(e) => onChange(e.target.value)}>
             {q.options!.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
@@ -100,6 +106,26 @@ export function QuestionField({ q, value, error, errors, onChange, answers }: { 
         )
       }
     </Field>
+  );
+}
+
+/** A short list of choices (up to 5) outside a table row is shown as buttons, so one click picks it. */
+const segmented = (q: Question) => !q.id.includes('.') && !!q.options && q.options.length <= 5;
+/** A bounded number with a step and a range of up to 100 steps is a slider; the exact number can still be typed. */
+const sliderOf = (q: Question) => q.step !== undefined && q.max !== undefined && q.min !== undefined && q.max - q.min <= 100 && q.max - q.min >= 2 * q.step;
+
+function Slider({ q, a, value, onChange }: { q: Question; a: { id: string; 'aria-invalid'?: boolean; 'aria-describedby'?: string }; value: any; onChange: (v: any) => void }) {
+  const min = q.min!, max = q.max!;
+  const empty = value === '' || value === undefined || Number.isNaN(Number(value));
+  const shown = empty ? min : Math.min(max, Math.max(min, Number(value)));
+  return (
+    <div className="slider">
+      <div className="slider-top">
+        <input type="range" {...a} min={min} max={max} step={q.step} value={shown} onChange={(e) => onChange(e.target.value)} className={empty ? 'unset' : ''} />
+        <input className="input slider-num" type="number" inputMode="decimal" aria-label={q.label} min={min} max={max} step={q.step} value={value} placeholder={t('not set')} onChange={(e) => onChange(e.target.value)} />
+      </div>
+      <div className="slider-ends" aria-hidden="true"><span>{min}</span><span>{max}</span></div>
+    </div>
   );
 }
 

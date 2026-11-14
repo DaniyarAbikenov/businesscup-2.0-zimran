@@ -535,6 +535,7 @@ const ru: Record<string, string> = {
  "Cut scope": "Урезать объём",
  "Pay for extra hours": "Оплатить доп. часы",
  "Time, money, quality": "Время, деньги, качество",
- "Every way to fix lateness costs something. This table shows what each way costs in time, money and quality.": "Любой способ убрать опоздание чем-то стоит. Таблица показывает цену каждого способа во времени, деньгах и качестве."
+ "Every way to fix lateness costs something. This table shows what each way costs in time, money and quality.": "Любой способ убрать опоздание чем-то стоит. Таблица показывает цену каждого способа во времени, деньгах и качестве.",
+ "not set": "не задано"
 };
 export default ru;

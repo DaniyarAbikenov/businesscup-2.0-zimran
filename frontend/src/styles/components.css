@@ -209,3 +209,14 @@ ol.path .card.first { border-color: var(--accent-700); }
 @media (prefers-reduced-motion: reduce) { .tour-hl { transition: none; } }
 .linklike { background: none; border: 0; padding: 0; font: inherit; color: var(--accent-700); text-decoration: underline; cursor: pointer; }
 .tourbtn { background: none; border: 1px solid var(--n-400); border-radius: 50%; width: 26px; height: 26px; padding: 0; color: inherit; font: 600 13px var(--font-ui, inherit); cursor: pointer; }
+
+/* Choices as buttons and numbers as sliders (UX: pick or drag instead of typing) */
+.segs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--s-2); }
+.seg { background: var(--n-100); border: 1px solid var(--n-400); border-radius: var(--r-control); padding: 10px 16px; min-height: 44px; font: inherit; color: var(--n-1000); cursor: pointer; }
+.seg:hover { border-color: var(--accent-700); }
+.seg.on { border-color: var(--accent-700); background: var(--accent-100); box-shadow: inset 0 0 0 1px var(--accent-700); font-weight: 600; }
+.slider-top { display: flex; align-items: center; gap: var(--s-3); }
+.slider input[type=range] { flex: 1; min-width: 0; height: 44px; accent-color: var(--accent-700); cursor: pointer; }
+.slider input[type=range].unset { opacity: .45; }
+.slider-num { width: 92px; flex: none; text-align: right; }
+.slider-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--n-800); margin: -6px 104px 0 0; }
