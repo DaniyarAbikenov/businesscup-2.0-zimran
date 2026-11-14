@@ -53,9 +53,10 @@ class Case(Base):
 
 
 class Decision(Base):
-    """The option the user chose and the Change Request document generated from it (one per case)."""
+    """The option the user chose and the document generated from it (one per case). Allowed option keys
+    come from the situation pack and are checked by the API; the database only checks the key format."""
     __tablename__ = "decisions"
-    __table_args__ = (CheckConstraint("option IN ('accept','defer','decline')", name="ck_decisions_option"),)
+    __table_args__ = (CheckConstraint("option ~ '^[a-z][a-z_]{0,19}$'", name="ck_decisions_option"),)
     id: Mapped[int] = mapped_column(primary_key=True)
     case_id: Mapped[int] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), unique=True)
     option: Mapped[str] = mapped_column(String(20))

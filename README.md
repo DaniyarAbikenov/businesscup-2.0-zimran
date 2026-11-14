@@ -66,11 +66,12 @@ users 1--* journal   timeline events, optionally linked to a case
 - `cases` keeps two JSON snapshots: `inputs` (what the user entered) and `result` (what the engine calculated), so an old case never changes when the formulas change. `cases.status` is `draft` until a decision exists.
 - Constraints live in the database: allowed options and outcomes, confidence 1 to 5, one decision, reflection and follow-up per case, cascade delete from user to everything.
 - Roles and situations are content packs (JSON), not tables.
-- Migrations: `0001` initial schema, `0002` moves decision, reflection and follow-up out of `cases` and keeps existing data (and reverses it on downgrade), `0003` adds documents and revisions and backfills one Change Request per existing decision. `backend/tests/test_migrations.py` runs both directions with data on a scratch database.
+- Migrations: `0001` initial schema, `0002` moves decision, reflection and follow-up out of `cases` and keeps existing data (and reverses it on downgrade), `0003` adds documents and revisions and backfills one Change Request per existing decision, `0004` lets decision option keys come from packs (the database checks the key format, the API checks the key against the situation). `backend/tests/test_migrations.py` runs both directions with data on a scratch database.
 
 ## How it works
 
 - **Content packs:** roles, worries and situations are JSON in `backend/app/packs/`. The form, validation, option labels, next steps and pitfalls all come from the pack, so new roles and situations are data. The math for a situation type lives in `backend/app/engine/`.
+- **Situations and engines:** each situation in `packs/situations.json` names an engine (`app/engine/__init__.py` registry), its questions (including repeatable rows such as a task list), form groups, option labels, next steps, pitfalls, the document name, and **storylines** (ready examples with filled-in answers, dates given as `{"daysFromNow": n}`). Two engines today: `change_request` (accept / defer / decline a late client change) and `priorities` (2-5 competing tasks, compares four orders of work: earliest deadline, most senior requester, biggest consequence, your own order). A new situation on an existing engine is JSON only.
 - **Calculation** (`engine/change_request.py`): effort plus overhead, shared across the team (Amdahl-style parallel share), minus schedule buffer gives the slip in working days (weekends skipped). Cost is change work plus team time during the slip plus penalties minus the client share. No LLM involved.
 - **Redis:** `sess:*` sessions with TTL, `login:*` throttle counters, `followups:<user>` sorted set that drives the "follow-ups due" badge (rebuilt from Postgres at startup), `hint:*` cache of the AI draft.
 - **AI (optional):** set `ANTHROPIC_API_KEY` to enable "Draft a message to the client". Without a key the button is hidden and nothing else changes. When used, the change title, decision, date, cost and your reasoning are sent to the API.
@@ -86,7 +87,7 @@ users 1--* journal   timeline events, optionally linked to a case
 ## Limitations
 
 - This compose file is a development stack. For production build the frontend (`npm run build`) and serve `dist/` from a web server or the backend, and run uvicorn without `--reload`.
-- One situation so far. Other roles change vocabulary, not the math.
+- Two situations so far (client change request, competing priorities). More are planned on the same engines, plus AI-assisted creation of new situations.
 - Follow-up reminders appear in the app only (no email or push).
 - Outcomes are self-reported and cannot be verified. Risk labels are transparent rules of thumb, not predictions.
 - No password reset or email verification.

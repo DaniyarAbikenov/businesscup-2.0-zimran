@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useSession } from '../App';
 import { Case, Option, Situation, api, fmtDate, usd } from '../api';
 import { notify } from '../components/Toaster';
-import { Badge, Button, Field, PageHeader, Panel, QuestionField, initialAnswers, useToast } from '../components/ui';
+import { Badge, Button, Field, PageHeader, Panel, QuestionGroups, initialAnswers, useToast } from '../components/ui';
 
 export default function CasePage() {
   const { id } = useParams();
@@ -17,8 +17,9 @@ export default function CasePage() {
   return c.status === 'draft' ? <Draft c={c} sit={sit} onChange={setC} /> : <Decided c={c} sit={sit} onChange={setC} />;
 }
 
-const summary = (c: Case) => {
+const summary = (c: Case, sit: Situation) => {
   const i = c.inputs;
+  if (sit.engine !== 'change_request') return c.result.headline ?? sit.summary;
   return `Requested by ${i.requestedBy}. Release ${fmtDate(i.releaseDate)}, ${i.teamSize} people, ${usd(i.dailyRate)} per person-day, ${usd(i.budgetRemaining)} budget left, ${i.changeEffortDays} person-days estimated, ${i.bufferDays} buffer days.`;
 };
 
@@ -55,6 +56,50 @@ function Ledger({ c, sit, chosen, onPick }: { c: Case; sit: Situation; chosen: s
   );
 }
 
+const lateText = (d: number) => (d === 0 ? 'on time' : `${d} working day${d === 1 ? '' : 's'} late`);
+
+function PriorityLedger({ c, sit, chosen, onPick }: { c: Case; sit: Situation; chosen: string | null; onPick: (k: string) => void }) {
+  const opts = c.result.options;
+  const tasks: { name: string; deadline: string }[] = c.inputs.tasks;
+  const label = (k: string) => sit.options[k].label;
+  const cell = (o: Option, content: React.ReactNode, num = true) => (
+    <td key={o.key} data-label={label(o.key)} className={(num ? 'num ' : '') + (chosen === o.key ? 'sel' : '')}>{content}</td>
+  );
+  return (
+    <table className="ledger">
+      <caption className="visually-hidden">Comparison of {opts.length} orders of work</caption>
+      <thead>
+        <tr>
+          <th scope="col"><span className="visually-hidden">Measure</span></th>
+          {opts.map((o) => (
+            <th key={o.key} scope="col" className={chosen === o.key ? 'sel' : ''}>
+              {label(o.key)}
+              {c.result.lowestRiskKey === o.key && <span className="tag">Least damage on these numbers</span>}
+              {o.sameAs && o.sameAs.length > 0 && <span className="tag muted-tag">Same order as {o.sameAs.map(label).join(', ').toLowerCase()}</span>}
+              <div><Button className="pickbtn" variant={chosen === o.key ? 'primary' : 'secondary'} aria-pressed={chosen === o.key} onClick={() => onPick(o.key)} type="button">{chosen === o.key ? 'Selected' : 'Choose'}</Button></div>
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Order of work</td>{opts.map((o) => cell(o, <ol className="order">{o.schedule!.map((s) => <li key={s.index}>{s.name}</li>)}</ol>, false))}</tr>
+        {tasks.map((t, ix) => (
+          <tr key={ix}>
+            <td>{t.name}<div className="small muted">due {fmtDate(t.deadline)}</div></td>
+            {opts.map((o) => {
+              const s = o.schedule!.find((x) => x.index === ix)!;
+              return cell(o, <>{fmtDate(s.finish)}<div className={'small ' + (s.lateDays ? 'late' : 'muted')}>{lateText(s.lateDays)}</div></>);
+            })}
+          </tr>
+        ))}
+        <tr><td>Late tasks</td>{opts.map((o) => cell(o, o.lateCount ? `${o.lateCount}, ${o.totalLateDays} days in total` : 'none'))}</tr>
+        <tr><td>Risk</td>{opts.map((o) => cell(o, <Badge level={o.riskLevel} />))}</tr>
+        <tr><td>What to watch</td>{opts.map((o) => cell(o, <ul className="risks">{o.risks.map((r, i) => <li key={i}>{r.text}</li>)}</ul>, false))}</tr>
+      </tbody>
+    </table>
+  );
+}
+
 function Draft({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: Case) => void }) {
   const [chosen, setChosen] = useState<string | null>(null);
   const [rationale, setRationale] = useState('');
@@ -66,7 +111,7 @@ function Draft({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: Ca
   const [recalcErr, setRecalcErr] = useState('');
 
   async function decide() {
-    if (!chosen) return setError('Choose one of the three options first.');
+    if (!chosen) return setError('Choose one of the options first.');
     setBusy(true); setError('');
     try { onChange((await api('POST', `/cases/${c.id}/decision`, { option: chosen, rationale, followupDays: Number(days) })).case); window.scrollTo(0, 0); notify('Decision saved. Your Change Request is ready.'); }
     catch (x: any) { setError(x.message); } finally { setBusy(false); }
@@ -79,9 +124,11 @@ function Draft({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: Ca
 
   return (
     <>
-      <PageHeader eyebrow="Step 2 of 3 · Compare" title={c.inputs.changeTitle} lead={summary(c)} />
-      <Panel title="Your three options" lead={`${c.result.workdaysToRelease} working days to release. The change adds about ${c.result.addedWorkdays} working days of work. Every figure is calculated from your inputs. The risk label is a rule-of-thumb check, and the decision is yours.`}>
-        <Ledger c={c} sit={sit} chosen={chosen} onPick={setChosen} />
+      <PageHeader eyebrow="Step 2 of 3 · Compare" title={c.title} lead={summary(c, sit)} />
+      <Panel title={`Your ${c.result.options.length} options`} lead={sit.engine === 'priorities'
+        ? 'Each column is a different order of work. Every date is calculated from your hours and estimates. The risk label is a rule-of-thumb check, and the decision is yours.'
+        : `${c.result.workdaysToRelease} working days to release. The change adds about ${c.result.addedWorkdays} working days of work. Every figure is calculated from your inputs. The risk label is a rule-of-thumb check, and the decision is yours.`}>
+        {sit.engine === 'priorities' ? <PriorityLedger c={c} sit={sit} chosen={chosen} onPick={setChosen} /> : <Ledger c={c} sit={sit} chosen={chosen} onPick={setChosen} />}
         <details><summary>How was this calculated?</summary><p className="small muted">{c.result.assumptions}</p></details>
       </Panel>
       <Panel title="Decide">
@@ -93,13 +140,13 @@ function Draft({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: Ca
           </select>)}
         </Field>
         {error && <div className="field error" role="alert">{error}</div>}
-        <div className="row" style={{ marginTop: 24 }}><Button onClick={decide} busy={busy}>Save decision and create Change Request</Button></div>
+        <div className="row" style={{ marginTop: 24 }}><Button onClick={decide} busy={busy}>Save decision and create {sit.documentName ?? 'the document'}</Button></div>
       </Panel>
       <Panel>
         <details>
           <summary style={{ marginTop: 0 }}>What if the numbers are different? Edit and recalculate</summary>
           <form onSubmit={recalc} noValidate>
-            <div className="grid-2">{sit.questions.map((q) => <QuestionField key={q.id} q={q} value={answers[q.id]} error={fields[q.id]} onChange={(v) => setAnswers({ ...answers, [q.id]: v })} />)}</div>
+            <QuestionGroups sit={sit} answers={answers} fields={fields} onChange={setAnswers} />
             {recalcErr && <div className="field error" role="alert">{recalcErr}</div>}
             <div className="row" style={{ marginTop: 16 }}><Button type="submit" variant="secondary">Recalculate</Button></div>
           </form>
@@ -124,14 +171,14 @@ function Decided({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: 
   const d = c.debrief!;
 
   const copy = async () => {
-    try { await navigator.clipboard.writeText(doc); toast.show('Change Request copied to clipboard'); api('POST', `/cases/${c.id}/export`, { how: 'copy' }).catch(() => {}); } catch { toast.show('Select the text and copy it manually'); }
+    try { await navigator.clipboard.writeText(doc); toast.show(`${sit.documentName ?? 'Document'} copied to clipboard`); api('POST', `/cases/${c.id}/export`, { how: 'copy' }).catch(() => {}); } catch { toast.show('Select the text and copy it manually'); }
   };
   const download = () => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([doc], { type: 'text/markdown' }));
-    a.download = `change-request-${c.id}.md`;
+    a.download = `${(sit.documentName ?? 'document').toLowerCase().replace(/\s+/g, '-')}-${c.id}.md`;
     document.body.append(a); a.click(); a.remove();
-    notify('Downloaded change-request-' + c.id + '.md');
+    notify('Downloaded ' + a.download);
     api('POST', `/cases/${c.id}/export`, { how: 'download' }).catch(() => {});
   };
   const getHint = async () => {
@@ -145,18 +192,20 @@ function Decided({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: 
       const next: Case = (await api('PUT', `/cases/${c.id}/documents/${kind}`, { body })).case;
       onChange(next);
       if (kind === 'change_request') setSavedDoc(body); else setSavedHint(body);
-      notify(kind === 'change_request' ? 'Change Request saved.' : 'Message saved.');
+      notify(kind === 'change_request' ? `${sit.documentName ?? 'Document'} saved.` : 'Message saved.');
     } catch (x: any) { notify(x.message, 'bad'); } finally { setSaving(''); }
   };
 
   return (
     <>
-      <PageHeader eyebrow="Decision saved" title={c.inputs.changeTitle} />
+      <PageHeader eyebrow="Decision saved" title={c.title} />
       <div className="banner ok" role="status">
         {sit.options[c.chosenOption!].label}.{' '}
-        {chosen.newReleaseDate !== c.inputs.releaseDate && <>New release date {fmtDate(chosen.newReleaseDate)}. </>}Extra cost {usd(chosen.extraCost)}.
+        {sit.engine === 'priorities'
+          ? <>{chosen.lateCount ? `${chosen.lateCount} task${chosen.lateCount === 1 ? '' : 's'} late by ${chosen.totalLateDays} working days in total.` : 'Every task on time.'}</>
+          : <>{chosen.newReleaseDate !== c.inputs.releaseDate && <>New release date {fmtDate(chosen.newReleaseDate)}. </>}Extra cost {usd(chosen.extraCost)}.</>}
       </div>
-      <Panel title="Your Change Request" lead="Edit it if you like and save. Your changes are kept with this case. Check the facts before you send it.">
+      <Panel title={`Your ${sit.documentName ?? 'document'}`} lead="Edit it if you like and save. Your changes are kept with this case. Check the facts before you send it.">
         <textarea className="input doc" aria-label="Change Request document" spellCheck={false} wrap="off" value={doc} onChange={(e) => setDoc(e.target.value)} />
         <div className="row" style={{ marginTop: 16 }}>
           <Button onClick={() => saveDoc('change_request', doc)} busy={saving === 'change_request'} disabled={doc === savedDoc || !doc.trim()}>Save changes</Button>
@@ -167,7 +216,7 @@ function Decided({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: 
         <div className="row" style={{ marginTop: 12 }}>
           <Button variant="secondary" onClick={copy}>Copy</Button>
           <Button variant="secondary" onClick={download}>Download .md</Button>
-          {me.llmEnabled && <Button variant="secondary" onClick={getHint} busy={hintBusy}>Draft a message to the client (AI)</Button>}
+          {me.llmEnabled && sit.engine === 'change_request' && <Button variant="secondary" onClick={getHint} busy={hintBusy}>Draft a message to the client (AI)</Button>}
         </div>
         {hintErr && <div className="field error" role="alert">{hintErr}</div>}
         {(hint || savedHint) && (

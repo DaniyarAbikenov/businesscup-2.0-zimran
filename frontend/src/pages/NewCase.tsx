@@ -1,9 +1,9 @@
 import { FormEvent, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useSession } from '../App';
-import { api } from '../api';
+import { Storyline, api } from '../api';
 import { notify } from '../components/Toaster';
-import { Button, Field, PageHeader, Panel, PrivacyBanner, QuestionField, initialAnswers } from '../components/ui';
+import { Button, Field, PageHeader, Panel, PrivacyBanner, QuestionGroups, initialAnswers } from '../components/ui';
 
 export default function NewCase() {
   const { pack } = useSession();
@@ -11,22 +11,18 @@ export default function NewCase() {
   const sit = pack.situations.find((s) => s.id === situationId);
   const nav = useNavigate();
   const [answers, setAnswers] = useState(() => (sit ? initialAnswers(sit.questions) : {}));
+  const [story, setStory] = useState<Storyline | null>(null);
   const [conf, setConf] = useState('3');
   const [fields, setFields] = useState<Record<string, string>>({});
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [ack, setAck] = useState(false);
-  const [sampleOn, setSampleOn] = useState(false);
   if (!sit) return <Navigate to="/" replace />;
 
-  const group = (g: string) => sit.questions.filter((q) => q.group === g).map((q) => (
-    <QuestionField key={q.id} q={q} value={answers[q.id]} error={fields[q.id]} onChange={(v) => setAnswers({ ...answers, [q.id]: v })} />
-  ));
-
-  const loadSample = () => {
-    setAnswers({ ...answers, ...Object.fromEntries(Object.entries(sit!.sample ?? {}).map(([k, v]) => [k, String(v)])) });
-    setSampleOn(true); setFields({});
-    notify('Sample numbers loaded. Replace them with your own.');
+  const pick = (s: Storyline | null) => {
+    setStory(s); setFields({}); setError('');
+    setAnswers(initialAnswers(sit.questions, s?.answers));
+    if (s) notify(`Storyline loaded: ${s.title}. Change anything you like.`);
   };
 
   async function submit(e: FormEvent) {
@@ -50,28 +46,32 @@ export default function NewCase() {
 
   return (
     <div className="narrow">
-      <PageHeader eyebrow="Step 1 of 3 · Clarify" title={sit.title} lead="Good answers here make the result useful. Ask the client and your team instead of guessing." />
+      <PageHeader eyebrow={`Step 1 of 3 · Clarify${sit.category ? ' · ' + sit.category : ''}`} title={sit.title} lead={sit.summary} />
       <PrivacyBanner />
-      {sit.sample && (
-        <div className="row" style={{ marginBottom: 16 }}>
-          <Button type="button" variant="secondary" onClick={loadSample}>Try with sample data</Button>
-          {sampleOn && <span className="small muted">Sample numbers, not yours. Edit them freely.</span>}
-        </div>
+      {sit.storylines && sit.storylines.length > 0 && (
+        <Panel title="Start from a storyline" lead="A realistic example with the numbers filled in. Use it to try the situation, or start blank with your own.">
+          <div className="stories">
+            {sit.storylines.map((s) => (
+              <button key={s.id} type="button" className={'story' + (story?.id === s.id ? ' on' : '')} aria-pressed={story?.id === s.id} onClick={() => pick(s)}>
+                <b>{s.title}</b><span>{s.story}</span>
+              </button>
+            ))}
+            <button type="button" className={'story' + (story === null ? ' on' : '')} aria-pressed={story === null} onClick={() => pick(null)}>
+              <b>My own situation</b><span>Start with an empty form.</span>
+            </button>
+          </div>
+        </Panel>
       )}
+      {story && <div className="banner ok" role="note"><strong>Storyline: {story.title}.</strong> These are example numbers, not yours. Edit them freely.</div>}
       <form onSubmit={submit} noValidate>
-        <Panel title="The change">{group('change')}</Panel>
-        <Panel title="Your project numbers"><div className="grid-2">{group('numbers')}</div></Panel>
+        <QuestionGroups sit={sit} answers={answers} fields={fields} onChange={setAnswers} />
         <Panel>
-          <details>
-            <summary style={{ marginTop: 0 }}>Calculation assumptions (defaults are reasonable)</summary>
-            <div className="grid-2">{group('assumptions')}</div>
-          </details>
           <Field id="conf" label="How confident do you feel handling this right now?" help="1 is not at all, 5 is very. We compare it with how you feel afterwards.">
             {(a) => <select className="input" {...a} value={conf} onChange={(e) => setConf(e.target.value)}>{[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}</select>}
           </Field>
           <label className="check"><input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} /> I did not enter confidential employer or client information.</label>
           {error && <div className="field error" role="alert">{error}</div>}
-          <div className="row" style={{ marginTop: 24 }}><Button type="submit" busy={busy}>Calculate the impact</Button></div>
+          <div className="row" style={{ marginTop: 24 }}><Button type="submit" busy={busy}>Compare my options</Button></div>
         </Panel>
       </form>
     </div>

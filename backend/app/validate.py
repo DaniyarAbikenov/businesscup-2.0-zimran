@@ -6,7 +6,7 @@ ISO = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
 def validate_answers(questions: list, raw) -> tuple[dict, dict]:
-    """Returns (values, errors)."""
+    """Returns (values, errors). A "list" question holds rows; its errors are keyed "<id>.<row>.<field>"."""
     errors: dict = {}
     out: dict = {}
     body = raw if isinstance(raw, dict) else {}
@@ -20,6 +20,23 @@ def validate_answers(questions: list, raw) -> tuple[dict, dict]:
                 out[qid] = q.get("default", 0) if q["type"] == "number" else ""
             continue
         t = q["type"]
+        if t == "list":
+            rows = v if isinstance(v, list) else []
+            rows = [r for r in rows if isinstance(r, dict) and any(str(x).strip() for x in r.values() if x is not None)]
+            if len(rows) < q.get("minRows", 1):
+                errors[qid] = f"Add at least {q.get('minRows', 1)}"
+                continue
+            if len(rows) > q.get("maxRows", 10):
+                errors[qid] = f"At most {q.get('maxRows', 10)}"
+                continue
+            vals = []
+            for n, row in enumerate(rows):
+                rv, re_ = validate_answers(q["fields"], row)
+                errors.update({f"{qid}.{n}.{k}": m for k, m in re_.items()})
+                vals.append(rv)
+            if not any(k.startswith(qid + ".") for k in errors):
+                out[qid] = vals
+            continue
         if t == "number":
             try:
                 if isinstance(v, bool):

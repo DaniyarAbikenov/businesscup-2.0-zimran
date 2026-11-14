@@ -40,15 +40,18 @@ export async function api<T = any>(method: string, path: string, body?: unknown)
 
 // ---- types (only what the UI reads) ----
 export interface Question {
-  id: string; group: string; type: 'text' | 'textarea' | 'number' | 'date' | 'select';
+  id: string; group?: string; type: 'text' | 'textarea' | 'number' | 'date' | 'select' | 'list';
+  fields?: Question[]; minRows?: number; maxRows?: number; itemLabel?: string;
   label: string; help?: string; required?: boolean; placeholder?: string; max?: number; min?: number; step?: number;
   default?: string | number; options?: { value: string; label: string }[];
 }
+export interface Storyline { id: string; title: string; story: string; answers: Record<string, any> }
 export interface Situation {
-  id: string; title: string; summary: string; applies_to: string[]; questions: Question[];
+  id: string; engine: 'change_request' | 'priorities'; category?: string; title: string; summary: string; applies_to: string[]; questions: Question[];
+  titleField?: string; documentName?: string; storylines?: Storyline[];
+  groups?: { id: string; title: string; columns?: number; collapsed?: boolean }[];
   options: Record<string, { label: string; nextSteps: string[] }>;
   reflectionPrompts: { id: string; label: string }[];
-  sample?: Record<string, string | number>;
 }
 export interface Pack {
   roles: { id: string; label: string; terms: Record<string, string> }[];
@@ -58,16 +61,17 @@ export interface Pack {
 }
 export interface Profile { roleId: string; industry: string; tenure: string; fears: string[]; fearNote: string }
 export interface Me { user: { id: number; email: string }; profile: Profile | null; llmEnabled: boolean; isDemo: boolean }
+export interface ScheduledTask { index: number; name: string; finish: string; deadline: string; lateDays: number; requester: string; impact: string }
 export interface Option {
-  key: 'accept' | 'defer' | 'decline'; riskLevel: 'low' | 'medium' | 'high'; riskScore: number;
+  key: string; sameAs?: string[]; schedule?: ScheduledTask[]; lateCount?: number; totalLateDays?: number; riskLevel: 'low' | 'medium' | 'high'; riskScore: number;
   newReleaseDate: string; slipWorkdays: number; extraCost: number; budgetAfter: number; laterCost?: number;
   costBreakdown?: { labor: number; extendedRun: number; delayPenalty: number; clientCovers: number };
   risks: { severity: number; text: string }[];
 }
 export interface Case {
-  id: number; situationId: string; inputs: Record<string, any>; confidenceBefore: number;
+  id: number; situationId: string; title: string; inputs: Record<string, any>; confidenceBefore: number;
   status: 'draft' | 'decided'; chosenOption: string | null; document: string | null; followupDue: string | null;
-  result: { workdaysToRelease: number; addedWorkdays: number; assumptions: string; lowestRiskKey: string; options: Option[] };
+  result: { headline?: string; fits?: boolean; workdaysToRelease: number; addedWorkdays: number; assumptions: string; lowestRiskKey: string; options: Option[] };
   reflection: { learned: string; different: string; confidenceAfter: number } | null;
   followup: { outcome: string; notes: string } | null;
   documentUpdatedAt?: string | null; documentRevisions?: number; clientMessage?: string | null;

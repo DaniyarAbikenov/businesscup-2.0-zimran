@@ -26,15 +26,22 @@ export default function Home() {
           <ul className="plain">{j.followups.map((f) => <li key={f.caseId}><Link to={`/case/${f.caseId}`}>{f.title}</Link> <span className="muted">{f.overdue ? '(due now)' : `(due ${fmtDate(f.due)})`}</span></li>)}</ul>
         </Panel>
       )}
-      <Panel title="Situations">
-        {sits.map((s) => (
-          <div key={s.id} className="stack">
-            <h3>{s.title}</h3>
-            <p className="muted" style={{ maxWidth: '62ch' }}>{s.summary}</p>
-            <Link className="btn btn-primary" to={`/new/${s.id}`}>Start this situation</Link>
+      <Panel title="Situations" lead="Rehearse a decision before it happens for real. Each one compares your options with your own numbers.">
+        {Array.from(new Set(sits.map((s) => s.category ?? 'Other'))).map((cat) => (
+          <div key={cat} className="catalog-group">
+            <div className="caption">{cat}</div>
+            {sits.filter((s) => (s.category ?? 'Other') === cat).map((s) => (
+              <div key={s.id} className="stack catalog-item">
+                <h3>{s.title}</h3>
+                <p className="muted" style={{ maxWidth: '62ch' }}>{s.summary}</p>
+                <div className="row">
+                  <Link className="btn btn-primary" to={`/new/${s.id}`}>Start this situation</Link>
+                  {s.storylines && s.storylines.length > 0 && <span className="small muted">{s.storylines.length} storylines to try</span>}
+                </div>
+              </div>
+            ))}
           </div>
         ))}
-        <p className="small muted" style={{ marginTop: 24 }}>Next: late vendor delivery, scope creep, status report.</p>
       </Panel>
       {j && j.cases.length > 0 && (
         <Panel title="Your cases">

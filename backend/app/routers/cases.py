@@ -11,7 +11,7 @@ from ..db import get_db
 from ..deps import current_user, own_case
 from ..document import build_debrief, build_document
 from ..documents import KINDS, MAX_LEN, get_doc, save_document
-from ..engine.change_request import compute
+from .. import engine
 from ..errors import ApiError
 from ..models import Case, Decision, FollowUp, JournalEntry, Profile, Reflection
 from ..security import sha
@@ -25,7 +25,7 @@ OUTCOMES = {"worked": "It worked", "partly": "Partly worked", "not_yet": "Not re
 def case_dict(c: Case) -> dict:
     d, rf, fu = c.decision, c.reflection, c.followup
     out = {
-        "id": c.id, "situationId": c.situation_id, "inputs": c.inputs, "result": c.result,
+        "id": c.id, "situationId": c.situation_id, "title": packs.case_title(c.situation_id, c.inputs), "inputs": c.inputs, "result": c.result,
         "confidenceBefore": c.confidence_before, "status": c.status,
         "chosenOption": d.option if d else None, "rationale": d.rationale if d else None,
         "document": d.document if d else None, "decidedAt": d.decided_at.isoformat() if d else None,
@@ -40,7 +40,7 @@ def case_dict(c: Case) -> dict:
         out["documentUpdatedAt"] = cr.updated_at.isoformat() if cr else None
         out["documentRevisions"] = len(cr.revisions) if cr else 0
         out["clientMessage"] = cm.body if cm else None
-        out["debrief"] = build_debrief(c.result, d.option, c.inputs)
+        out["debrief"] = build_debrief(c.result, d.option, c.inputs, c.situation_id)
     return out
 
 
@@ -50,10 +50,12 @@ def confidence(v):
 
 def calc(sit: dict, raw_inputs):
     values, errors = validate_answers(sit["questions"], raw_inputs)
+    if not errors:
+        errors = engine.check(sit, values)
     if errors:
         raise ApiError(400, "Check the highlighted fields", errors)
     inputs = {**values, "asOf": packs.today()}
-    return inputs, compute(inputs)
+    return inputs, engine.run(sit, inputs)
 
 
 def log(db, uid, case_id, type_, text):
@@ -74,7 +76,7 @@ def create_case(body: dict, user=Depends(current_user), db: Session = Depends(ge
     c = Case(user_id=user.id, situation_id=sit["id"], inputs=inputs, result=result, confidence_before=conf)
     db.add(c)
     db.flush()
-    log(db, user.id, c.id, "case", f"Started: {inputs['changeTitle']}")
+    log(db, user.id, c.id, "case", f"Started: {packs.case_title(sit['id'], inputs)}")
     db.commit()
     return {"case": case_dict(c)}
 
@@ -108,11 +110,11 @@ def decide(body: dict, c: Case = Depends(own_case), user=Depends(current_user), 
     due = date.fromisoformat(packs.add_days(packs.today(), days))
     c.decision = Decision(
         option=option, rationale=rationale, followup_due=due, decided_at=datetime.now(timezone.utc),
-        document=build_document(c.inputs, c.result, option, rationale, profile and packs.get_role(profile.role_id), user.email, packs.today()),
+        document=build_document(c.inputs, c.result, option, rationale, profile and packs.get_role(profile.role_id), user.email, packs.today(), sit["id"]),
     )
     c.status = "decided"
     save_document(db, c, "change_request", c.decision.document, source="generated")
-    log(db, user.id, c.id, "decision", f"Decided: {sit['options'][option]['label']}. {c.inputs['changeTitle']}")
+    log(db, user.id, c.id, "decision", f"Decided: {sit['options'][option]['label']}. {packs.case_title(c.situation_id, c.inputs)}")
     db.commit()
     reminders.schedule(r, user.id, c.id, due.isoformat())
     return {"case": case_dict(c)}
@@ -154,6 +156,8 @@ def hint(c: Case = Depends(own_case), db: Session = Depends(get_db), r=Depends(g
     if c.status != "decided":
         raise ApiError(409, "Make a decision first")
     sit = packs.get_situation(c.situation_id)
+    if sit["engine"] != "change_request":
+        raise ApiError(409, "AI drafts are available for client change requests only")
     opt = next(o for o in c.result["options"] if o["key"] == c.decision.option)
     args = (c.inputs["changeTitle"], sit["options"][c.decision.option]["label"], opt["newReleaseDate"], opt["extraCost"], c.decision.rationale)
     key = "hint:" + sha(json.dumps(args))
@@ -202,6 +206,6 @@ def record_export(body: dict, c: Case = Depends(own_case), db: Session = Depends
         raise ApiError(400, "Unknown export type")
     if c.status != "decided":
         raise ApiError(409, "Make a decision first")
-    log(db, c.user_id, c.id, "export", f"Exported the Change Request ({'copied' if how == 'copy' else 'downloaded'}): {c.inputs['changeTitle']}")
+    log(db, c.user_id, c.id, "export", f"Exported the Change Request ({'copied' if how == 'copy' else 'downloaded'}): {packs.case_title(c.situation_id, c.inputs)}")
     db.commit()
     return {"ok": True}

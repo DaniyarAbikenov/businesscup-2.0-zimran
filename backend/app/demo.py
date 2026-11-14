@@ -6,6 +6,7 @@ from datetime import date, datetime, timedelta, timezone
 from . import packs, reminders
 from .document import build_document
 from .documents import save_document
+from . import engine
 from .engine.change_request import compute
 from .models import Case, Decision, FollowUp, JournalEntry, Profile, Reflection, User
 from .security import hash_password
@@ -90,6 +91,17 @@ def seed_demo_user(db, r) -> User:
 
     # 3. A draft with numbers entered: the user picks an option and decides.
     _case(db, user, 0, 3, changeTitle="Add dark mode to the dashboard", priority="nice", changeEffortDays=8)
+
+    # 4. Competing priorities from a storyline, ready to compare (the newcomer situation, not client work).
+    sit = packs.public_pack_situation("competing-priorities")
+    story = sit["storylines"][0]["answers"]
+    values, errors = validate_answers(sit["questions"], story)
+    assert not errors, errors
+    inputs = {**values, "asOf": packs.today()}
+    p = Case(user_id=user.id, situation_id=sit["id"], inputs=inputs, result=engine.run(sit, inputs), confidence_before=2)
+    db.add(p)
+    db.flush()
+    db.add(JournalEntry(user_id=user.id, case_id=p.id, type="case", text=f"Started: {inputs['title']}"))
 
     db.commit()
     reminders.schedule(r, user.id, b.id, b.decision.followup_due.isoformat())

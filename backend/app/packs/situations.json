@@ -226,17 +226,439 @@
           "label": "What would you do differently next time?"
         }
       ],
-      "sample": {
-        "changeTitle": "Add CSV export to the reports screen",
-        "changeDescription": "Client wants a CSV export of the monthly report. Acceptance: all columns, UTF-8.",
-        "requestedBy": "Jordan, VP Operations (client)",
-        "priority": "important",
-        "teamSize": 6,
-        "dailyRate": 600,
-        "budgetRemaining": 40000,
-        "changeEffortDays": 8,
-        "bufferDays": 2
-      }
+      "category": "Scope and requests",
+      "titleField": "changeTitle",
+      "documentName": "Change Request",
+      "groups": [
+        {
+          "id": "change",
+          "title": "The change"
+        },
+        {
+          "id": "numbers",
+          "title": "Your project numbers",
+          "columns": 2
+        },
+        {
+          "id": "assumptions",
+          "title": "Calculation assumptions (defaults are reasonable)",
+          "collapsed": true,
+          "columns": 2
+        }
+      ],
+      "storylines": [
+        {
+          "id": "csv",
+          "title": "Small change, client pays",
+          "story": "Two weeks before release, the client's VP of Operations asks for a CSV export of the monthly report. Your team says about 8 person-days. The contract has a change budget.",
+          "answers": {
+            "changeTitle": "Add CSV export to the reports screen",
+            "changeDescription": "Client wants a CSV export of the monthly report. Acceptance: all columns, UTF-8.",
+            "requestedBy": "Jordan, VP Operations (client)",
+            "priority": "important",
+            "teamSize": 6,
+            "dailyRate": 600,
+            "budgetRemaining": 40000,
+            "changeEffortDays": 8,
+            "bufferDays": 5,
+            "clientCoversPct": 100
+          }
+        },
+        {
+          "id": "webhook",
+          "title": "A must-have you did not plan for",
+          "story": "The payment provider retires its old webhook format on your release date. Nobody told the team. It is roughly 12 person-days and late delivery has a penalty.",
+          "answers": {
+            "changeTitle": "Switch to the new payment webhook format",
+            "changeDescription": "Payment provider retires the old webhook on the release date.",
+            "requestedBy": "Payment provider via the client's CTO",
+            "priority": "must",
+            "teamSize": 6,
+            "dailyRate": 600,
+            "budgetRemaining": 40000,
+            "changeEffortDays": 12,
+            "bufferDays": 2,
+            "delayPenaltyPerDay": 500
+          }
+        },
+        {
+          "id": "darkmode",
+          "title": "A nice-to-have from a senior person",
+          "story": "The client's CEO saw a competitor's dark mode and wants it in this release. It is 8 person-days. Nobody pays for it.",
+          "answers": {
+            "changeTitle": "Add dark mode to the dashboard",
+            "changeDescription": "CEO request after a competitor demo.",
+            "requestedBy": "Client CEO",
+            "priority": "nice",
+            "teamSize": 6,
+            "dailyRate": 600,
+            "budgetRemaining": 40000,
+            "changeEffortDays": 8,
+            "bufferDays": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "competing-priorities",
+      "engine": "priorities",
+      "category": "Workload and priorities",
+      "title": "Several urgent asks, not enough time",
+      "summary": "Two to five people want something from you this week or next. List the tasks, see which order leaves what late and who it hurts, then send your manager a clear priority proposal instead of silently working overtime.",
+      "applies_to": [
+        "*"
+      ],
+      "titleField": "title",
+      "documentName": "Priority proposal",
+      "groups": [
+        {
+          "id": "situation",
+          "title": "The situation"
+        },
+        {
+          "id": "tasks",
+          "title": "Your tasks"
+        },
+        {
+          "id": "time",
+          "title": "Your time",
+          "columns": 2
+        }
+      ],
+      "questions": [
+        {
+          "id": "title",
+          "group": "situation",
+          "type": "text",
+          "label": "In one line, what is going on?",
+          "placeholder": "Three urgent asks landed in my first month",
+          "required": true,
+          "max": 120
+        },
+        {
+          "id": "context",
+          "group": "situation",
+          "type": "textarea",
+          "label": "Background (optional)",
+          "help": "Who is involved, what was promised, what you are unsure about. It goes into your proposal.",
+          "max": 800
+        },
+        {
+          "id": "tasks",
+          "group": "tasks",
+          "type": "list",
+          "label": "Tasks",
+          "itemLabel": "Task",
+          "minRows": 2,
+          "maxRows": 5,
+          "help": "Put them in the order you would do them today. That order is compared with three others.",
+          "fields": [
+            {
+              "id": "name",
+              "type": "text",
+              "label": "Task",
+              "required": true,
+              "max": 80,
+              "placeholder": "Quarterly report draft"
+            },
+            {
+              "id": "effortHours",
+              "type": "number",
+              "label": "Hours of work",
+              "required": true,
+              "min": 0.5,
+              "max": 400,
+              "step": 0.5,
+              "help": "Your honest estimate"
+            },
+            {
+              "id": "deadline",
+              "type": "date",
+              "label": "Deadline",
+              "required": true
+            },
+            {
+              "id": "requester",
+              "type": "select",
+              "label": "Who asked",
+              "required": true,
+              "default": "manager",
+              "options": [
+                {
+                  "value": "skip",
+                  "label": "My manager's manager"
+                },
+                {
+                  "value": "manager",
+                  "label": "My manager"
+                },
+                {
+                  "value": "client",
+                  "label": "A client or customer"
+                },
+                {
+                  "value": "peer",
+                  "label": "A colleague or another team"
+                },
+                {
+                  "value": "self",
+                  "label": "Myself (my own plan)"
+                }
+              ]
+            },
+            {
+              "id": "impact",
+              "type": "select",
+              "label": "If it is late",
+              "required": true,
+              "default": "reputation",
+              "options": [
+                {
+                  "value": "blocks",
+                  "label": "Blocks other people's work"
+                },
+                {
+                  "value": "money",
+                  "label": "Costs money or a contract"
+                },
+                {
+                  "value": "reputation",
+                  "label": "Hurts trust in me or the team"
+                },
+                {
+                  "value": "minor",
+                  "label": "Minor, can slip a bit"
+                }
+              ]
+            },
+            {
+              "id": "note",
+              "type": "text",
+              "label": "Note (optional)",
+              "max": 200
+            }
+          ]
+        },
+        {
+          "id": "hoursPerWeek",
+          "group": "time",
+          "type": "number",
+          "label": "Your working hours per week",
+          "required": true,
+          "min": 5,
+          "max": 80,
+          "step": 1,
+          "default": 40
+        },
+        {
+          "id": "committedHours",
+          "group": "time",
+          "type": "number",
+          "label": "Hours per week already taken",
+          "help": "Meetings, support, ongoing work that will not stop",
+          "required": true,
+          "min": 0,
+          "max": 79,
+          "step": 1,
+          "default": 15
+        }
+      ],
+      "options": {
+        "deadline": {
+          "label": "Earliest deadline first",
+          "nextSteps": [
+            "Tell each requester the date you will deliver, today, not on the deadline.",
+            "For any task that will be late, offer a smaller version or a new date.",
+            "Ask your manager to confirm the order if a senior person's task moves.",
+            "Block the time in your calendar in this order."
+          ]
+        },
+        "stakeholder": {
+          "label": "Most senior requester first",
+          "nextSteps": [
+            "Check that seniority really means urgency: ask what happens if it waits two days.",
+            "Tell the people whose tasks move what date they get instead.",
+            "Share the order with your manager so they can back you up.",
+            "Block the time in your calendar in this order."
+          ]
+        },
+        "impact": {
+          "label": "Biggest consequence first",
+          "nextSteps": [
+            "Explain the order in terms of consequences: who is blocked, what it costs.",
+            "Tell the people whose tasks move what date they get instead.",
+            "Ask your manager to confirm, especially if a senior person waits.",
+            "Block the time in your calendar in this order."
+          ]
+        },
+        "custom": {
+          "label": "Your order (as listed)",
+          "nextSteps": [
+            "Write down why this order beats the alternatives, in one sentence each.",
+            "Tell the people whose tasks will be late, before the deadline.",
+            "Ask your manager to confirm the order.",
+            "Block the time in your calendar in this order."
+          ]
+        }
+      },
+      "pitfalls": [
+        "Saying yes to everyone and quietly working evenings, then missing a deadline anyway.",
+        "Letting the loudest or most senior person decide the order without asking what is really urgent.",
+        "Telling someone their task is late on the day it was due.",
+        "Not counting meetings and ongoing work, so the plan assumes 40 free hours a week.",
+        "Deciding the order alone when two requests come from people above you. That call is your manager's to make, with your data."
+      ],
+      "reflectionPrompts": [
+        {
+          "id": "learned",
+          "label": "What did seeing the orders side by side change for you?"
+        },
+        {
+          "id": "different",
+          "label": "What will you do differently the next time several asks land at once?"
+        }
+      ],
+      "storylines": [
+        {
+          "id": "month1",
+          "title": "Three asks in your first month",
+          "story": "You are four weeks into a new analyst role. Your manager wants the quarterly report draft, a colleague in Sales needs a data pull for a client pitch, and your manager's manager asked you in the hallway for a quick competitor overview.",
+          "answers": {
+            "title": "Three urgent asks in my first month",
+            "context": "New in the role. The VP request was informal, in the hallway.",
+            "hoursPerWeek": 40,
+            "committedHours": 18,
+            "tasks": [
+              {
+                "name": "Quarterly report draft",
+                "effortHours": 14,
+                "deadline": {
+                  "daysFromNow": 6
+                },
+                "requester": "manager",
+                "impact": "reputation",
+                "note": ""
+              },
+              {
+                "name": "Data pull for Sales pitch",
+                "effortHours": 6,
+                "deadline": {
+                  "daysFromNow": 3
+                },
+                "requester": "peer",
+                "impact": "money",
+                "note": "Pitch is on Thursday"
+              },
+              {
+                "name": "Competitor overview for the VP",
+                "effortHours": 8,
+                "deadline": {
+                  "daysFromNow": 4
+                },
+                "requester": "skip",
+                "impact": "reputation",
+                "note": "Asked in passing"
+              }
+            ]
+          }
+        },
+        {
+          "id": "launch",
+          "title": "Launch week and a bug",
+          "story": "Release is on Friday. A customer reports a billing bug, onboarding docs are due, and your manager wants the launch checklist reviewed.",
+          "answers": {
+            "title": "Launch week with a billing bug",
+            "context": "",
+            "hoursPerWeek": 45,
+            "committedHours": 20,
+            "tasks": [
+              {
+                "name": "Launch checklist review",
+                "effortHours": 4,
+                "deadline": {
+                  "daysFromNow": 2
+                },
+                "requester": "manager",
+                "impact": "blocks",
+                "note": ""
+              },
+              {
+                "name": "Billing bug for a customer",
+                "effortHours": 10,
+                "deadline": {
+                  "daysFromNow": 3
+                },
+                "requester": "client",
+                "impact": "money",
+                "note": ""
+              },
+              {
+                "name": "Onboarding docs",
+                "effortHours": 12,
+                "deadline": {
+                  "daysFromNow": 5
+                },
+                "requester": "peer",
+                "impact": "minor",
+                "note": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "overload",
+          "title": "More work than hours",
+          "story": "Four requests, each reasonable on its own. Together they are more than you can do before the deadlines, whatever the order.",
+          "answers": {
+            "title": "Four requests, not enough hours",
+            "context": "",
+            "hoursPerWeek": 40,
+            "committedHours": 20,
+            "tasks": [
+              {
+                "name": "Budget forecast update",
+                "effortHours": 12,
+                "deadline": {
+                  "daysFromNow": 4
+                },
+                "requester": "manager",
+                "impact": "money",
+                "note": ""
+              },
+              {
+                "name": "Team wiki cleanup",
+                "effortHours": 6,
+                "deadline": {
+                  "daysFromNow": 5
+                },
+                "requester": "self",
+                "impact": "minor",
+                "note": ""
+              },
+              {
+                "name": "Partner integration spec",
+                "effortHours": 16,
+                "deadline": {
+                  "daysFromNow": 6
+                },
+                "requester": "client",
+                "impact": "blocks",
+                "note": ""
+              },
+              {
+                "name": "Hiring panel prep",
+                "effortHours": 5,
+                "deadline": {
+                  "daysFromNow": 3
+                },
+                "requester": "skip",
+                "impact": "reputation",
+                "note": ""
+              }
+            ]
+          }
+        }
+      ]
     }
   ]
 }

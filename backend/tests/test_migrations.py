@@ -57,7 +57,7 @@ def test_upgrade_and_downgrade_preserve_data(scratch_url):
         assert c.execute("SELECT source FROM document_revisions").fetchall() == [("generated",)]
         # constraints
         with pytest.raises(psycopg.errors.CheckViolation):
-            c.execute("INSERT INTO decisions (case_id, option, document, followup_due) VALUES (2, 'maybe', 'd', '2026-12-01')")
+            c.execute("INSERT INTO decisions (case_id, option, document, followup_due) VALUES (2, 'Maybe!', 'd', '2026-12-01')")
         c.rollback()
         with pytest.raises(psycopg.errors.CheckViolation):
             c.execute("INSERT INTO reflections (case_id, confidence_after) VALUES (2, 9)")

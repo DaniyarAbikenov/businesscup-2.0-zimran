@@ -31,6 +31,22 @@ def next_weekday(iso: str) -> str:
     return d.isoformat()
 
 
+def case_title(situation_id: str, inputs: dict) -> str:
+    sit = get_situation(situation_id) or {}
+    return str(inputs.get(sit.get("titleField", "changeTitle"), "")) or (sit.get("title") or "Untitled")
+
+
+def _resolve(v):
+    """Storyline values like {"daysFromNow": 3} become the next working day from today."""
+    if isinstance(v, dict) and set(v) == {"daysFromNow"}:
+        return next_weekday(add_days(today(), v["daysFromNow"]))
+    if isinstance(v, dict):
+        return {k: _resolve(x) for k, x in v.items()}
+    if isinstance(v, list):
+        return [_resolve(x) for x in v]
+    return v
+
+
 def public_pack() -> dict:
     out = dict(roles_pack)
     sits = []
@@ -40,6 +56,10 @@ def public_pack() -> dict:
             if "defaultDaysFromNow" in q:
                 q = {**q, "default": next_weekday(add_days(today(), q["defaultDaysFromNow"]))}
             qs.append(q)
-        sits.append({**s, "questions": qs})
+        sits.append({**s, "questions": qs, "storylines": _resolve(s.get("storylines", []))})
     out["situations"] = sits
     return out
+
+
+def public_pack_situation(sid: str) -> dict | None:
+    return next((s for s in public_pack()["situations"] if s["id"] == sid), None)
