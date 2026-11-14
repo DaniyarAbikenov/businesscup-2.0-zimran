@@ -79,14 +79,11 @@ The promise: "Facing a decision in a new role? Try your options with your own nu
 
 Ways: scope cut (late tasks go to their minimum hours, largest saving first), pay for extra hours (smallest number up to the cap that removes lateness, or the cap if it cannot), move a deadline (paid for with goodwill), and for estimates "good enough" (hours x chosen %) and pay to speed up. The same table goes into the generated document.
 
-## Languages
+## Language
 
-English (source), Russian and Kazakh. The language switcher (EN / RU / KZ) is in the header and on the sign-in and Account pages; the choice is saved in `profiles.language` and in the browser. The API reads the language from `?lang=`, the `X-Lang` header (the frontend always sends it), the saved profile, then `Accept-Language`. English is the default and every text falls back to English if a translation is missing. **RU and KK are machine-written and need review by a native speaker**, see [TRANSLATION_NOTES.md](TRANSLATION_NOTES.md).
+**The product is English only.** There is no language switcher, and nothing reads the browser language or a stored choice: the frontend is fixed to English (`ENABLED` in `frontend/src/i18n/index.ts`) and the server ignores `?lang=`, `X-Lang`, the saved profile and `Accept-Language` unless the `LANGUAGES` environment variable lists more than `en` (default `en`).
 
-- **Interface**: `frontend/src/i18n/` (`t('English text')`, `tn(n, one, many)`; dictionaries `ru.ts`, `kk.ts`). Check: `docker compose exec frontend node scripts/check-i18n.mjs` (every text used in code has a translation with the same `{placeholders}`).
-- **Scenario packs, roles, worries**: overlays by id in `backend/app/packs/i18n/<lang>.json`, merged over the English JSON (`app/i18n.py`).
-- **Server texts** (results, documents, debriefs, emails, errors): `tr("English template {x}", x=...)` with tables in `backend/app/messages/<lang>.json` (`app/msg.py`); dates inside sentences follow the language.
-- **Add a language**: add `xx` to `LANGS` in `app/i18n.py` and `src/i18n/index.ts`, the `profiles.language` constraint (migration), a dictionary `src/i18n/xx.ts`, overlays `packs/i18n/xx.json` and `messages/xx.json`, a switcher entry and tests (`tests/test_i18n.py`: ids, placeholders, Cyrillic or script checks).
+The Russian and Kazakh work is kept in the repository but unused: dictionaries `frontend/src/i18n/{ru,kk}.ts`, overlays `backend/app/packs/i18n/{ru,kk}.json`, server tables `backend/app/messages/{ru,kk}.json`, see [TRANSLATION_NOTES.md](TRANSLATION_NOTES.md). To bring a language back: set `LANGUAGES=en,ru,kk`, add the language to `ENABLED` and put `LanguageSwitch` back in the header. `check-i18n` compares the unused dictionaries only when asked: `I18N_LANGS=ru,kk node scripts/check-i18n.mjs`. The translation tests keep running because the test configuration enables all three.
 
 ## Guided tours
 
@@ -107,7 +104,7 @@ Short step-by-step tips (popovers anchored to real elements) appear once, the fi
 
 ## User guide
 
-How to use the service: [Russian](docs/USER_GUIDE.ru.md), [English](docs/USER_GUIDE.en.md).
+How to use the service: [English guide](docs/USER_GUIDE.en.md) (a Russian text version, [docs/USER_GUIDE.ru.md](docs/USER_GUIDE.ru.md), is kept but the product itself is English only).
 
 ## Deploy on Vercel
 
