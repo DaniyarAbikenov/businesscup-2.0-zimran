@@ -109,6 +109,10 @@ Short step-by-step tips (popovers anchored to real elements) appear once, the fi
 
 How to use the service (Russian and English): [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
 
+## Deploy on Vercel
+
+One Vercel project with Neon and Upstash: see [DEPLOY_VERCEL.md](DEPLOY_VERCEL.md).
+
 ## Design system
 
 `design/DESIGN.md` defines the visual language ("Ledger"): warm paper neutrals, one ink-teal accent, Fraunces plus Inter, tabular numerals, hairline rules, a comparison table instead of identical cards. Tokens live in `frontend/src/styles/tokens.css`. Read the file before changing UI, and update it when you change the rules.

@@ -1,11 +1,12 @@
 """The user's own progress (read-only aggregation of existing tables) and the email reminder controls.
 The one-click links from emails (outcome, unsubscribe) are public GET pages: they work without signing in."""
 import asyncio
+import hmac
 import html
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -141,6 +142,17 @@ def email_unsubscribe(token: str, db: Session = Depends(get_db)):
     if not emails.unsubscribe(db, token):
         raise ApiError(404, "This link is not valid any more")
     return _page(tr("Reminders are off"), tr("We will not email you any more reminders. You can turn them on again in the app."))
+
+
+@router.get("/internal/cron/followups")
+def cron_followups(request: Request, db: Session = Depends(get_db)):
+    """Daily job on Vercel (the background loop does not run there). Protected by CRON_SECRET; off when it is not set."""
+    secret = config.CRON_SECRET
+    if not secret or not hmac.compare_digest(request.headers.get("authorization", ""), f"Bearer {secret}"):
+        raise ApiError(404, "Not found")
+    res = emails.run_all(db, get_redis())
+    log.info("cron reminders %s", res)
+    return {"ok": True, **res}
 
 
 async def reminder_loop():

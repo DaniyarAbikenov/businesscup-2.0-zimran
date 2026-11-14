@@ -11,7 +11,7 @@ from sqlalchemy import text
 
 from starlette.concurrency import run_in_threadpool
 
-from . import i18n, msg, reminders
+from . import config, i18n, msg, reminders
 from .cache import get_redis
 from .db import SessionLocal
 from .errors import ApiError
@@ -23,6 +23,9 @@ log = logging.getLogger("roleshift")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    if config.ON_VERCEL:  # serverless: no startup work and no background loop; reminders run from the daily cron endpoint
+        yield
+        return
     try:  # rebuild the Redis reminder index from Postgres
         with SessionLocal() as db:
             reminders.rebuild(db, get_redis())

@@ -1,0 +1,9 @@
+backend/tests
+backend/alembic
+docs
+design
+frontend/node_modules
+frontend/dist
+*.md
+.env
+.git
