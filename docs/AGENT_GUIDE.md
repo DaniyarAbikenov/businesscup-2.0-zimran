@@ -49,7 +49,7 @@ Useful addresses (all relative to the site):
 
 ## 3. Correct answers you can check
 
-The calculation is fixed. These checks do not depend on today's date.
+The calculation is fixed. These checks do not depend on today's date. Amounts in the table are shown without thousands separators (for example 18900) and in USD; the result columns and the document may show 32,700 with a separator.
 
 **Change request** (`/new/client-change-request`). Enter: priority Important; team size 6; cost per person-day 600; budget 40000; change effort 10 person-days; buffer 2 days; client pays 0%; penalty 0; assumptions unchanged (overhead 25%, parallel 60%, productive share 70%); release date a weekday at least 3 weeks away; "share you would deliver now" 60.
 - Accept as is: effort with overhead 12.5 person-days, added working time 9 days, release slips 7 working days, labour 7,500, extended run 25,200, **extra cost 32,700**, budget left afterwards **7,300**, risk label high.
