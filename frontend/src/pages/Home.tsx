@@ -31,7 +31,7 @@ export default function Home() {
   const open = (j?.cases ?? []).filter((c) => c.status === 'draft');
   const order = role.recommended ?? [];
   const rank = (id: string) => (order.includes(id) ? order.indexOf(id) : 99);
-  const recommended = [...sits].sort((a, b2) => Number(!!a.aiMade) - Number(!!b2.aiMade) || rank(a.id) - rank(b2.id)).slice(0, 4);
+  const recommended = [...sits].sort((a, b2) => Number(!!a.aiMade) - Number(!!b2.aiMade) || rank(a.id) - rank(b2.id));
 
   return (
     <>
@@ -44,18 +44,18 @@ export default function Home() {
         <div className="strip" role="note"><span><strong>{t('How did it go?')}</strong> {tn(j.followups.length, '{n} decision is waiting for your note: ', '{n} decisions are waiting for your note: ')}{j.followups.slice(0, 2).map((f, i) => <span key={f.caseId}>{i > 0 && ', '}<Link to={`/case/${f.caseId}`}>{f.title}</Link></span>)}.</span></div>
       )}
       {welcome && isNew && !me.isDemo && <Welcome onClose={() => setWelcome(false)} />}
-      <Describe />
-      <Panel title={t('Or start from a ready scenario')} lead={t('Each one asks for a few facts, compares your options with calculated outcomes, and gives you a message to send.')}>
-        <div className="cards">
-          {recommended.map((s) => (
-            <div key={s.id} className="card">
-              <div><h3>{s.title}{s.aiMade && <span className="ai-badge">{t('AI-made, not expert-checked')}</span>}</h3><p>{firstSentence(s.summary)}</p>{skillLabel(s.skill) && <p className="small muted">{t('Trains: {skill}', { skill: skillLabel(s.skill) })}</p>}</div>
-              <div className="row"><Link className="btn btn-primary" to={`/new/${s.id}`}>{t('Start')}</Link>{s.storylines && s.storylines.length > 0 && <span className="small muted">{tn(s.storylines.length, '{n} example', '{n} examples')}</span>}</div>
-            </div>
+      <Panel title={t('Your first week: three exercises')} lead={t('In the order they usually come up: decide what comes first, promise a date, choose between options. Each one starts with a guess, then shows the numbers on yours.')}>
+        <ol className="path">
+          {recommended.slice(0, 3).map((s, n) => (
+            <li key={s.id} className={'card' + (n === 0 ? ' first' : '')}>
+              <div><span className="stepno">{n + 1}</span><h3>{s.title}</h3><p>{firstSentence(s.summary)}</p>{skillLabel(s.skill) && <p className="small muted">{t('Trains: {skill}', { skill: skillLabel(s.skill) })}</p>}</div>
+              <div className="row"><Link className={'btn ' + (n === 0 ? 'btn-primary' : 'btn-secondary')} to={`/new/${s.id}`}>{t('Start')}</Link>{s.storylines && s.storylines.length > 0 && <span className="small muted">{tn(s.storylines.length, '{n} example', '{n} examples')}</span>}</div>
+            </li>
           ))}
-        </div>
+        </ol>
         {isNew && !welcome && <p className="small muted" style={{ marginTop: 16 }}>{t('New here?')} <Link to="/guide">{t('See how it works')}</Link> {t('or')} <ExampleButton label={t('try a worked example')} />.</p>}
       </Panel>
+      <Describe />
 
       {open.length > 0 && (
         <Panel title={t('Continue where you left off')}>
@@ -72,7 +72,7 @@ export default function Home() {
         </Panel>
       )}
       <details className="more">
-        <summary>{t('Browse all scenarios')}</summary>
+        <summary>{t('More exercises')}</summary>
         <div style={{ marginTop: 16 }}>
           {b && <p className="small muted plan-line">{b.plan === 'pass'
             ? <>Pass active until {fmtDate(b.pass!.expiresAt.slice(0, 10))}.</>

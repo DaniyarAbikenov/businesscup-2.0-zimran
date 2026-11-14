@@ -453,6 +453,9 @@ const ru: Record<string, string> = {
  "{n} guesses": "{n} догадок",
  "agreement with the numbers": "совпадение с числами",
  "Not enough guesses yet. Make {n} to see a trend.": "Пока мало догадок. Сделайте {n}, чтобы увидеть тенденцию.",
- "Guess: {hits} of {parts} right": "Догадка: верно {hits} из {parts}"
+ "Guess: {hits} of {parts} right": "Догадка: верно {hits} из {parts}",
+ "Your first week: three exercises": "Ваша первая неделя: три упражнения",
+ "In the order they usually come up: decide what comes first, promise a date, choose between options. Each one starts with a guess, then shows the numbers on yours.": "В том порядке, в каком они обычно встречаются: что делать первым, какой срок пообещать, что выбрать. В каждом сначала ваша догадка, потом числа на ваших данных.",
+ "More exercises": "Другие упражнения"
 };
 export default ru;

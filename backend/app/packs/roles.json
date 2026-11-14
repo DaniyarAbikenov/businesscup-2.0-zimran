@@ -37,8 +37,8 @@
       ],
       "recommended": [
         "competing-priorities",
-        "choose-between-options",
-        "asked-for-a-deadline"
+        "asked-for-a-deadline",
+        "choose-between-options"
       ],
       "describeExample": "My manager wants the quarterly report by Friday, a colleague needs a data pull for a client demo on Wednesday, and the VP asked me for an overview next week. I have about 25 free hours."
     },
@@ -442,8 +442,8 @@
       ],
       "recommended": [
         "competing-priorities",
-        "choose-between-options",
-        "asked-for-a-deadline"
+        "asked-for-a-deadline",
+        "choose-between-options"
       ],
       "vocab": {
         "en": [
