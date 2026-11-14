@@ -175,7 +175,7 @@ def test_day7_nudge_once_and_only_when_needed(client, make_client):
     with engine.begin() as conn:
         conn.execute(text("UPDATE users SET created_at = now() - interval '8 days'"))
     assert run(emails.send_day7_nudges) == 1 and run(emails.send_day7_nudges) == 0
-    assert outbox()[0]["subject"] == "Pick your next situation" and "/api/unsubscribe/" in outbox()[0]["body"]
+    assert outbox()[0]["subject"] == "Pick your next scenario" and "/api/unsubscribe/" in outbox()[0]["body"]
     busy = setup_user(make_client(), "busy@example.com")
     busy.post("/api/progress/reminders", json={"enabled": True})
     start(busy), start(busy)

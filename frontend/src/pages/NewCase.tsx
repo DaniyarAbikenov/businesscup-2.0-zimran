@@ -1,11 +1,11 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useSession } from '../App';
 import { Intake, Storyline, api } from '../api';
 import { notify } from '../components/Toaster';
-import { Button, Field, PageHeader, Panel, PrivacyBanner, QuestionGroups, initialAnswers } from '../components/ui';
+import { Button, Field, PageHeader, Panel, PrivacyBanner, QuestionGroups, Stepper, initialAnswers } from '../components/ui';
 
-/** Keyed by situation so moving between situations starts a fresh form. */
+/** Keyed by scenario so moving between scenarios starts a fresh form. */
 export default function NewCasePage() {
   const { situationId } = useParams();
   return <NewCase key={situationId} />;
@@ -28,6 +28,19 @@ function NewCase() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [ack, setAck] = useState(false);
+  const exampleId = (loc.state as { example?: string } | null)?.example;
+  const ran = useRef(false);
+  useEffect(() => {
+    // "Try a worked example": fill in the example and go straight to the result (made-up numbers, no personal data)
+    const s = sit?.storylines?.find((x) => x.id === exampleId);
+    if (!sit || !s || ran.current) return;
+    ran.current = true;
+    const a = initialAnswers(sit.questions, s.answers);
+    setStory(s); setAnswers(a); setAck(true); setBusy(true);
+    api('POST', '/cases', { situationId: sit.id, privacyAck: true, confidenceBefore: 3, inputs: a })
+      .then((r) => nav(`/case/${r.case.id}`, { replace: true }))
+      .catch((x: any) => { if (x.status === 402) nav('/pricing?from=limit'); else { setError(x.message); setBusy(false); } });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   if (!sit) return <Navigate to="/" replace />;
 
   const pick = (s: Storyline | null) => {
@@ -58,12 +71,14 @@ function NewCase() {
 
   return (
     <div className="narrow">
-      <PageHeader eyebrow={`Step 1 of 3 · Clarify${sit.category ? ' · ' + sit.category : ''}`} title={sit.title} lead={sit.summary} />
+      <Stepper current={1} />
+      <PageHeader eyebrow={`Fill in${sit.category ? ' · ' + sit.category : ''}`} title={sit.title} lead={sit.summary} />
+      {exampleId && busy && <div className="banner ok" role="status">Loading a worked example with made-up numbers. You will see the result in a moment.</div>}
       <PrivacyBanner />
       {showIntake && fromText && <IntakeNote intake={fromText} text={introText} labels={Object.fromEntries(sit.questions.map((q) => [q.id, q.label]))}
         titles={Object.fromEntries(pack.situations.map((s) => [s.id, s.title]))} />}
       {sit.storylines && sit.storylines.length > 0 && (
-        <Panel title="Start from a storyline" lead="A realistic example with the numbers filled in. Use it to try the situation, or start blank with your own.">
+        <Panel title="Start from a storyline" lead="A realistic example with the numbers filled in. Use it to try the scenario, or start blank with your own.">
           <div className="stories">
             {sit.storylines.map((s) => (
               <button key={s.id} type="button" className={'story' + (story?.id === s.id ? ' on' : '')} aria-pressed={story?.id === s.id} onClick={() => pick(s)}>
@@ -71,7 +86,7 @@ function NewCase() {
               </button>
             ))}
             <button type="button" className={'story' + (story === null ? ' on' : '')} aria-pressed={story === null} onClick={() => pick(null)}>
-              <b>My own situation</b><span>Start with an empty form.</span>
+              <b>My own scenario</b><span>Start with an empty form.</span>
             </button>
           </div>
         </Panel>
@@ -80,7 +95,7 @@ function NewCase() {
       <form onSubmit={submit} noValidate>
         <QuestionGroups sit={sit} answers={answers} fields={fields} onChange={setAnswers} />
         <Panel>
-          <Field id="conf" label="How confident do you feel handling this right now?" help="1 is not at all, 5 is very. We compare it with how you feel afterwards.">
+          <Field id="conf" label="How confident do you feel handling this right now?" help="1 is not at all, 5 is very." why="After you decide, we ask again. The change shows you whether working through it helped, and it feeds your Progress page. It never affects the calculation.">
             {(a) => <select className="input" {...a} value={conf} onChange={(e) => setConf(e.target.value)}>{[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}</select>}
           </Field>
           <label className="check"><input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} /> I did not enter confidential employer or client information.</label>
@@ -99,8 +114,8 @@ function IntakeNote({ intake, labels, titles, text }: { intake: Intake; labels: 
       {intake.filled.length > 0 && <p>Filled in: {intake.filled.map((id) => labels[id] ?? id).join(', ')}.</p>}
       {intake.missing.length > 0 && <p>Still needs your input: {intake.missing.join(', ')}.</p>}
       {intake.notes.length > 0 && <ul>{intake.notes.map((n, i) => <li key={i}>{n}</li>)}</ul>}
-      {intake.noMatch && <p className="small"><strong>Nothing in the catalog fits well?</strong> <Link to="/my/new" state={{ text }}>Create a new situation from this text</Link></p>}
-      {intake.alternatives.length > 0 && <p className="small">Wrong situation? {intake.alternatives.map((id, i) => <span key={id}>{i > 0 && ', '}<Link to={`/new/${id}`}>{titles[id] ?? id}</Link></span>)}</p>}
+      {intake.noMatch && <p className="small"><strong>Nothing in the catalog fits well?</strong> <Link to="/my/new" state={{ text }}>Create a new scenario from this text</Link></p>}
+      {intake.alternatives.length > 0 && <p className="small">Wrong scenario? {intake.alternatives.map((id, i) => <span key={id}>{i > 0 && ', '}<Link to={`/new/${id}`}>{titles[id] ?? id}</Link></span>)}</p>}
     </div>
   );
 }

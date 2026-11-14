@@ -35,7 +35,7 @@ export default function Onboarding() {
 
   return (
     <div className="narrow">
-      <PageHeader eyebrow="Step 1 of 1" title="Tell us about your new position" lead="Promoted, moved to a new team or company, or changed fields? One minute. It tunes the examples and the situations we show you." />
+      <PageHeader eyebrow="Welcome" title="Tell us about your new position" lead="Facing a decision in a new role? You will try your options with your own numbers before you commit, and get a ready message to send. Tell us your position (one minute) and we pick the right scenarios." />
       <PrivacyBanner />
       <Panel>
         <form onSubmit={submit}>

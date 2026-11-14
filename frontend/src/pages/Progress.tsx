@@ -22,7 +22,7 @@ export function ReminderToggle({ onChange }: { onChange?: () => void }) {
   };
   return (
     <>
-      <label className="check"><input type="checkbox" checked={on} disabled={busy} onChange={(e) => set(e.target.checked)} /> Email me when a follow-up is due, and once after a week if I have not started a second situation. Every email has a link to turn this off.</label>
+      <label className="check"><input type="checkbox" checked={on} disabled={busy} onChange={(e) => set(e.target.checked)} /> Email me when a follow-up is due, and once after a week if I have not started a second scenario. Every email has a link to turn this off.</label>
       <p className="small muted">We only use your sign-in email. Emails contain the title of your case, never your numbers.</p>
       {on && me.isDemo === false && <p className="small"><button type="button" className="btn btn-quiet" onClick={sendNow}>Send my due reminders now (testing)</button> {info}</p>}
     </>
@@ -69,12 +69,12 @@ export default function ProgressPage() {
         <div className="stats" style={{ marginTop: 28 }}>
           {stat(p.counts.situations, 'situations tried')}{stat(p.counts.decisions, 'decisions made')}{stat(p.counts.followups, 'follow-ups done')}{stat(`${p.counts.documents} / ${p.counts.exported}`, 'documents saved / exported')}
         </div>
-        {p.inactiveHint && <div className="banner" role="note" style={{ marginTop: 16 }}>It has been {p.inactiveDays} days since your last situation. Is something coming up at work?</div>}
+        {p.inactiveHint && <div className="banner" role="note" style={{ marginTop: 16 }}>It has been {p.inactiveDays} days since your last scenario. Is something coming up at work?</div>}
       </Panel>
 
       {p.counts.situations === 0 ? (
-        <Panel title="Nothing here yet" lead="Your progress appears as you work through situations. Start with one you expect this week.">
-          <div className="row"><Link className="btn btn-primary" to="/">Choose a situation</Link><Link className="btn btn-secondary" to="/">Describe your situation</Link></div>
+        <Panel title="Nothing here yet" lead="Your progress appears as you work through scenarios. Start with one you expect this week.">
+          <div className="row"><Link className="btn btn-primary" to="/">Choose a scenario</Link><Link className="btn btn-secondary" to="/">Describe your scenario</Link></div>
         </Panel>
       ) : (
         <>

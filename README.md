@@ -51,6 +51,15 @@ docker compose run --rm -e DATABASE_URL=postgresql+psycopg://roleshift:roleshift
 
 The tests use real Postgres and Redis. They cover the impact calculation, input validation, auth and sessions, login throttling, the full flow through the API, and that one user cannot read another user's case.
 
+## How it works (for users) and vocabulary
+
+The promise: "Facing a decision in a new role? Try your options with your own numbers before you commit, and get a ready message to send." Four steps: describe or pick a scenario, compare options with your numbers, decide and get a ready message, come back and record how it went. The UI says **scenario** (a kind of moment at work), **example** (a scenario with made-up numbers filled in), **option**, **follow-up**; internal words (engine, storyline, preset) stay in code and this README.
+
+- **First use**: a short skippable welcome on Home (remembered in this browser) ending in "Try a worked example", which fills a scenario with an example and goes straight to the result. "How it works" is in the header and footer (`/guide`).
+- **Home**: one primary action (describe it in your own words), four recommended scenario cards for your position, then follow-ups due, open cases and your 90-day card. The full catalog and "create a scenario with AI" are collapsed. Navigation: Home, My cases (Journal and Documents as tabs), Progress, Account.
+- **Every case** shows four steps (Fill in, Compare, Decide, Follow up), a "Best by the numbers" sentence and a two-sentence "how to read this" above the results, and small "Why we ask" notes on the fields that need one.
+- Notes on what was confusing and what changed: `UX_NOTES.md`.
+
 ## Progress and email reminders
 
 - **Progress** (`/progress`, `GET /api/progress`): read-only aggregation of existing tables, computed on the server. Day count since signup with 30/60/90 markers, confidence before and after per decided case (SVG chart, average change), decisions timeline with status and the outcome as the user reported it, counts (situations, decisions, follow-ups, documents saved and exported), what was practiced by category, milestones (first situation, decision, debrief), outcome shares, a soft hint after 7 days without a situation, and a "try next" suggestion from the user's role catalog. New users get an empty state with a button to the catalog. A compact card is on Home.

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Journal, api, fmtDate, fmtStamp } from '../api';
-import { PageHeader, Panel } from '../components/ui';
+import { CaseTabs, PageHeader, Panel } from '../components/ui';
 
 export default function JournalPage() {
   const [j, setJ] = useState<Journal | null>(null);
@@ -13,6 +13,7 @@ export default function JournalPage() {
   const stat = (n: string | number, l: string) => <div className="stat"><b>{n}</b><span>{l}</span></div>;
   return (
     <>
+      <CaseTabs />
       <PageHeader eyebrow="Progress" title="Your journal" lead="Follow-up entries are what you told us. RoleShift cannot see your workplace." />
       <Panel>
         <div className="stats">
@@ -28,7 +29,7 @@ export default function JournalPage() {
         </Panel>
       )}
       <Panel title="Timeline">
-        {j.entries.length === 0 ? <p className="muted">Nothing yet. Start a situation from Home.</p> : (
+        {j.entries.length === 0 ? <p className="muted">Nothing yet. Start a scenario from Home.</p> : (
           <ul className="timeline">{j.entries.map((e) => (
             <li key={e.id}><time dateTime={e.created_at}>{fmtStamp(e.created_at)}</time><span>{e.case_id ? <Link to={`/case/${e.case_id}`}>{e.text}</Link> : e.text}</span></li>
           ))}</ul>

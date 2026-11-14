@@ -38,9 +38,9 @@ def followup_email(db: Session, user: User, case: Case) -> tuple[str, str]:
 
 
 def day7_email(db: Session, user: User) -> tuple[str, str]:
-    body = (f"A week ago you started with RoleShift. A small step helps most: pick the next situation you expect at work "
-            f"and rehearse it with your own numbers.\n\nPick your next situation: {config.APP_URL}/\n" + _footer(db, user.id))
-    return "Pick your next situation", body
+    body = (f"A week ago you started with RoleShift. A small step helps most: pick the next scenario you expect at work "
+            f"and rehearse it with your own numbers.\n\nPick your next scenario: {config.APP_URL}/\n" + _footer(db, user.id))
+    return "Pick your next scenario", body
 
 
 def _eligible(db: Session):
@@ -74,7 +74,7 @@ def send_due_followups(db: Session, r, now: datetime | None = None, only_user: i
 
 
 def send_day7_nudges(db: Session, r, now: datetime | None = None, only_user: int | None = None) -> int:
-    """Once, to opted-in users 7+ days after signup who started fewer than 2 situations of their own."""
+    """Once, to opted-in users 7+ days after signup who started fewer than 2 scenarios of their own."""
     now = now or datetime.now(timezone.utc)
     q = (select(User).join(Profile, Profile.user_id == User.id)
          .where(Profile.email_reminders.is_(True), Profile.day7_nudge_sent_at.is_(None), User.created_at <= now - timedelta(days=7)))

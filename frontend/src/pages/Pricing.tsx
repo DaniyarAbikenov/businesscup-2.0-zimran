@@ -21,8 +21,8 @@ export default function PricingPage({ signedIn }: { signedIn: boolean }) {
   return (
     <div className="narrow">
       <PageHeader eyebrow="Pricing" title="Rehearse every hard call in your first months"
-        lead="Start free. When the free situations run out, one pass covers your first months in the role. No subscription." />
-      {limitHit && <div className="banner" role="note"><strong>You have used your {p.free.cases} free situations.</strong> Your saved cases, documents and journal stay available. Get the pass to start new ones.</div>}
+        lead="Start free. When the free scenarios run out, one pass covers your first months in the role. No subscription." />
+      {limitHit && <div className="banner" role="note"><strong>You have used your {p.free.cases} free scenarios.</strong> Your saved cases, documents and journal stay available. Get the pass to start new ones.</div>}
       {b?.plan === 'pass' && <div className="banner ok" role="status">Your pass is active until {fmtDate(b.pass!.expiresAt.slice(0, 10))}.</div>}
       <div className="plans">
         <Panel title={p.free.name}>

@@ -5,7 +5,7 @@ import { Draft, api } from '../api';
 import { notify } from '../components/Toaster';
 import { Button, Field, PageHeader, Panel, PrivacyBanner } from '../components/ui';
 
-/** Text box that asks the AI for a new situation. Hidden, with the reason, when the server has no AI. */
+/** Text box that asks the AI for a new scenario. Hidden, with the reason, when the server has no AI. */
 export function CreateSituation({ compact, initialText = '' }: { compact?: boolean; initialText?: string }) {
   const { me } = useSession();
   const nav = useNavigate();
@@ -13,7 +13,7 @@ export function CreateSituation({ compact, initialText = '' }: { compact?: boole
   const [ack, setAck] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  if (!me.llmEnabled) return <p className="small muted">Creating your own situation needs the AI, and the AI is not configured on this server (no ANTHROPIC_API_KEY). The catalog above still works without it.</p>;
+  if (!me.llmEnabled) return <p className="small muted">Creating your own scenario needs the AI, and the AI is not configured on this server (no ANTHROPIC_API_KEY). The catalog above still works without it.</p>;
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -34,7 +34,7 @@ export function CreateSituation({ compact, initialText = '' }: { compact?: boole
       </Field>
       <label className="check"><input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} /> The text has no confidential employer or client information. It is sent to our AI provider, Anthropic, and not stored by us.</label>
       {error && <div className="field error" role="alert">{error}</div>}
-      <div className="row" style={{ marginTop: 16 }}><Button type="submit" busy={busy}>Generate a situation</Button></div>
+      <div className="row" style={{ marginTop: 16 }}><Button type="submit" busy={busy}>Generate a scenario</Button></div>
     </form>
   );
 }
@@ -43,7 +43,7 @@ export function CreateSituationPage() {
   const text = (useLocation().state as { text?: string } | null)?.text ?? '';
   return (
     <div className="narrow">
-      <PageHeader eyebrow="My situations" title="Create a new situation" lead="AI proposes the wording, the steps and an example. The calculation stays with our calculators, and you see everything before it is saved." />
+      <PageHeader eyebrow="My scenarios" title="Create a new scenario" lead="AI proposes the wording, the steps and an example. The calculation stays with our calculators, and you see everything before it is saved." />
       <PrivacyBanner />
       <Panel><CreateSituation initialText={text} /></Panel>
     </div>
@@ -65,7 +65,7 @@ export function PreviewSituationPage() {
     try {
       const r = await api<{ situation: { id: string } }>('POST', '/situations', { preset: draft!.preset });
       await refresh();
-      notify('Saved to My situations.');
+      notify('Saved to My scenarios.');
       nav(`/new/${r.situation.id}`, { replace: true });
     } catch (x: any) { setError(x.message); } finally { setBusy(false); }
   }
@@ -90,7 +90,7 @@ export function PreviewSituationPage() {
       )}
       {error && <div className="banner bad" role="alert">{error}</div>}
       <div className="row" style={{ marginTop: 16 }}>
-        <Button onClick={save} busy={busy}>Save to My situations</Button>
+        <Button onClick={save} busy={busy}>Save to My scenarios</Button>
         <Link className="btn btn-secondary" to="/">Discard</Link>
       </div>
     </div>

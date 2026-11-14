@@ -37,7 +37,7 @@ export default function Auth({ mode, onDone }: { mode: 'login' | 'register'; onD
       <div className="caption">RoleShift</div>
       <h1 style={{ marginTop: 8 }}>The first 90 days in a new position are the hardest. Decide with numbers, not nerves.</h1>
       <p className="lead muted" style={{ marginTop: 12, fontSize: 18 }}>
-        Work through a real situation with your real figures. See what each choice costs, then send a document you can stand behind.
+        Work through a real scenario with your real figures. See what each choice costs, then send a document you can stand behind.
       </p>
       {demoEnabled && (
         <div className="panel">

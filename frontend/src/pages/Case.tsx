@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useSession } from '../App';
 import { Case, Option, Situation, api, fmtDate, usd } from '../api';
 import { notify } from '../components/Toaster';
-import { Badge, Button, Field, PageHeader, Panel, QuestionGroups, initialAnswers, useToast } from '../components/ui';
+import { Badge, Button, Field, PageHeader, Panel, QuestionGroups, Stepper, Why, initialAnswers, useToast } from '../components/ui';
 
 export default function CasePage() {
   const { id } = useParams();
@@ -16,6 +16,22 @@ export default function CasePage() {
   const sit = pack.situations.find((s) => s.id === c.situationId)!;
   return c.status === 'draft' ? <Draft c={c} sit={sit} onChange={setC} /> : <Decided c={c} sit={sit} onChange={setC} />;
 }
+
+/** The answer first: one sentence from the server's numbers, before the details. */
+function bestLine(c: Case, sit: Situation): string {
+  const o = c.result.options.find((x) => x.key === c.result.lowestRiskKey)!;
+  const label = sit.options[o.key].label;
+  if (sit.engine === 'decision') return `Best by the numbers: ${o.pick} (score ${o.score} out of 100). ${(c.result as any).notes?.[0] ?? ''}`;
+  if (sit.engine === 'estimate') return `Best by the numbers: "${label}" (${o.dateFrom ? `${fmtDate(o.dateFrom)} to ${fmtDate(o.date!)}` : fmtDate(o.date!)}, about ${o.probability}% chance to make it, ${o.riskLevel} risk).`;
+  if (sit.engine === 'priorities') return `Best by the numbers: "${label}" ${o.lateCount ? `still leaves ${o.lateCount} task${o.lateCount === 1 ? '' : 's'} late` : 'leaves nothing late'} (${o.riskLevel} risk).`;
+  return `Best by the numbers: "${label}" has the lowest risk (${o.riskLevel}). New release date ${fmtDate(o.newReleaseDate)}, extra cost ${usd(o.extraCost)}.`;
+}
+const HOW_READ: Record<string, string> = {
+  change_request: 'Each column is one thing you could answer. Read down: date, cost, then the risks to watch. Green-to-red labels are a rule-of-thumb check.',
+  priorities: 'Each column is a different order of doing the work. Read down to see when each task finishes and what ends up late.',
+  estimate: 'Each column is a date you could promise. The percentage is the chance you make it, based on your three estimates and your real free time.',
+  decision: 'The top table ranks your options by your own weights and scores. The columns below are four ways to pick; if they agree, the choice is solid.',
+};
 
 const summary = (c: Case, sit: Situation) => {
   const i = c.inputs;
@@ -215,7 +231,9 @@ function Draft({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: Ca
 
   return (
     <>
-      <PageHeader eyebrow="Step 2 of 3 · Compare" title={c.title} lead={summary(c, sit)} />
+      <Stepper current={2} />
+      <PageHeader eyebrow="Compare" title={c.title} lead={summary(c, sit)} />
+      <div className="banner ok" role="note"><p className="bestline">{bestLine(c, sit)}</p><p className="howread" style={{ margin: 0 }}>{HOW_READ[sit.engine]} The decision is yours.</p></div>
       <Panel title={`Your ${c.result.options.length} options`} lead={sit.engine === 'decision'
         ? 'Your scores ranked, then four ways to pick. All numbers follow from your own weights and scores. The risk label is a rule-of-thumb check, and the decision is yours.'
         : sit.engine === 'estimate'
@@ -229,7 +247,7 @@ function Draft({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: Ca
         <details><summary>How was this calculated?</summary><p className="small muted">{c.result.assumptions}</p></details>
       </Panel>
       <Panel title="Decide">
-        <p className="caption" style={{ marginBottom: 8 }}>Step 3 of 3</p>
+        <p className="caption" style={{ marginBottom: 8 }}>Decide: choose one option above and say why.</p>
         <Field id="rationale" label="Your reasoning" help="It goes into the document. What would change your mind?">{(a) => <textarea className="input" {...a} maxLength={600} value={rationale} onChange={(e) => setRationale(e.target.value)} />}</Field>
         <Field id="days" label="Ask me how it went">{(a) => (
           <select className="input" {...a} value={days} onChange={(e) => setDays(e.target.value)}>
@@ -295,7 +313,8 @@ function Decided({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: 
 
   return (
     <>
-      <PageHeader eyebrow="Decision saved" title={c.title} />
+      <Stepper current={4} />
+      <PageHeader eyebrow="Decision saved. Next: use your message, then come back to record how it went." title={c.title} />
       <div className="banner ok" role="status">
         {sit.options[c.chosenOption!].label}.{' '}
         {sit.engine === 'decision'

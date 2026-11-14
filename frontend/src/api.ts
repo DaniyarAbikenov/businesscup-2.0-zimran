@@ -44,6 +44,7 @@ export interface Question {
   fields?: Question[]; minRows?: number; maxRows?: number; itemLabel?: string;
   label: string; help?: string; required?: boolean; placeholder?: string; max?: number; min?: number; step?: number;
   default?: string | number; options?: { value: string; label: string }[];
+  why?: string;
   labelFrom?: { list: string; field: string; index: number; template: string };
 }
 export interface Storyline { id: string; title: string; story: string; answers: Record<string, any> }

@@ -1,3 +1,4 @@
+import { NavLink } from 'react-router-dom';
 import { notify } from './Toaster';
 import { ReactNode, useState } from 'react';
 import { Question } from '../api';
@@ -7,6 +8,33 @@ export const PrivacyBanner = () => (
     <strong>Privacy:</strong> do not enter confidential employer or client information. Use rounded or made-up numbers and generic names.
   </div>
 );
+
+/** Four steps of every scenario, with what the person does in each. `current` is 1-4; earlier steps show as done. */
+export function Stepper({ current }: { current: 1 | 2 | 3 | 4 }) {
+  const steps = [['Fill in', 'Tell us the facts and your numbers.'], ['Compare', 'See each option with its outcome.'], ['Decide', 'Pick one and get a ready message.'], ['Follow up', 'Record how it went.']];
+  return (
+    <ol className="stepper" aria-label="Steps">
+      {steps.map(([t, d], n) => (
+        <li key={t} className={n + 1 === current ? 'on' : n + 1 < current ? 'done' : ''} aria-current={n + 1 === current ? 'step' : undefined}>
+          <b><span className="num">{n + 1 < current ? '✓' : n + 1}</span> {t}</b><span>{d}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/** Small expandable "Why we ask", no modal. */
+export function Why({ children }: { children: ReactNode }) {
+  return <details className="why"><summary>Why we ask</summary><p>{children}</p></details>;
+}
+
+export function CaseTabs() {
+  return (
+    <nav className="subtabs" aria-label="My cases">
+      <NavLink to="/journal">Journal</NavLink><NavLink to="/documents">Documents</NavLink>
+    </nav>
+  );
+}
 
 export function PageHeader({ eyebrow, title, lead }: { eyebrow?: string; title: string; lead?: ReactNode }) {
   return (
@@ -36,24 +64,25 @@ export function Button({ variant = 'primary', busy, children, className, ...rest
 
 export const Badge = ({ level }: { level: 'low' | 'medium' | 'high' }) => <span className={`badge ${level}`}>{level} risk</span>;
 
-interface FieldProps { id: string; label: string; help?: string; error?: string; children: (a: { id: string; 'aria-invalid'?: boolean; 'aria-describedby'?: string }) => ReactNode }
-export function Field({ id, label, help, error, children }: FieldProps) {
+interface FieldProps { id: string; label: string; help?: string; why?: string; error?: string; children: (a: { id: string; 'aria-invalid'?: boolean; 'aria-describedby'?: string }) => ReactNode }
+export function Field({ id, label, help, why, error, children }: FieldProps) {
   return (
     <div className="field">
       <label htmlFor={id}>{label}</label>
       {help && <div className="help" id={id + '-h'}>{help}</div>}
       {children({ id, 'aria-invalid': error ? true : undefined, 'aria-describedby': error ? id + '-e' : help ? id + '-h' : undefined })}
+      {why && <Why>{why}</Why>}
       {error && <div className="error" id={id + '-e'}>{error}</div>}
     </div>
   );
 }
 
-/** Renders one question from the situation pack. A "list" question renders repeatable rows. */
+/** Renders one question from the scenario pack. A "list" question renders repeatable rows. */
 export function QuestionField({ q, value, error, errors, onChange, answers }: { q: Question; value: any; error?: string; errors?: Record<string, string>; onChange: (v: any) => void; answers?: Record<string, any> }) {
   if (q.type === 'list') return <ListField q={q} rows={value ?? []} error={error} errors={errors ?? {}} onChange={onChange} answers={answers ?? {}} />;
   const label = q.label + (q.required || q.labelFrom ? '' : ' (optional)');
   return (
-    <Field id={'q_' + q.id} label={label} help={q.help} error={error}>
+    <Field id={'q_' + q.id} label={label} help={q.help} why={q.why} error={error}>
       {(a) =>
         q.type === 'select' ? (
           <select className="input" {...a} value={value} onChange={(e) => onChange(e.target.value)}>
@@ -126,7 +155,7 @@ export const initialAnswers = (qs: Question[], from?: Record<string, any>): Reco
     ? (from?.[q.id] ?? Array.from({ length: q.minRows ?? 1 }, () => ({}))).map((r: any) => asStrings(q.fields!, r))
     : String(from?.[q.id] ?? q.default ?? '')]));
 
-/** All questions of a situation, laid out by the pack's groups. */
+/** All questions of a scenario, laid out by the pack's groups. */
 export function QuestionGroups({ sit, answers, fields, onChange, skipCollapsed }: { sit: { questions: Question[]; groups?: { id: string; title: string; columns?: number; collapsed?: boolean }[] }; answers: Record<string, any>; fields: Record<string, string>; onChange: (a: Record<string, any>) => void; skipCollapsed?: boolean }) {
   const groups = sit.groups ?? [{ id: '', title: '' }];
   const render = (g: { id: string; columns?: number }) => {

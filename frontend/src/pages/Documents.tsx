@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SavedDoc, api, fmtStamp } from '../api';
 import { notify } from '../components/Toaster';
-import { Button, PageHeader, Panel } from '../components/ui';
+import { Button, CaseTabs, PageHeader, Panel } from '../components/ui';
 
 // Library of everything saved: Change Requests (with edits) and messages to the client.
 export default function DocumentsPage() {
@@ -17,8 +17,9 @@ export default function DocumentsPage() {
   };
   return (
     <>
-      <PageHeader eyebrow="Library" title="Your documents" lead="Every Change Request and client message you saved. They stay with your account." />
-      {docs.length === 0 && <Panel><p className="muted">Nothing saved yet. Decide on a situation and your Change Request appears here.</p></Panel>}
+      <CaseTabs />
+      <PageHeader eyebrow="Library" title="Your documents" lead="Every message and document you saved. They stay with your account." />
+      {docs.length === 0 && <Panel><p className="muted">Nothing saved yet. When you decide on a scenario, the message or document it creates appears here, and you can edit and copy it.</p></Panel>}
       {docs.map((d) => (
         <Panel key={d.id} title={d.label} lead={`${d.caseTitle} · updated ${fmtStamp(d.updatedAt)}${d.revisions > 1 ? ` · ${d.revisions} versions` : ''}`}>
           {open === d.id && <pre className="docview">{d.body}</pre>}

@@ -5,7 +5,7 @@ import { Intake, api } from '../api';
 import { log } from '../log';
 import { Button, Field, Panel } from './ui';
 
-/** "Describe your situation": free text -> the matching situation with the form pre-filled. Nothing is saved here. */
+/** "Describe your scenario": free text -> the matching scenario with the form pre-filled. Nothing is saved here. */
 export default function Describe() {
   const { me } = useSession();
   const nav = useNavigate();
@@ -33,7 +33,7 @@ export default function Describe() {
   }
 
   return (
-    <Panel title="Describe your situation" lead="Not sure which one fits? Write what is going on in your own words. We pick the situation and fill in what you mention. You review everything before anything is calculated or saved.">
+    <Panel title="Describe your scenario" lead="Not sure which one fits? Write what is going on in your own words. We pick the scenario and fill in what you mention. You review everything before anything is calculated or saved.">
       <form onSubmit={submit} noValidate>
         <Field id="describe" label="What is going on?" help="Who asked for what, by when, how much time you have. Leave out names of clients and your employer.">
           {(a) => <textarea className="input" rows={5} maxLength={4000} {...a} value={text} onChange={(e) => setText(e.target.value)}
@@ -47,7 +47,7 @@ export default function Describe() {
           </>
         ) : <p className="small muted">AI reading is off on this server. We match your text by keywords and copy it into the form; you enter the numbers.</p>}
         {error && <div className="field error" role="alert">{error}</div>}
-        <div className="row" style={{ marginTop: 16 }}><Button type="submit" busy={busy}>Find my situation</Button></div>
+        <div className="row" style={{ marginTop: 16 }}><Button type="submit" busy={busy}>Find my scenario</Button></div>
       </form>
     </Panel>
   );

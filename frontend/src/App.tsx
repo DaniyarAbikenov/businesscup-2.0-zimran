@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { Link, NavLink, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { Me, Pack, api } from './api';
 import Auth from './pages/Auth';
 import CasePage from './pages/Case';
@@ -11,6 +11,7 @@ import JournalPage from './pages/Journal';
 import NewCase from './pages/NewCase';
 import Onboarding from './pages/Onboarding';
 import ProgressPage from './pages/Progress';
+import { HowItWorksPage } from './components/Guide';
 import { CreateSituationPage, PreviewSituationPage } from './pages/MySituations';
 
 interface Session { me: Me; pack: Pack; refresh: () => Promise<void> }
@@ -52,6 +53,7 @@ export default function App() {
               <Route path="/case/:id" element={<CasePage />} />
               <Route path="/journal" element={<JournalPage />} />
               <Route path="/progress" element={<ProgressPage />} />
+              <Route path="/guide" element={<HowItWorksPage />} />
               <Route path="/documents" element={<DocumentsPage />} />
               <Route path="/account" element={<AccountPage />} />
               <Route path="/pricing" element={<PricingPage signedIn />} />
@@ -62,7 +64,7 @@ export default function App() {
           )}
         </Routes>
       </main>
-      <footer className="footer">Practice with realistic numbers. Do not enter confidential employer or client data. <Link to="/account">Account and data</Link> · <Link to="/pricing">Pricing</Link></footer>
+      <footer className="footer">Practice with realistic numbers. Do not enter confidential employer or client data. <Link to="/guide">How it works</Link> · <Link to="/account">Account and data</Link> · <Link to="/pricing">Pricing</Link></footer>
     </Ctx.Provider>
   );
 }
@@ -71,18 +73,20 @@ function TopBar() {
   const { refresh } = useSession();
   const nav = useNavigate();
   const [due, setDue] = useState(0);
+  const loc = useLocation();
   useEffect(() => {
     api<{ due: number }>('GET', '/reminders').then((r) => setDue(r.due)).catch(() => {});
-  }, [location.pathname]);
+  }, [loc.pathname]);
   return (
     <header className="topbar">
       <div className="topbar-inner">
         <Link to="/" className="brand">Role<span>Shift</span></Link>
         <nav className="nav" aria-label="Main">
           <NavLink to="/" end>Home</NavLink>
+          <NavLink to="/journal" className={() => (/^\/(journal|documents)/.test(loc.pathname) ? 'active' : '')} aria-current={/^\/(journal|documents)/.test(loc.pathname) ? 'page' : undefined}>My cases{due > 0 && <span className="count" aria-label={`${due} follow-ups due`}>{due}</span>}</NavLink>
           <NavLink to="/progress">Progress</NavLink>
-          <NavLink to="/documents">Documents</NavLink>
-          <NavLink to="/journal">Journal{due > 0 && <span className="count" aria-label={`${due} follow-ups due`}>{due}</span>}</NavLink>
+          <NavLink to="/guide" className="hide-sm">How it works</NavLink>
+          <NavLink to="/account">Account</NavLink>
           <button onClick={async () => { await api('POST', '/auth/logout', {}); await refresh(); nav('/'); }}>Sign out</button>
         </nav>
       </div>
