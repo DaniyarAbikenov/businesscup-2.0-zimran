@@ -86,6 +86,10 @@ Short step-by-step tips (popovers anchored to real elements) appear once, the fi
 - **Settings** (`.env.example`): `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `APP_URL` (public address used in links). With `SMTP_HOST` empty the app uses a **log mailer**: the whole email is written to the server log (`docker compose logs backend`) and to the Redis list `outbox` (last 50), nothing is sent. In that mode (or with `TEST_CHECKOUT=true`) the Progress/Account page shows "Send my due reminders now" for testing.
 - Limitation: real SMTP delivery has not been tested without credentials; the sending code is plain `smtplib` (STARTTLS, or SSL on port 465).
 
+## User guide
+
+How to use the service (Russian and English): [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
+
 ## Design system
 
 `design/DESIGN.md` defines the visual language ("Ledger"): warm paper neutrals, one ink-teal accent, Fraunces plus Inter, tabular numerals, hairline rules, a comparison table instead of identical cards. Tokens live in `frontend/src/styles/tokens.css`. Read the file before changing UI, and update it when you change the rules.
