@@ -41,6 +41,8 @@ docker compose up migrate
 
 ## Tests
 
+Front-end helper checks (no framework, Node 22.6+): `node frontend/scripts/check-debounce.mjs` (live panel debounce) and `node frontend/scripts/check-whatif.mjs` (what-if paths and slider ranges); with `check-i18n.mjs` and `check-tours.mjs`.
+
 Create the test database once, then run the tests (use `python -m pytest`, plain `pytest` does not find the `app` package):
 
 ```bash

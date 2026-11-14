@@ -6,6 +6,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useSession } from '../App';
 import { Case, Lever, Option, Situation, api, fmtDate, usd } from '../api';
 import { notify } from '../components/Toaster';
+import { WhatIf } from '../components/WhatIf';
 import { Badge, Button, Field, PageHeader, Panel, QuestionGroups, Stepper, Why, initialAnswers, useToast } from '../components/ui';
 
 export default function CasePage() {
@@ -334,6 +335,7 @@ function Draft({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: Ca
           : sit.engine === 'estimate' ? <EstimateLedger c={c} sit={sit} chosen={chosen} onPick={setChosen} />
           : sit.engine === 'priorities' ? <PriorityLedger c={c} sit={sit} chosen={chosen} onPick={setChosen} /> : <Ledger c={c} sit={sit} chosen={chosen} onPick={setChosen} />}
         <Levers c={c} />
+        <WhatIf c={c} sit={sit} onSaved={onChange} />
         <Challenge c={c} />
         <details><summary>{t('How was this calculated?')}</summary><p className="small muted">{c.result.assumptions}</p></details>
       </Panel>

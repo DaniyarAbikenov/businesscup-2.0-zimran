@@ -32,6 +32,7 @@ export const tours = (): Record<TourKey, TourStep[]> => ({
     { target: d('res-ledger'), title: t('How to read this'), text: t('Each column is one option. Read down: dates, costs or lateness, then what to watch.') },
     { target: d('res-levers'), title: t('Time, money, quality'), text: t('Every way to fix lateness costs something. This table shows what each way costs in time, money and quality.') },
     { target: d('res-why'), title: t('Risk on your numbers'), text: t('This is a calculation on your numbers, not a forecast. "Why this label" shows how it was made.') },
+    { target: d('res-whatif'), title: t('What if?'), text: t('Drag a number to see how the answer changes. Nothing is saved until you press Save these numbers.') },
     { target: d('res-challenge'), title: t('Challenge my numbers'), text: t('Recalculates with worse numbers to see if the conclusion still holds.') },
     { target: d('res-choose'), title: t('Decide'), text: t('Choose one option, say why, and you get a ready message or document.') },
   ],

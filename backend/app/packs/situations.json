@@ -379,6 +379,11 @@
           ],
           "detailNote": "A penalty, a partial delivery and the assumptions change the date, the cost and the quality row."
         }
+      ],
+      "whatIf": [
+        "changeEffortDays",
+        "bufferDays",
+        "clientCoversPct"
       ]
     },
     {
@@ -911,6 +916,10 @@
           ],
           "detailNote": "Hours you may be forgetting and the price of an extra hour unlock the paid options."
         }
+      ],
+      "whatIf": [
+        "committedHours",
+        "hoursPerWeek"
       ]
     },
     {
@@ -1342,6 +1351,11 @@
           ],
           "detailNote": "Extra-hour cost and a good-enough share unlock the time, money and quality table."
         }
+      ],
+      "whatIf": [
+        "likelyHours",
+        "hoursPerWeek",
+        "interruptionsPct"
       ]
     },
     {
@@ -2050,6 +2064,11 @@
           ],
           "detailNote": "A decision date goes into the note."
         }
+      ],
+      "whatIf": [
+        "criteria.0.weight",
+        "criteria.1.weight",
+        "criteria.2.weight"
       ]
     }
   ]
