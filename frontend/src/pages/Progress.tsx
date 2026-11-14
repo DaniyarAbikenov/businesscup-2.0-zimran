@@ -88,7 +88,7 @@ export default function ProgressPage() {
             {p.confidence.length > 0 ? <ConfidenceChart items={p.confidence} /> : <p className="muted">{t('No decisions yet.')}</p>}
           </Panel>
           <div data-tour="pr-skills"><Panel title={t('Your intuition vs the numbers')} lead={t('Before the numbers appear you can guess. This shows how often your guess agreed with the calculator on your own numbers. It does not measure how good your decisions are in the real world.')}>
-            {p.skills.filter((s) => s.cases > 0 || s.guesses > 0).length === 0 && <p className="muted">{t('Make a guess before the numbers in any scenario to see your skills here.')}</p>}
+            {p.skills.filter((s) => s.cases > 0 || s.guesses > 0).length === 0 && <p className="muted">{t('Make a guess before the numbers in any scenario to see your practice here.')}</p>}
             {p.skills.filter((s) => s.cases > 0 || s.guesses > 0).map((s) => (
               <div key={s.key} className="skillrow">
                 <div><b>{s.label}</b><div className="small muted">{tn(s.cases, '{n} case practised', '{n} cases practised')} · {tn(s.guesses, '{n} guess', '{n} guesses')}</div></div>

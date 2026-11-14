@@ -14,6 +14,7 @@ import NewCase from './pages/NewCase';
 import Onboarding from './pages/Onboarding';
 import ProgressPage from './pages/Progress';
 import { HowItWorksPage } from './components/Guide';
+import ComparePage from './pages/Compare';
 import { CreateSituationPage, PreviewSituationPage } from './pages/MySituations';
 
 interface Session { me: Me; pack: Pack; refresh: () => Promise<void> }
@@ -35,7 +36,7 @@ export default function App() {
   useEffect(() => { refresh(); }, [refresh]);
 
   if (state.loading) return <main className="page"><p className="muted">{t('Loading')}</p></main>;
-  if (!state.me || !state.pack) return <Routes><Route path="/pricing" element={<main className="page"><PricingPage signedIn={false} /></main>} /><Route path="/register" element={<Auth mode="register" onDone={refresh} />} /><Route path="*" element={<Auth mode="login" onDone={refresh} />} /></Routes>;
+  if (!state.me || !state.pack) return <Routes><Route path="/pricing" element={<main className="page"><PricingPage signedIn={false} /></main>} /><Route path="/compare" element={<main className="page"><ComparePage /></main>} /><Route path="/register" element={<Auth mode="register" onDone={refresh} />} /><Route path="*" element={<Auth mode="login" onDone={refresh} />} /></Routes>;
   const session = { me: state.me, pack: state.pack, refresh };
   const needsProfile = !state.me.profile;
 
@@ -58,6 +59,7 @@ export default function App() {
               <Route path="/journal" element={<JournalPage />} />
               <Route path="/progress" element={<ProgressPage />} />
               <Route path="/guide" element={<HowItWorksPage />} />
+              <Route path="/compare" element={<ComparePage />} />
               <Route path="/documents" element={<DocumentsPage />} />
               <Route path="/account" element={<AccountPage />} />
               <Route path="/pricing" element={<PricingPage signedIn />} />
@@ -68,7 +70,7 @@ export default function App() {
           )}
         </Routes>
       </main>
-      <footer className="footer">{t('Practice with realistic numbers. Do not enter confidential employer or client data.')} <Link to="/guide">{t('How it works')}</Link> · <Link to="/account">{t('Account and data')}</Link> · <Link to="/pricing">{t('Pricing')}</Link></footer>
+      <footer className="footer">{t('Practice with realistic numbers. Do not enter confidential employer or client data.')} <Link to="/guide">{t('How it works')}</Link> · <Link to="/compare">{t('Compare with a chat assistant')}</Link> · <Link to="/account">{t('Account and data')}</Link> · <Link to="/pricing">{t('Pricing')}</Link></footer>
       </TourProvider>
     </Ctx.Provider>
   );

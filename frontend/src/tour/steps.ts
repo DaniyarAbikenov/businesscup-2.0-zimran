@@ -11,7 +11,7 @@ export const tours = (): Record<TourKey, TourStep[]> => ({
     { target: d('home-heading'), title: t('What this is for'), text: t('Try your options with your own numbers before you commit, and get a ready message to send.') },
     { target: d('path'), title: t('Start with an exercise'), text: t('Pick the exercise that matches what you face. Start with the first one if you are not sure.') },
     { target: d('describe'), title: t('Or just describe it'), text: t('Write what is going on in your own words. We pick the exercise and fill in what you mention.') },
-    { target: `${d('home-progress')}, ${d('nav-progress')}`, title: t('Come back to see your growth'), text: t('Here you see how often your guess matched the numbers, and what you have practised.') },
+    { target: `${d('home-progress')}, ${d('nav-progress')}`, title: t('Come back to see your practice'), text: t('Here you see how often your guess matched the numbers, and what you have practised. It is a guide based on what you entered, not a test.') },
   ],
   form: [
     { target: d('stepper'), title: t('Four steps'), text: t('Fill in, compare, decide, follow up. You are on the first one.') },
