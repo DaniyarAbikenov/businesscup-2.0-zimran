@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { LANGS, getLang, setLang, t as tt, Lang } from '../i18n';
 import { notify } from './Toaster';
 import { ReactNode, useState } from 'react';
-import { Question } from '../api';
+import { Question, fmtDate } from '../api';
 
 export const PrivacyBanner = () => (
   <div className="banner" role="note">
@@ -146,6 +146,9 @@ function ChoiceSlider({ q, a, value, onChange }: { q: Question; a: { id: string;
   );
 }
 
+/** The unit shown next to a number: % for ...Pct fields, h for hours. Money fields name their currency in the label, so they get none. */
+const unitOf = (id: string): string => (/Pct$/.test(id) ? '%' : /Hours(PerWeek)?$/.test(id) ? t('h') : /Days$/.test(id) ? t('days') : '');
+
 function Slider({ q, a, value, onChange }: { q: Question; a: { id: string; 'aria-invalid'?: boolean; 'aria-describedby'?: string }; value: any; onChange: (v: any) => void }) {
   const min = q.min!, max = q.max!;
   const empty = value === '' || value === undefined || Number.isNaN(Number(value));
@@ -155,6 +158,7 @@ function Slider({ q, a, value, onChange }: { q: Question; a: { id: string; 'aria
       <div className="slider-top">
         <input type="range" {...a} min={min} max={max} step={q.step} value={shown} onChange={(e) => onChange(e.target.value)} className={empty ? 'unset' : ''} />
         <input className="input slider-num" type="number" inputMode="decimal" aria-label={q.label} min={min} max={max} step={q.step} value={value} placeholder={t('not set')} onChange={(e) => onChange(e.target.value)} />
+        {unitOf(q.id.split('.').pop()!) && <span className="slider-unit" aria-hidden="true">{unitOf(q.id.split('.').pop()!)}</span>}
       </div>
       <div className="slider-ends" aria-hidden="true"><span>{q.anchors?.[0] ?? min}</span><span>{q.anchors?.[1] ?? max}</span></div>
       {!empty && q.words && q.words[Math.round((shown - min) / (q.step || 1))] && <output className="slider-word" aria-live="polite">{q.words[Math.round((shown - min) / (q.step || 1))]}</output>}
@@ -178,8 +182,17 @@ function ListField({ q, rows, error, errors, onChange, answers }: { q: Question;
   const fields = q.fields!;
   const item = q.itemLabel ?? t('Item');
   const set = (n: number, id: string, v: string) => onChange(rows.map((r, i) => (i === n ? { ...r, [id]: v } : r)));
+  const [open, setOpen] = useState<Set<number>>(new Set());
+  const collapsible = !!q.collapsible;
+  const hasErr = (n: number) => Object.keys(errors).some((k) => k.startsWith(`${q.id}.${n}.`));
+  const isOpen = (n: number) => !collapsible || open.has(n) || !(rows[n]?.name ?? '').trim() || hasErr(n);
+  const toggle = (n: number) => setOpen((s) => { const x = new Set(s); x.has(n) ? x.delete(n) : x.add(n); return x; });
+  const summary = (r: Record<string, string>) => [r.name, ...(q.summaryFields ?? []).map((id) => {
+    const v = r[id]; if (!v) return ''; const f = fields.find((x) => x.id === id);
+    return f?.type === 'date' ? fmtDate(v) : v + (unitOf(id) ? ' ' + unitOf(id) : '');
+  })].filter(Boolean).join(' · ');
   const move = (n: number, d: number) => {
-    const next = rows.slice(); const [r] = next.splice(n, 1); next.splice(n + d, 0, r); onChange(next);
+    setOpen(new Set()); const next = rows.slice(); const [r] = next.splice(n, 1); next.splice(n + d, 0, r); onChange(next);
   };
   return (
     <div className="listq" id={'q_' + q.id}>
@@ -189,18 +202,19 @@ function ListField({ q, rows, error, errors, onChange, answers }: { q: Question;
         {rows.map((r, n) => (
           <li key={n} className="listq-row">
             <div className="listq-head">
-              <b>{item} {n + 1}</b>
+              <b>{item} {n + 1}{collapsible && !isOpen(n) && <span className="listq-sum"> · {summary(r)}</span>}</b>
               <span className="row">
+                {collapsible && ((rows[n]?.name ?? '').trim() ? <Button type="button" variant="quiet" aria-expanded={isOpen(n)} onClick={() => toggle(n)}>{isOpen(n) ? t('Collapse') : t('Edit')}</Button> : null)}
                 <Button type="button" variant="quiet" disabled={n === 0} onClick={() => move(n, -1)} aria-label={t('Move {item} {n} up', { item: item.toLowerCase(), n: n + 1 })}>{t('Up')}</Button>
                 <Button type="button" variant="quiet" disabled={n === rows.length - 1} onClick={() => move(n, 1)} aria-label={t('Move {item} {n} down', { item: item.toLowerCase(), n: n + 1 })}>{t('Down')}</Button>
-                <Button type="button" variant="quiet" disabled={rows.length <= (q.minRows ?? 1)} onClick={() => onChange(rows.filter((_, i) => i !== n))} aria-label={t('Remove {item} {n}', { item: item.toLowerCase(), n: n + 1 })}>{t('Remove')}</Button>
+                <Button type="button" variant="quiet" disabled={rows.length <= (q.minRows ?? 1)} onClick={() => { setOpen(new Set()); onChange(rows.filter((_, i) => i !== n)); }} aria-label={t('Remove {item} {n}', { item: item.toLowerCase(), n: n + 1 })}>{t('Remove')}</Button>
               </span>
             </div>
-            <div className="grid-3">
+            {isOpen(n) && <div className="grid-3">
               {fields.map((f0) => dynamicField(f0, answers)).filter((f): f is Question => !!f).map((f) => (
                 <QuestionField key={f.id} q={{ ...f, id: `${q.id}.${n}.${f.id}` }} value={r[f.id] ?? ''} error={errors[`${q.id}.${n}.${f.id}`]} onChange={(v) => set(n, f.id, v)} />
               ))}
-            </div>
+            </div>}
           </li>
         ))}
       </ol>

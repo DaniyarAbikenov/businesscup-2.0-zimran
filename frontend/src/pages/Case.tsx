@@ -438,6 +438,7 @@ function Decided({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: 
           </div>
         )}
       </Panel>
+      {c.result.levers && c.result.levers.length > 1 && <Panel><Levers c={c} /></Panel>}
       <Panel title={t('Debrief')}>
         <ul className="plain">{d.points.map((p, i) => <li key={i}>{p}</li>)}</ul>
         <h3 style={{ marginTop: 24 }}>{t('Next steps for this option')}</h3>

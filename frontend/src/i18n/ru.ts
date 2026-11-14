@@ -540,6 +540,10 @@ const ru: Record<string, string> = {
  "Today": "Сегодня",
  "This Friday": "В пятницу",
  "In 1 week": "Через неделю",
- "optional": "необязательно"
+ "optional": "необязательно",
+ "Collapse": "Свернуть",
+ "Edit": "Изменить",
+ "h": "ч",
+ "days": "дн."
 };
 export default ru;

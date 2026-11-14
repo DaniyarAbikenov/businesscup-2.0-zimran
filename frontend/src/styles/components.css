@@ -227,3 +227,6 @@ ol.path .card.first { border-color: var(--accent-700); }
 .chip:hover { border-color: var(--accent-700); }
 
 .slider > input[type=range] { width: 100%; height: 44px; accent-color: var(--accent-700); cursor: pointer; }
+
+.slider-unit { color: var(--n-800); font-size: 14px; min-width: 20px; }
+.listq-sum { font-weight: 400; color: var(--n-800); }

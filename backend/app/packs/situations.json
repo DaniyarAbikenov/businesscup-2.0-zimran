@@ -494,6 +494,11 @@
               "max": 400,
               "step": 0.5
             }
+          ],
+          "collapsible": true,
+          "summaryFields": [
+            "effortHours",
+            "deadline"
           ]
         },
         {
@@ -1460,7 +1465,9 @@
                 "Excellent"
               ]
             }
-          ]
+          ],
+          "collapsible": true,
+          "summaryFields": []
         },
         {
           "id": "reversibility",
