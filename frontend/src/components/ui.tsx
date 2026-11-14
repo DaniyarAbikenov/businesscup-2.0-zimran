@@ -64,7 +64,7 @@ export function Button({ variant = 'primary', busy, children, className, ...rest
   );
 }
 
-export const Badge = ({ level }: { level: 'low' | 'medium' | 'high' }) => <span className={`badge ${level}`}>{t('{level} risk', { level: t(level) })}</span>;
+export const Badge = ({ level }: { level: 'low' | 'medium' | 'high' }) => <span className={`badge ${level}`}>{t('Risk on your numbers: {level}', { level: t(level) })}</span>;
 
 interface FieldProps { id: string; label: string; help?: string; why?: string; error?: string; children: (a: { id: string; 'aria-invalid'?: boolean; 'aria-describedby'?: string }) => ReactNode }
 export function Field({ id, label, help, why, error, children }: FieldProps) {

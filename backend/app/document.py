@@ -79,8 +79,18 @@ def build_debrief(result, option_key, inputs, situation_id="client-change-reques
 
 
 
+def _forgot(inputs) -> list:
+    """What the person said they may be missing: it goes into the document as an assumption, never silently."""
+    out = []
+    if inputs.get("hiddenHours"):
+        out.append(tr("I may be missing about {n} hours a week of other work, and the numbers above already take them off my free time.", n=inputs["hiddenHours"]))
+    if inputs.get("forgotten"):
+        out.append(tr("Things I may be forgetting: {text}", text=inputs["forgotten"]))
+    return ([""] + out) if out else []
+
+
 # ---------------- Competing priorities ----------------
-WHO = {"skip": "my manager's manager", "manager": "you", "client": "the client", "peer": "a colleague", "self": "me"}
+WHO = {"skip": "my manager's manager", "manager": "you", "client": "the other party", "peer": "a colleague", "self": "me"}
 
 
 def _status(s) -> str:
@@ -115,7 +125,7 @@ def _priorities_document(sit, inputs, result, option_key, rationale, user_email,
         L.append(f"| {sit['options'][o['key']]['label']} | {o['lateCount']} | {o['totalLateDays']} | {o['riskLevel']} |")
     L += ["", tr('## Why this order')]
     L.append(rationale or tr('(add your reasoning)'))
-    L += ["", tr('Assumptions: {assumptions}', assumptions=result['assumptions'])]
+    L += _forgot(inputs) + ["", tr('Assumptions: {assumptions}', assumptions=result['assumptions'])]
     return "\n".join(L)
 
 
@@ -138,7 +148,7 @@ def _priorities_debrief(sit, result, option_key) -> dict:
 
 
 # ---------------- Estimates and promises ----------------
-ASKER = {"manager": "my manager", "client": "the client", "peer": "a colleague"}
+ASKER = {"manager": "my manager", "client": "the other party", "peer": "a colleague"}
 
 
 def _estimate_document(sit, inputs, result, option_key, rationale, user_email, date) -> str:
@@ -172,7 +182,7 @@ def _estimate_document(sit, inputs, result, option_key, rationale, user_email, d
     for o in result["options"]:
         d = tr('{frm} to {to}', frm=o['dateFrom'], to=o['date']) if o["key"] == "range" else o["date"]
         L.append(f"| {sit['options'][o['key']]['label']} | {d} | {o['probability']} % | {o['riskLevel']} |")
-    L += ["", tr('## Why this one'), rationale or tr('(add your reasoning)'), "", tr('Assumptions: {assumptions}', assumptions=result['assumptions'])]
+    L += ["", tr('## Why this one'), rationale or tr('(add your reasoning)')] + _forgot(inputs) + ["", tr('Assumptions: {assumptions}', assumptions=result['assumptions'])]
     return "\n".join(L)
 
 

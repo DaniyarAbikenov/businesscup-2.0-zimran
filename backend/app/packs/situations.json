@@ -328,6 +328,12 @@
           "id": "time",
           "title": "Your time",
           "columns": 2
+        },
+        {
+          "id": "forgot",
+          "title": "Did I forget anything?",
+          "collapsed": true,
+          "columns": 1
         }
       ],
       "questions": [
@@ -399,7 +405,7 @@
                 },
                 {
                   "value": "client",
-                  "label": "A client or customer"
+                  "label": "Someone outside the organisation (client, resident, partner)"
                 },
                 {
                   "value": "peer",
@@ -468,6 +474,28 @@
           "step": 1,
           "default": 15,
           "why": "Meetings and ongoing work do not stop because a new request arrived. We only plan with what is left."
+        },
+        {
+          "id": "hiddenHours",
+          "group": "forgot",
+          "type": "number",
+          "label": "Hours per week I may be forgetting",
+          "help": "Recurring work, favours you do for others, things you promised out loud.",
+          "why": "Plans fail on the hours nobody wrote down. If you think about it for a minute, you can usually name some. We take these hours off your free time.",
+          "required": false,
+          "min": 0,
+          "max": 40,
+          "step": 1,
+          "default": 0
+        },
+        {
+          "id": "forgotten",
+          "group": "forgot",
+          "type": "textarea",
+          "label": "What else might be missing?",
+          "help": "Verbal promises, recurring work, work you cover for others, things you depend on, holidays.",
+          "required": false,
+          "max": 500
         }
       ],
       "options": {
@@ -697,6 +725,12 @@
           "id": "ask",
           "title": "Who is asking",
           "columns": 2
+        },
+        {
+          "id": "forgot",
+          "title": "Did I forget anything?",
+          "collapsed": true,
+          "columns": 1
         }
       ],
       "questions": [
@@ -799,7 +833,7 @@
             },
             {
               "value": "client",
-              "label": "A client or customer"
+              "label": "Someone outside the organisation (client, resident, partner)"
             },
             {
               "value": "peer",
@@ -836,6 +870,28 @@
           "label": "The date they asked for (optional)",
           "help": "Leave empty if they only asked how long it takes.",
           "required": false
+        },
+        {
+          "id": "hiddenHours",
+          "group": "forgot",
+          "type": "number",
+          "label": "Hours per week I may be forgetting",
+          "help": "Recurring work, favours you do for others, things you promised out loud.",
+          "why": "Plans fail on the hours nobody wrote down. If you think about it for a minute, you can usually name some. We take these hours off your free time.",
+          "required": false,
+          "min": 0,
+          "max": 40,
+          "step": 1,
+          "default": 0
+        },
+        {
+          "id": "forgotten",
+          "group": "forgot",
+          "type": "textarea",
+          "label": "What else might be missing?",
+          "help": "Verbal promises, recurring work, work you cover for others, things you depend on, holidays.",
+          "required": false,
+          "max": 500
         }
       ],
       "options": {
@@ -1193,7 +1249,7 @@
             },
             {
               "value": "client",
-              "label": "A client"
+              "label": "People outside the organisation (clients, residents)"
             }
           ]
         },

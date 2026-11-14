@@ -19,6 +19,21 @@ export default function CasePage() {
 }
 
 /** The answer first: one sentence from the server's numbers, before the details. */
+/** "Why this label": the points behind a risk label, the thresholds, and what would change it. Everything comes from the server's numbers. */
+function WhyLabel({ o }: { o: Option }) {
+  const next = o.riskLevel === 'high' ? 3 : o.riskLevel === 'medium' ? 1 : null;
+  const biggest = [...o.risks].filter((r) => r.severity > 0).sort((a, b) => b.severity - a.severity)[0];
+  return (
+    <details className="why">
+      <summary>{t('Why this label')}</summary>
+      <ul className="risks">{o.risks.map((r, i) => <li key={i}><b>{r.severity > 0 ? '+' + r.severity : '0'}</b> {r.text}</li>)}</ul>
+      <p className="small muted">{t('Total {n} points. 0 to 1 is low, 2 to 3 is medium, 4 or more is high.', { n: o.riskScore })}
+        {next !== null && biggest ? ' ' + t('To get one level lower, remove at least {n} points, for example the biggest one: {text}', { n: o.riskScore - next, text: biggest.text }) : ''}
+        {next === null ? ' ' + t('It is already the lowest label; it becomes medium with {n} more points.', { n: 2 - o.riskScore }) : ''}</p>
+    </details>
+  );
+}
+
 function bestLine(c: Case, sit: Situation): string {
   const o = c.result.options.find((x) => x.key === c.result.lowestRiskKey)!;
   const label = sit.options[o.key].label;
@@ -68,7 +83,7 @@ function Ledger({ c, sit, chosen, onPick }: { c: Case; sit: Situation; chosen: s
         <tr><td>{t('Cost later')}</td>{opts.map((o) => cell(o, sit.options[o.key].label, o.key === 'defer' ? usd(o.laterCost!) : '-'))}</tr>
         <tr><td>{t('Budget left')}</td>{opts.map((o) => cell(o, sit.options[o.key].label, usd(o.budgetAfter)))}</tr>
         <tr><td>{t('Risk')}</td>{opts.map((o) => cell(o, sit.options[o.key].label, <Badge level={o.riskLevel} />))}</tr>
-        <tr><td>{t('What to watch')}</td>{opts.map((o) => cell(o, sit.options[o.key].label, <ul className="risks">{o.risks.map((r, i) => <li key={i}>{r.text}</li>)}</ul>, false))}</tr>
+        <tr><td>{t('What to watch')}</td>{opts.map((o) => cell(o, sit.options[o.key].label, <><ul className="risks">{o.risks.map((r, i) => <li key={i}>{r.text}</li>)}</ul><WhyLabel o={o} /></>, false))}</tr>
       </tbody>
     </table>
   );
@@ -125,7 +140,7 @@ function DecisionLedger({ c, sit, chosen, onPick }: { c: Case; sit: Situation; c
         <tr><td>{t('It picks')}</td>{opts.map((o) => cell(o, <b>{o.pick}</b>, false))}</tr>
         <tr><td>{t('Its score')}</td>{opts.map((o) => cell(o, <>{o.score}<div className="small muted">{t('rank {n}', { n: o.rank })}</div></>))}</tr>
         <tr><td>{t('Risk')}</td>{opts.map((o) => cell(o, <Badge level={o.riskLevel} />))}</tr>
-        <tr><td>{t('What to watch')}</td>{opts.map((o) => cell(o, <ul className="risks">{o.risks.map((r, i) => <li key={i}>{r.text}</li>)}</ul>, false))}</tr>
+        <tr><td>{t('What to watch')}</td>{opts.map((o) => cell(o, <><ul className="risks">{o.risks.map((r, i) => <li key={i}>{r.text}</li>)}</ul><WhyLabel o={o} /></>, false))}</tr>
       </tbody>
     </table>
   );
@@ -159,7 +174,7 @@ function EstimateLedger({ c, sit, chosen, onPick }: { c: Case; sit: Situation; c
         <tr><td>{t('Working days')}</td>{opts.map((o) => cell(o, o.workdays))}</tr>
         <tr><td>{asked ? t('Against {asked}', { asked: fmtDate(asked) }) : t('Their deadline')}</td>{opts.map((o) => cell(o, asked ? <span className={o.lateDays ? 'late' : 'muted'}>{o.lateDays ? tn(o.lateDays, '{n} working day after', '{n} working days after') : t('in time')}</span> : <span className="muted">{t('none given')}</span>))}</tr>
         <tr><td>{t('Risk')}</td>{opts.map((o) => cell(o, <Badge level={o.riskLevel} />))}</tr>
-        <tr><td>{t('What to watch')}</td>{opts.map((o) => cell(o, <ul className="risks">{o.risks.map((r, i) => <li key={i}>{r.text}</li>)}</ul>, false))}</tr>
+        <tr><td>{t('What to watch')}</td>{opts.map((o) => cell(o, <><ul className="risks">{o.risks.map((r, i) => <li key={i}>{r.text}</li>)}</ul><WhyLabel o={o} /></>, false))}</tr>
       </tbody>
     </table>
   );
@@ -203,9 +218,27 @@ function PriorityLedger({ c, sit, chosen, onPick }: { c: Case; sit: Situation; c
         ))}
         <tr><td>{t('Late tasks')}</td>{opts.map((o) => cell(o, o.lateCount ? t('{lateCount}, {totalLateDays} days in total', { lateCount: o.lateCount, totalLateDays: o.totalLateDays }) : 'none'))}</tr>
         <tr><td>{t('Risk')}</td>{opts.map((o) => cell(o, <Badge level={o.riskLevel} />))}</tr>
-        <tr><td>{t('What to watch')}</td>{opts.map((o) => cell(o, <ul className="risks">{o.risks.map((r, i) => <li key={i}>{r.text}</li>)}</ul>, false))}</tr>
+        <tr><td>{t('What to watch')}</td>{opts.map((o) => cell(o, <><ul className="risks">{o.risks.map((r, i) => <li key={i}>{r.text}</li>)}</ul><WhyLabel o={o} /></>, false))}</tr>
       </tbody>
     </table>
+  );
+}
+
+function Challenge({ c }: { c: Case }) {
+  const [res, setRes] = useState<{ tests: { what: string; holds: boolean; text: string }[]; allHold: boolean } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const run = async () => { setBusy(true); try { setRes(await api('GET', `/cases/${c.id}/challenge`)); } catch (x: any) { notify(x.message, 'bad'); } finally { setBusy(false); } };
+  return (
+    <div className="challenge">
+      <Button variant="secondary" type="button" onClick={run} busy={busy}>{t('Challenge my numbers')}</Button>
+      <span className="small muted"> {t('Recalculates with worse numbers to see if the conclusion holds.')}</span>
+      {res && (
+        <div className={'banner ' + (res.allHold ? 'ok' : '')} role="status" style={{ marginTop: 12 }}>
+          <strong>{res.allHold ? t('The conclusion holds in both tests.') : t('The conclusion is fragile in at least one test.')}</strong>
+          <ul className="plain">{res.tests.map((x, i) => <li key={i}>{x.holds ? '✓' : '✗'} {x.text}</li>)}</ul>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -235,7 +268,8 @@ function Draft({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: Ca
     <>
       <Stepper current={2} />
       <PageHeader eyebrow={t('Compare')} title={c.title} lead={summary(c, sit)} />
-      <div className="banner ok" role="note"><p className="bestline">{bestLine(c, sit)}</p><p className="howread" style={{ margin: 0 }}>{HOW_READ[sit.engine]} {t('The decision is yours.')}</p></div>
+      <div className="banner ok" role="note"><p className="bestline">{bestLine(c, sit)}</p><p className="howread" style={{ margin: 0 }}>{HOW_READ[sit.engine]} {t('The decision is yours.')}</p>
+        <p className="howread" style={{ margin: '8px 0 0' }}>{t('This is a calculation on your numbers, not a forecast. Real outcomes depend on people and circumstances not listed here.')}</p></div>
       <Panel title={t('Your {n} options', { n: c.result.options.length })} lead={sit.engine === 'decision'
         ? t('Your scores ranked, then four ways to pick. All numbers follow from your own weights and scores. The risk label is a rule-of-thumb check, and the decision is yours.')
         : sit.engine === 'estimate'
@@ -246,6 +280,7 @@ function Draft({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: Ca
         {sit.engine === 'decision' ? <><DecisionRanking c={c} /><DecisionLedger c={c} sit={sit} chosen={chosen} onPick={setChosen} /></>
           : sit.engine === 'estimate' ? <EstimateLedger c={c} sit={sit} chosen={chosen} onPick={setChosen} />
           : sit.engine === 'priorities' ? <PriorityLedger c={c} sit={sit} chosen={chosen} onPick={setChosen} /> : <Ledger c={c} sit={sit} chosen={chosen} onPick={setChosen} />}
+        <Challenge c={c} />
         <details><summary>{t('How was this calculated?')}</summary><p className="small muted">{c.result.assumptions}</p></details>
       </Panel>
       <Panel title={t('Decide')}>

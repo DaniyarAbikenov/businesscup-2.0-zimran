@@ -409,6 +409,16 @@ const ru: Record<string, string> = {
  "a scenario with made-up numbers already filled in, so you can see the result in seconds.": "сценарий с уже подставленными придуманными числами, чтобы за секунды увидеть результат.",
  "one thing you could do. Each has a risk label, which is a rule-of-thumb check, not a prediction.": "одно из возможных действий. У каждого есть метка риска: это ориентир, а не прогноз.",
  "a note to yourself about how it turned out. It is what you tell us; we cannot see your workplace.": "заметка себе о том, чем всё закончилось. Это ваши слова: мы не видим ваше рабочее место.",
- "Free plan: {remaining} of {limit} scenarios left.": "Бесплатный тариф: осталось сценариев {remaining} из {limit}."
+ "Free plan: {remaining} of {limit} scenarios left.": "Бесплатный тариф: осталось сценариев {remaining} из {limit}.",
+ "Risk on your numbers: {level}": "Риск по вашим числам: {level}",
+ "Why this label": "Почему такая метка",
+ "Total {n} points. 0 to 1 is low, 2 to 3 is medium, 4 or more is high.": "Всего баллов: {n}. 0–1 — низкий, 2–3 — средний, 4 и больше — высокий.",
+ "To get one level lower, remove at least {n} points, for example the biggest one: {text}": "Чтобы опуститься на уровень ниже, уберите не меньше {n} баллов, например самый большой: {text}",
+ "It is already the lowest label; it becomes medium with {n} more points.": "Это уже самая низкая метка; при добавлении ещё {n} баллов она станет средней.",
+ "Challenge my numbers": "Проверить мои числа на прочность",
+ "Recalculates with worse numbers to see if the conclusion holds.": "Пересчитывает с худшими числами, чтобы увидеть, выдержит ли вывод.",
+ "The conclusion holds in both tests.": "Вывод выдерживает обе проверки.",
+ "The conclusion is fragile in at least one test.": "Вывод хрупок хотя бы в одной проверке.",
+ "This is a calculation on your numbers, not a forecast. Real outcomes depend on people and circumstances not listed here.": "Это расчёт по вашим числам, а не прогноз. Реальный результат зависит от людей и обстоятельств, которых здесь нет."
 };
 export default ru;

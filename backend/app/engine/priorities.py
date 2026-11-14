@@ -12,7 +12,7 @@ from .change_request import add_workdays, level_of, rnd, workdays_between
 REQUESTER = {  # weight: how visible a miss is, and the label used in text
     "skip": (3, "your manager's manager"),
     "manager": (2, "your manager"),
-    "client": (3, "a client"),
+    "client": (3, "someone outside the organisation"),
     "peer": (1, "a colleague"),
     "self": (0, "you"),
 }
@@ -48,14 +48,14 @@ def _schedule(tasks: list, order: list, as_of: str, per_day: float) -> list:
 
 def check(i: dict) -> dict:
     """Rules that span several fields. Returns {field: message}."""
-    if i["committedHours"] >= i["hoursPerWeek"]:
+    if i["committedHours"] + i.get("hiddenHours", 0) >= i["hoursPerWeek"]:
         return {"committedHours": tr('Must be less than your working hours, or there is no time for these tasks')}
     return {}
 
 
 def compute(i: dict) -> dict:
     tasks = i["tasks"]
-    free_week = i["hoursPerWeek"] - i["committedHours"]
+    free_week = i["hoursPerWeek"] - i["committedHours"] - i.get("hiddenHours", 0)
     per_day = free_week / 5
     total = sum(t["effortHours"] for t in tasks)
     last_deadline = max(t["deadline"] for t in tasks)

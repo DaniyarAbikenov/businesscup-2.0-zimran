@@ -28,7 +28,9 @@ export default function Home() {
   const sits = pack.situations.filter((s) => s.applies_to.includes('*') || s.applies_to.includes(profile.roleId));
   const isNew = !!j && j.cases.length === 0;
   const open = (j?.cases ?? []).filter((c) => c.status === 'draft');
-  const recommended = [...sits].sort((a, b2) => Number(!!a.aiMade) - Number(!!b2.aiMade)).slice(0, 4);
+  const order = role.recommended ?? [];
+  const rank = (id: string) => (order.includes(id) ? order.indexOf(id) : 99);
+  const recommended = [...sits].sort((a, b2) => Number(!!a.aiMade) - Number(!!b2.aiMade) || rank(a.id) - rank(b2.id)).slice(0, 4);
 
   return (
     <>

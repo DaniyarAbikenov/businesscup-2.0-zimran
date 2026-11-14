@@ -54,7 +54,7 @@ export default function Onboarding() {
           <fieldset style={{ border: 0, padding: 0, margin: '16px 0 0' }}>
             <legend style={{ fontSize: 14, fontWeight: 600, padding: 0, marginBottom: 4 }}>{t('What worries you most? Pick any.')}</legend>
             <div className="checks">
-              {pack.fears.map((f) => (
+              {pack.fears.filter((f) => !f.roles || f.roles.includes(roleId)).map((f) => (
                 <label key={f.id} className="check">
                   <input type="checkbox" checked={fears.includes(f.id)} onChange={(e) => setFears(e.target.checked ? [...fears, f.id] : fears.filter((x) => x !== f.id))} />
                   {f.label}

@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session, object_session
 
-from .. import billing, llm, packs, presets, reminders
+from .. import billing, challenge, llm, packs, presets, reminders
 from ..cache import get_redis
 from ..db import get_db
 from ..deps import current_user, own_case
@@ -155,6 +155,15 @@ def followup(body: dict, c: Case = Depends(own_case), user=Depends(current_user)
     db.commit()
     reminders.clear(r, user.id, c.id)
     return {"case": case_dict(c)}
+
+
+@router.get("/cases/{case_id}/challenge")
+def challenge_numbers(c: Case = Depends(own_case)):
+    """"Challenge my numbers": recompute with worse inputs and say whether the conclusion holds. Read-only."""
+    sit = sit_of(c)
+    labels = {k: v["label"] for k, v in sit["options"].items()}
+    tests = challenge.run(sit, {k: v for k, v in c.inputs.items()}, c.result, labels)
+    return {"tests": tests, "allHold": all(t["holds"] for t in tests)}
 
 
 @router.post("/cases/{case_id}/hint")

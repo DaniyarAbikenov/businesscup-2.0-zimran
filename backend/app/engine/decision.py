@@ -25,7 +25,7 @@ from .change_request import level_of, rnd
 REV = {"easy": 0, "costly": 1, "cannot": 2}
 REV_TEXT = {"easy": "easy to undo", "costly": "costly to undo", "cannot": "impossible to undo"}
 CONF = {"high": 0, "medium": 1, "low": 2}
-WHO = {"me": ("only you", 0), "team": ("your team", 0), "other_teams": ("other teams", 1), "client": ("a client", 1)}
+WHO = {"me": ("only you", 0), "team": ("your team", 0), "other_teams": ("other teams", 1), "client": ("people outside the organisation", 1)}
 STRATEGIES = ["best", "safest", "equal", "heaviest"]
 MAX_CRITERIA = 6
 

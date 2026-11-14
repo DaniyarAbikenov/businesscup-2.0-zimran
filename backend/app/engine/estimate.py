@@ -22,7 +22,7 @@ from .change_request import add_workdays, level_of, rnd, workdays_between
 
 Z_SAFE = 1.28
 COST_BONUS = {"low": 0, "medium": 1, "high": 2}
-REQUESTER = {"manager": "your manager", "client": "a client", "peer": "a colleague"}
+REQUESTER = {"manager": "your manager", "client": "someone outside the organisation", "peer": "a colleague"}
 COST_TEXT = {"low": "a late answer is a small inconvenience", "medium": "being late hurts trust or costs something",
              "high": "being late has serious consequences (contract, launch, money)"}
 ORDER = ["optimistic", "likely", "safe", "range"]
@@ -35,6 +35,8 @@ def phi(z: float) -> float:
 def check(i: dict) -> dict:
     """Rules that span several fields. Returns {field: message}."""
     errs = {}
+    if i.get("hiddenHours", 0) >= i["hoursPerWeek"]:
+        errs["hiddenHours"] = tr("Must be less than your free hours")
     if i["likelyHours"] < i["optimisticHours"]:
         errs["likelyHours"] = tr('Must not be less than the optimistic estimate')
     if i["pessimisticHours"] < i["likelyHours"]:
@@ -49,7 +51,7 @@ def _days(hours: float, per_day: float) -> int:
 def compute(i: dict) -> dict:
     o, m, p = i["optimisticHours"], i["likelyHours"], i["pessimisticHours"]
     mean, sd = (o + 4 * m + p) / 6, (p - o) / 6
-    per_day = i["hoursPerWeek"] / 5 * (1 - i["interruptionsPct"] / 100)
+    per_day = max(0.5, i["hoursPerWeek"] - i.get("hiddenHours", 0)) / 5 * (1 - i["interruptionsPct"] / 100)
     start, asked = i["startDate"], i.get("askedDeadline") or ""
     cost, who = i["costOfLate"], i["requester"]
 

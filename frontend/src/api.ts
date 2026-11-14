@@ -57,9 +57,9 @@ export interface Situation {
   reflectionPrompts: { id: string; label: string }[]; pitfalls: string[];
 }
 export interface Pack {
-  roles: { id: string; label: string; terms: Record<string, string> }[];
+  roles: { id: string; label: string; terms: Record<string, string>; recommended?: string[] }[];
   tenures: { id: string; label: string }[];
-  fears: { id: string; label: string }[];
+  fears: { id: string; label: string; roles?: string[] }[];
   situations: Situation[];
 }
 export interface Profile { roleId: string; industry: string; tenure: string; fears: string[]; fearNote: string; emailReminders?: boolean; language?: string | null }
