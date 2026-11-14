@@ -2,7 +2,7 @@
 
 A judgement trainer for the newly promoted. You enter **your own** numbers, make a **guess** first, then see a calculation, decide, get a ready message or document, and later record how it went. The calculation is deterministic: it is not a forecast or advice, and the decision is yours.
 
-Test site: https://businesscup-2-0-zimran.vercel.app (language switch at the top right: EN / RU / KZ).
+Test site: https://businesscup-2-0-zimran.vercel.app (English only). The first sign-in after a quiet period can take a few seconds.
 
 ## 1. Sign in
 Press **"Try the demo"** on the sign-in page: a demo account with examples opens, no sign-up needed. For your own account use an email and password, then pick your position and time in role (this chooses examples and wording).
@@ -13,9 +13,11 @@ Press **"Try the demo"** on the sign-in page: a demo account with examples opens
 Home shows three "first week" exercises: a client change request, several urgent asks, "when will it be done?". **"Start here: a worked example"** shows a result in seconds. Not sure which fits? Describe it in your own words under "Describe your scenario".
 
 ## 3. Enter your numbers
-Start from a storyline or an empty form. Percentages, hours and ratings are set with a **slider** (type an exact number next to it if you prefer), and a word under the slider shows what you picked ("It hurts trust or costs something"). Task and option rows collapse into one-line cards (press Edit to change one). Short choices are buttons, and date fields have quick buttons: Today, Tomorrow, This Friday, In 1 week, In 2 weeks. Do not enter confidential employer or client information: use rounded or made-up numbers. The **"Money and quality (optional)"** group can stay empty; then the calculation covers time only.
+Start from a storyline or an empty form. The form is split into 3 or 4 short steps with a progress bar (Next and Back; a step will not continue while a required field is empty). Percentages, hours and ratings are set with a **slider** (type an exact number next to it if you prefer), with a word under the slider showing what you picked. Task and option rows collapse into one-line cards (press Edit to change one), short choices are buttons, and date fields have quick buttons: Today, Tomorrow, This Friday, In 1 week, In 2 weeks. The last step is a **Review** of everything you entered, where you press "Compare my options". Do not enter confidential employer or client information: use rounded or made-up numbers. The **"Money and quality (optional)"** group can stay empty; then the calculation covers time only.
 
-![Form: collapsible task cards and sliders](img/02-form.jpg)
+![A form step with sliders](img/02-form.jpg)
+
+![The review step](img/02b-review.jpg)
 
 ## 4. Guess, then see the numbers
 Before the result you can guess (how many tasks finish late, which order is best, which date you could promise). You can skip. The server then scores the guess against the numbers, and **Progress** collects your accuracy. This is agreement with the calculator on your numbers, not a judgement of real-life decisions.
@@ -49,7 +51,7 @@ The service is designed for a computer: use a browser on a laptop or desktop. Pa
   - *Chief accountant*: "When will it be ready?" before a period close (three estimates, safe date).
   - *Officer*: priorities across orders and deadlines (wording adapts to the position).
   - *Mayor*: choosing between options on a limited budget.
-- **In every scenario:** make a guess, compare it with the calculation, get the document, set a reminder, switch the language (RU/KZ).
+- **In every scenario:** make a guess, compare it with the calculation, get the document, set a reminder, press "Compare with a chat assistant" in the footer to read how this differs from asking a chat assistant.
 - **What to write down:** where you got stuck and for how many seconds; what was unclear (a word, field or number); whether you believed the calculation and why; whether you would send the document as is or what you would rewrite; whether you would use it again on a real task (yes / no / only if...); which scenario is missing.
 - Send feedback to whoever gave you the link, with the step and a screenshot.
 
@@ -57,5 +59,5 @@ The service is designed for a computer: use a browser on a laptop or desktop. Pa
 - Guided tours can be switched off ("Do not show tours again") and restored in Account.
 - Demo data is sample data and may be deleted; in your own account you are responsible for what you enter, see "Account and data".
 - Free up to 3 situations of your own; after that a test purchase with no real payment.
-- Kazakh and Russian texts are machine-written and need a native speaker's review.
+- The product is English only.
 - On the free host the first request after idle can take a few seconds.
