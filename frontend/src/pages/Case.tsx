@@ -26,14 +26,15 @@ function Levers({ c }: { c: Case }) {
   const ls = c.result.levers;
   if (!ls || ls.length < 2) return null;
   const risk = (r: string) => r === 'high' ? t('high') : r === 'medium' ? t('medium') : t('low');
-  const time = (l: Lever) => l.date ? `${fmtDate(l.date)} (${tn(l.days ?? 0, '{n} working day', '{n} working days')})` : (l.time && l.time.lateCount ? t('{n} late, {d} in total', { n: l.time.lateCount, d: tn(l.time.lateDays, '{n} working day', '{n} working days') }) : t('On time'));
-  const money = (l: Lever) => l.money.total == null ? t('not entered') : l.money.total === 0 ? '0' : String(l.money.total);
-  const qual = (l: Lever) => l.quality.cutShare ? `${t('Quality risk')}: ${risk(l.quality.risk)} (${Math.round(l.quality.cutShare * 100)}% ${t('cut')})` : t('Nothing cut');
+  const cr = ls.some((l) => l.time === null || (l.time && 'slipDays' in l.time));
+  const time = (l: Lever) => l.time === null ? t('not set') : l.time && 'slipDays' in l.time ? (l.time.slipDays ? t('Release slips {n} to {date}', { n: tn(l.time.slipDays, '{n} working day', '{n} working days'), date: fmtDate(l.time.date) }) : t('Release date holds')) : l.date ? `${fmtDate(l.date)} (${tn(l.days ?? 0, '{n} working day', '{n} working days')})` : (l.time && 'lateCount' in l.time && l.time.lateCount ? t('{n} late, {d} in total', { n: l.time.lateCount, d: tn((l.time as { lateDays: number }).lateDays, '{n} working day', '{n} working days') }) : t('On time'));
+  const money = (l: Lever) => l.money.total == null ? t('not set') : (l.money.total === 0 ? '0' : String(l.money.total)) + (l.money.penalty ? ` (${t('penalty {n} included', { n: l.money.penalty })})` : '');
+  const qual = (l: Lever) => l.quality.deliveredPct === null ? t('not set') : l.quality.deliveredPct !== undefined ? `${t('{n}% delivered now', { n: l.quality.deliveredPct })}${l.quality.cutShare ? ` · ${t('Quality risk')}: ${risk(l.quality.risk)} (${Math.round(l.quality.cutShare * 100)}% ${t('cut')})` : ''}` : l.quality.cutShare ? `${t('Quality risk')}: ${risk(l.quality.risk)} (${Math.round(l.quality.cutShare * 100)}% ${t('cut')})` : t('Nothing cut');
   const pays = (l: Lever) => l.payWith.length ? l.payWith.map((p) => p === 'time' ? t('time') : p === 'money' ? t('money') : p === 'quality' ? t('quality') : t('goodwill')).join(', ') : t('nothing');
   return (
     <div className="levers" data-tour="res-levers">
-      <h3 style={{ fontSize: 16, margin: '16px 0 4px' }}>{t('Time, money, quality: what you pay with')}</h3>
-      <p className="small muted" style={{ margin: '0 0 8px' }}>{t('Every way to fix lateness costs something. These are rules of thumb on your own numbers, not measurements.')}</p>
+      <h3 style={{ fontSize: 16, margin: '16px 0 4px' }}>{cr ? t('Time, money, quality of each choice') : t('Time, money, quality: what you pay with')}</h3>
+      <p className="small muted" style={{ margin: '0 0 8px' }}>{cr ? t('Each choice costs something different. Money is in USD. These are rules of thumb on your own numbers, not measurements.') : t('Every way to fix lateness costs something. These are rules of thumb on your own numbers, not measurements.')}</p>
       <div style={{ overflowX: 'auto' }}>
         <table className="ledger">
           <thead><tr><th scope="col">{t('Way')}</th><th scope="col">{t('Time')}</th><th scope="col">{t('Money')}</th><th scope="col">{t('Quality')}</th><th scope="col">{t('You pay with')}</th></tr></thead>
@@ -55,6 +56,10 @@ function WhyLabel({ o }: { o: Option }) {
       <p className="small muted">{t('Total {n} points. 0 to 1 is low, 2 to 3 is medium, 4 or more is high.', { n: o.riskScore })}
         {next !== null && biggest ? ' ' + t('To get one level lower, remove at least {n} points, for example the biggest one: {text}', { n: o.riskScore - next, text: biggest.text }) : ''}
         {next === null ? ' ' + t('It is already the lowest label; it becomes medium with {n} more points.', { n: 2 - o.riskScore }) : ''}</p>
+      {o.labelBasis && o.labelBasis.length > 0 && <>
+        <p className="small" style={{ margin: '8px 0 2px', fontWeight: 600 }}>{t('What counted in this label')}</p>
+        <ul className="risks">{o.labelBasis.map((b) => <li key={b.axis}>{b.text}</li>)}</ul>
+      </>}
     </details>
   );
 }

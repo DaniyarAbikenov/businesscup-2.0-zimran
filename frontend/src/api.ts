@@ -70,13 +70,14 @@ export interface Option {
   key: string; pick?: string; score?: number; rank?: number; date?: string; dateFrom?: string | null; recheckDate?: string | null; workdays?: number; hours?: number; probability?: number; lateDays?: number; sameAs?: string[]; schedule?: ScheduledTask[]; lateCount?: number; totalLateDays?: number; riskLevel: 'low' | 'medium' | 'high'; riskScore: number;
   newReleaseDate: string; slipWorkdays: number; extraCost: number; budgetAfter: number; laterCost?: number;
   costBreakdown?: { labor: number; extendedRun: number; delayPenalty: number; clientCovers: number };
-  risks: { severity: number; text: string }[];
+  risks: { severity: number; text: string; kind?: string }[];
+  labelBasis?: { axis: 'time' | 'money' | 'quality'; text: string }[];
 }
 export interface Lever {
   key: string; label: string; note: string; payWith: string[];
-  time?: { lateCount: number; lateDays: number }; date?: string; days?: number;
-  money: { total: number | null; late?: number | null; extra?: number | null };
-  quality: { cutShare: number; risk: string; reducedTasks?: number };
+  time?: { lateCount: number; lateDays: number } | { slipDays: number; date: string } | null; date?: string; days?: number;
+  money: { total: number | null; late?: number | null; extra?: number | null; penalty?: number; later?: number; notSet?: boolean };
+  quality: { cutShare: number; risk: string; reducedTasks?: number; deliveredPct?: number | null };
 }
 export interface Case {
   id: number; situationId: string; title: string; inputs: Record<string, any>; confidenceBefore: number;
