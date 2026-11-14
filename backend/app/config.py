@@ -58,9 +58,20 @@ TEST_CHECKOUT = env("TEST_CHECKOUT", "true") == "true"
 
 # Email (optional). With SMTP_HOST empty the app uses a "log mailer": each email is written to the server log and kept
 # in the Redis list "outbox" (last 50), nothing is sent. APP_URL is the public address used in email links.
-SMTP_HOST = env("SMTP_HOST")
-SMTP_PORT = int(env("SMTP_PORT", "587"))
-SMTP_USER = env("SMTP_USER")
-SMTP_PASSWORD = env("SMTP_PASSWORD")
+def _smtp_from_url():
+    """SMTP_URL=smtp://user:password@host:587 (smtps:// for port 465) is the one-line form of the four SMTP_* settings below."""
+    from urllib.parse import unquote, urlparse
+    u = urlparse(env("SMTP_URL")) if env("SMTP_URL") else None
+    if not u or not u.hostname:
+        return "", 587, "", ""
+    return u.hostname, u.port or (465 if u.scheme == "smtps" else 587), unquote(u.username or ""), unquote(u.password or "")
+
+
+_u_host, _u_port, _u_user, _u_pass = _smtp_from_url()
+RESEND_API_KEY = env("RESEND_API_KEY")  # sends through Resend's HTTPS API; wins over SMTP when set
+SMTP_HOST = env("SMTP_HOST") or _u_host
+SMTP_PORT = int(env("SMTP_PORT") or _u_port)
+SMTP_USER = env("SMTP_USER") or _u_user
+SMTP_PASSWORD = env("SMTP_PASSWORD") or _u_pass
 SMTP_FROM = env("SMTP_FROM", "RoleShift <no-reply@localhost>")
 APP_URL = (env("APP_URL") or (f"https://{env('VERCEL_PROJECT_PRODUCTION_URL')}" if env("VERCEL_PROJECT_PRODUCTION_URL") else "http://localhost:5173")).rstrip("/")

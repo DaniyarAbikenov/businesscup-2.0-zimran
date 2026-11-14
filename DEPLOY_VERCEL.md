@@ -21,7 +21,9 @@ Vercel -> Add New -> Project -> import the GitHub repo, branch `main`. Leave Fra
 | `ANTHROPIC_API_KEY` | optional | enables AI wording and AI scenarios; empty = the app still works |
 | `LLM_MODEL` | optional | default `claude-opus-5-5` |
 | `APP_URL` | optional | default is `https://$VERCEL_PROJECT_PRODUCTION_URL` (used in email links) |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | optional | without SMTP, reminder emails are only written to the log |
+| `RESEND_API_KEY` | optional | sends reminder emails through Resend (HTTPS); set `SMTP_FROM` to a sender verified there |
+| `SMTP_URL` or `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | optional | plain SMTP instead; with none of these emails are only written to the log |
+| `DEMO_PER_HOUR`, `DEMO_KEEP_DAYS`, `PASS_PRICE_CENTS` | optional | defaults 10, 7 and 1900 |
 
 Set automatically on Vercel: `VERCEL=1` (turns on serverless mode: no connection pool, no background loop, `COOKIE_SECURE=true`).
 
@@ -31,7 +33,8 @@ With `AUTO_MIGRATE=true` the function runs `alembic upgrade head` once per cold 
 Manual alternative (needs a database reachable from your computer): `DATABASE_URL='...' scripts/migrate.sh`. Never commit the URL. The demo account needs no seeding: it is created on the first click of the demo button.
 
 ## 5. Smoke test
-- `https://<project>.vercel.app/health` -> `{"ok": true}`
+- `https://<project>.vercel.app/health` -> `{"ok": true}` (checks the database and Redis)
+- `https://<project>.vercel.app/api/health` -> `{"ok": true}` (touches nothing: point an uptime pinger at this one every 5 minutes to keep the function warm)
 - `https://<project>.vercel.app/api/pricing` -> JSON
 - Open the site, click the demo button, open an example, make a decision, check Progress, switch the language.
 - Cron: Project -> Settings -> Cron Jobs -> run `/api/internal/cron/followups` (404 without the secret, `{"ok": true, ...}` with it).

@@ -65,3 +65,10 @@ def test_client_address_comes_from_the_proxy_only_on_vercel(monkeypatch):
     assert client_ip(req) == "10.0.0.1"
     monkeypatch.setattr(config, "ON_VERCEL", True)
     assert client_ip(req) == "203.0.113.5"
+
+
+def test_api_health_touches_nothing(client, monkeypatch):
+    from app import main
+    monkeypatch.setattr(main, "SessionLocal", lambda: (_ for _ in ()).throw(AssertionError("must not use the database")))
+    r = client.get("/api/health")
+    assert r.status_code == 200 and r.json() == {"ok": True}

@@ -1,4 +1,4 @@
-"""Sending email. With SMTP_HOST set, real SMTP. Otherwise a log mailer: the whole email goes to the server log and to
+"""Sending email. With RESEND_API_KEY set, Resend's API. Else with SMTP_HOST (or SMTP_URL) set, real SMTP. Otherwise a log mailer: the whole email goes to the server log and to
 the Redis list "outbox" (last 50), so it can be read in development and in demos. Nothing is sent."""
 import json
 import logging
@@ -13,7 +13,7 @@ log = logging.getLogger("roleshift.mail")
 
 
 def is_log_mailer() -> bool:
-    return not config.SMTP_HOST
+    return not (config.RESEND_API_KEY or config.SMTP_HOST)
 
 
 def send(r, to: str, subject: str, body: str) -> None:
@@ -22,6 +22,13 @@ def send(r, to: str, subject: str, body: str) -> None:
         log.info("LOG MAILER to=%s subject=%s\n%s", to, subject, body)
         r.lpush("outbox", json.dumps({"to": to, "subject": subject, "body": body, "at": datetime.now(timezone.utc).isoformat()}))
         r.ltrim("outbox", 0, 49)
+        return
+    if config.RESEND_API_KEY:
+        import httpx
+        resp = httpx.post("https://api.resend.com/emails", timeout=20, headers={"Authorization": f"Bearer {config.RESEND_API_KEY}"},
+                          json={"from": config.SMTP_FROM, "to": [to], "subject": subject, "text": body})
+        resp.raise_for_status()  # a failure leaves the reminder unsent so the next run retries
+        log.info("email sent via resend subject=%s", subject)
         return
     msg = EmailMessage()
     msg["From"], msg["To"], msg["Subject"] = config.SMTP_FROM, to, subject

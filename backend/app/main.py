@@ -105,6 +105,12 @@ async def api_rules(request: Request, call_next):
     return resp
 
 
+@app.get("/api/health")
+def api_health():
+    """For an uptime pinger that keeps the serverless function warm. No database, no Redis."""
+    return {"ok": True}
+
+
 @app.get("/health")
 def health():
     with SessionLocal() as db:
