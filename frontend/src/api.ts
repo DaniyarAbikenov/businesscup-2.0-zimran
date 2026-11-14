@@ -60,7 +60,7 @@ export interface Pack {
   fears: { id: string; label: string }[];
   situations: Situation[];
 }
-export interface Profile { roleId: string; industry: string; tenure: string; fears: string[]; fearNote: string }
+export interface Profile { roleId: string; industry: string; tenure: string; fears: string[]; fearNote: string; emailReminders?: boolean }
 export interface Me { user: { id: number; email: string }; profile: Profile | null; llmEnabled: boolean; isDemo: boolean }
 export interface ScheduledTask { index: number; name: string; finish: string; deadline: string; lateDays: number; requester: string; impact: string }
 export interface Option {
@@ -107,3 +107,15 @@ export interface Intake {
   source: 'ai' | 'keywords'; alternatives: string[]; noMatch?: boolean;
 }
 export interface Draft { preset: Record<string, any>; situation: Situation }
+
+export interface Progress {
+  startedAt: string; day: number; windowDays: number; inWindow: boolean; milestones: number[];
+  confidence: { caseId: number; title: string; date: string; before: number; after: number | null }[]; averageChange: number | null;
+  timeline: { caseId: number; date: string; title: string; situation: string; category: string; chosen: string | null; status: string; statusLabel: string; outcome: string | null; outcomeLabel: string | null }[];
+  counts: { situations: number; decisions: number; followups: number; documents: number; exported: number };
+  practiced: { category: string; situations: { title: string; count: number }[] }[];
+  outcomes: Record<string, number>; outcomesTotal: number;
+  firsts: { situation: string | null; decision: string | null; debrief: string | null };
+  inactiveDays: number | null; inactiveHint: boolean; tryNext: { id: string; title: string; summary: string } | null;
+  emailReminders: boolean; logMailer: boolean;
+}

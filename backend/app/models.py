@@ -27,6 +27,8 @@ class Profile(Base):
     tenure: Mapped[str] = mapped_column(String(20))
     fears: Mapped[list] = mapped_column(JSON, default=list)
     fear_note: Mapped[str] = mapped_column(String(500), default="")
+    email_reminders: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")  # opt-in, never on by default
+    day7_nudge_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
 
 
@@ -65,6 +67,7 @@ class Decision(Base):
     rationale: Mapped[str] = mapped_column(Text, default="")
     document: Mapped[str] = mapped_column(Text)
     followup_due: Mapped[date] = mapped_column(Date)
+    reminder_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     decided_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 
@@ -162,3 +165,17 @@ class CustomSituation(Base):
     preset: Mapped[dict] = mapped_column(JSONB)
     source: Mapped[str] = mapped_column(String(10), default="ai", server_default="ai")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class EmailToken(Base):
+    """One-click links in emails: record an outcome, or turn reminders off. Only the hash is stored; each link
+    works once (unsubscribe may be repeated) and expires."""
+    __tablename__ = "email_tokens"
+    __table_args__ = (CheckConstraint("kind IN ('worked','partly','not_yet','unsubscribe')", name="ck_email_tokens_kind"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    case_id: Mapped[int | None] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=True, index=True)
+    kind: Mapped[str] = mapped_column(String(20))
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

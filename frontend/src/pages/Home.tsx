@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSession } from '../App';
-import { Billing, Journal, api, fmtDate } from '../api';
+import { Billing, Journal, Progress, api, fmtDate } from '../api';
 import Describe from '../components/Describe';
 import { CreateSituation } from './MySituations';
 import { notify } from '../components/Toaster';
@@ -12,9 +12,11 @@ export default function Home() {
   const [j, setJ] = useState<Journal | null>(null);
   const [error, setError] = useState('');
   const [b, setB] = useState<Billing | null>(null);
+  const [pr, setPr] = useState<Progress | null>(null);
   useEffect(() => {
     api<Journal>('GET', '/journal').then(setJ).catch((e) => setError(e.message));
     api<Billing>('GET', '/billing').then(setB).catch(() => {});
+    api<Progress>('GET', '/progress').then(setPr).catch(() => {});
   }, []);
   const profile = me.profile!;
   const role = pack.roles.find((r) => r.id === profile.roleId)!;
@@ -31,6 +33,17 @@ export default function Home() {
       {j && j.followups.length > 0 && (
         <Panel title="What happened?" lead="You made these decisions. Tell us how they played out so your journal reflects reality.">
           <ul className="plain">{j.followups.map((f) => <li key={f.caseId}><Link to={`/case/${f.caseId}`}>{f.title}</Link> <span className="muted">{f.overdue ? '(due now)' : `(due ${fmtDate(f.due)})`}</span></li>)}</ul>
+        </Panel>
+      )}
+      {pr && (
+        <Panel title="Your first 90 days">
+          <p className="small muted" style={{ margin: 0 }}>
+            {pr.inWindow ? `Day ${pr.day} of ${pr.windowDays}.` : `Day ${pr.day}, past the first ${pr.windowDays}.`}{' '}
+            {pr.counts.decisions} decision{pr.counts.decisions === 1 ? '' : 's'} made
+            {pr.averageChange !== null && <>, confidence {pr.averageChange > 0 ? '+' : ''}{pr.averageChange} on average</>}.{' '}
+            {pr.inactiveHint && <>It has been {pr.inactiveDays} days since your last situation. </>}
+            <Link to="/progress">See your progress</Link>
+          </p>
         </Panel>
       )}
       <Describe />

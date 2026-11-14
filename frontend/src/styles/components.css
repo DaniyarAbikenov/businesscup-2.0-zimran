@@ -94,9 +94,10 @@ textarea.input.doc { font: 13px/20px var(--font-mono); min-height: 420px; white-
 
 .docview { white-space: pre-wrap; overflow-wrap: anywhere; font: 13px/1.5 var(--font-mono, ui-monospace, monospace); background: var(--n-50, #f6f3ee); border: 1px solid var(--n-200, #ddd); border-radius: var(--r-control); padding: var(--s-3); margin: 0 0 var(--s-3); max-height: 360px; overflow: auto; }
 @media (max-width: 560px) {
-  .nav { gap: var(--s-3); }
-  .nav a, .nav button { font-size: 13px; white-space: nowrap; }
-  .brand { font-size: 18px; }
+  .nav { gap: 10px; }
+  .nav a, .nav button { font-size: 12px; white-space: nowrap; }
+  .brand { font-size: 16px; }
+  .topbar-inner { padding: 0 12px; gap: 8px; }
 }
 .check { display: flex; gap: var(--s-2); align-items: flex-start; font-size: 14px; margin-top: var(--s-4); }
 .check input { margin-top: 3px; }
@@ -142,3 +143,8 @@ textarea.input.doc { font: 13px/20px var(--font-mono); min-height: 420px; white-
 .decision-box { margin-bottom: 24px; }
 .bar { height: 8px; background: var(--rule, #ddd); border-radius: 4px; overflow: hidden; margin-bottom: 4px; min-width: 80px; }
 .bar span { display: block; height: 100%; background: var(--accent-700); }
+
+.daybar { position: relative; height: 10px; margin: 20px 8px 28px; background: var(--rule, #ddd); border-radius: 5px; }
+.daybar span { position: absolute; inset: 0 auto 0 0; background: var(--accent-700); border-radius: 5px; }
+.daybar i { position: absolute; top: -4px; width: 2px; height: 18px; background: currentColor; opacity: .5; }
+.daybar i em { position: absolute; top: 20px; left: -8px; font: 12px var(--font-ui); font-style: normal; }

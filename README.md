@@ -51,6 +51,14 @@ docker compose run --rm -e DATABASE_URL=postgresql+psycopg://roleshift:roleshift
 
 The tests use real Postgres and Redis. They cover the impact calculation, input validation, auth and sessions, login throttling, the full flow through the API, and that one user cannot read another user's case.
 
+## Progress and email reminders
+
+- **Progress** (`/progress`, `GET /api/progress`): read-only aggregation of existing tables, computed on the server. Day count since signup with 30/60/90 markers, confidence before and after per decided case (SVG chart, average change), decisions timeline with status and the outcome as the user reported it, counts (situations, decisions, follow-ups, documents saved and exported), what was practiced by category, milestones (first situation, decision, debrief), outcome shares, a soft hint after 7 days without a situation, and a "try next" suggestion from the user's role catalog. New users get an empty state with a button to the catalog. A compact card is on Home.
+- **Emails are opt-in** (`profiles.email_reminders`, default off; toggle on Progress and Account). A background task (every 10 minutes, guarded by a Redis lock) sends: one "How did it go with <case title>?" email per due follow-up, with three one-click links (worked, partly, did not work yet) that record the outcome through `GET /api/followup/<token>`, and one "Pick your next situation" email 7 days after signup if the user has fewer than 2 situations. Never sent to users who did not opt in, demo users, or twice. Emails contain the case title and links, never the numbers entered. Every email has an unsubscribe link (works without signing in).
+- **Tokens**: random, stored hashed (`email_tokens`), outcome links are single use and expire after 30 days; once an outcome is recorded the other links of that case stop working.
+- **Settings** (`.env.example`): `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `APP_URL` (public address used in links). With `SMTP_HOST` empty the app uses a **log mailer**: the whole email is written to the server log (`docker compose logs backend`) and to the Redis list `outbox` (last 50), nothing is sent. In that mode (or with `TEST_CHECKOUT=true`) the Progress/Account page shows "Send my due reminders now" for testing.
+- Limitation: real SMTP delivery has not been tested without credentials; the sending code is plain `smtplib` (STARTTLS, or SSL on port 465).
+
 ## Design system
 
 `design/DESIGN.md` defines the visual language ("Ledger"): warm paper neutrals, one ink-teal accent, Fraunces plus Inter, tabular numerals, hairline rules, a comparison table instead of identical cards. Tokens live in `frontend/src/styles/tokens.css`. Read the file before changing UI, and update it when you change the rules.

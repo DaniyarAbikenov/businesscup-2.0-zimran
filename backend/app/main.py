@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import time
 import uuid
@@ -12,7 +13,7 @@ from . import reminders
 from .cache import get_redis
 from .db import SessionLocal
 from .errors import ApiError
-from .routers import auth, billing, cases, intake, journal, profile, situations, telemetry
+from .routers import auth, billing, cases, intake, journal, profile, progress, situations, telemetry
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 log = logging.getLogger("roleshift")
@@ -25,11 +26,13 @@ async def lifespan(app: FastAPI):
             reminders.rebuild(db, get_redis())
     except Exception as e:  # e.g. DB not migrated yet: the app can still start
         log.warning("reminder index rebuild skipped: %s", e)
+    task = asyncio.create_task(progress.reminder_loop())
     yield
+    task.cancel()
 
 
 app = FastAPI(title="RoleShift API", docs_url="/api/docs", openapi_url="/api/openapi.json", lifespan=lifespan)
-for module in (auth, profile, cases, journal, telemetry, billing, intake, situations):
+for module in (auth, profile, cases, journal, telemetry, billing, intake, situations, progress):
     app.include_router(module.router)
 
 

@@ -16,6 +16,12 @@ x-backend-env: &backend-env
   PASS_PRICE_CENTS: ${PASS_PRICE_CENTS:-2900}
   PASS_DAYS: ${PASS_DAYS:-90}
   TEST_CHECKOUT: ${TEST_CHECKOUT:-true}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USER: ${SMTP_USER:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_FROM: ${SMTP_FROM:-RoleShift <no-reply@localhost>}
+  APP_URL: ${APP_URL:-http://localhost:5173}
 
 services:
   db:

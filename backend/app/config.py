@@ -36,3 +36,12 @@ PASS_PRICE_CENTS = int(env("PASS_PRICE_CENTS", "2900"))
 PASS_DAYS = int(env("PASS_DAYS", "90"))
 # Built-in test checkout: no payment provider, no card data, the purchase is stored as provider "test".
 TEST_CHECKOUT = env("TEST_CHECKOUT", "true") == "true"
+
+# Email (optional). With SMTP_HOST empty the app uses a "log mailer": each email is written to the server log and kept
+# in the Redis list "outbox" (last 50), nothing is sent. APP_URL is the public address used in email links.
+SMTP_HOST = env("SMTP_HOST")
+SMTP_PORT = int(env("SMTP_PORT", "587"))
+SMTP_USER = env("SMTP_USER")
+SMTP_PASSWORD = env("SMTP_PASSWORD")
+SMTP_FROM = env("SMTP_FROM", "RoleShift <no-reply@localhost>")
+APP_URL = env("APP_URL", "http://localhost:5173").rstrip("/")
