@@ -106,6 +106,21 @@ def _status(s) -> str:
     return tr('on time') if s["lateDays"] == 0 else tr('{lateDays} working day{sfx} late', lateDays=s['lateDays'], sfx='s' if s['lateDays'] != 1 else '')
 
 
+def _levers_section(result) -> list:
+    """Time, money and quality of each way to fix lateness; only when the person entered optional money or scope data."""
+    ls = result.get("levers")
+    if not ls or len(ls) < 2:
+        return []
+    L = ["", tr('## Ways to fix it and what each costs')]
+    for l in ls:
+        t = (tr('{n} late, {d} working days in total', n=l['time']['lateCount'], d=l['time']['lateDays']) if l.get("time") and l["time"]["lateCount"]
+             else tr('{date} ({days} working days)', date=l['date'], days=l['days']) if l.get("date") else tr('on time'))
+        m = l["money"]["total"]
+        q = l["quality"]
+        L.append(tr('- {label}: time {t}; money {m}; quality risk {q}.', label=l['label'], t=t, m='n/a' if m is None else m, q=tr(q['risk'])))
+    return L
+
+
 def _priorities_document(sit, inputs, result, option_key, rationale, user_email, date) -> str:
     opt = next(o for o in result["options"] if o["key"] == option_key)
     tasks = inputs["tasks"]
@@ -129,6 +144,7 @@ def _priorities_document(sit, inputs, result, option_key, rationale, user_email,
         L.append(tr('**What I need from you:** confirm this order, or tell me which of these can get a new date, a smaller scope or another owner.'))
     else:
         L.append(tr('- Nothing, if my estimates hold. I will flag it the same day if one of them slips.'))
+    L += _levers_section(result)
     L += ["", tr('## Orders I compared'), tr('| Order | Late tasks | Late days in total | Risk |'), "|---|---|---|---|"]
     for o in result["options"]:
         L.append(f"| {sit['options'][o['key']]['label']} | {o['lateCount']} | {o['totalLateDays']} | {o['riskLevel']} |")
@@ -187,7 +203,7 @@ def _estimate_document(sit, inputs, result, option_key, rationale, user_email, d
           tr('- New requests or meetings taking more of my time than planned.'),
           tr('- Waiting for input or reviews from other people.'),
           "", tr('## What I need from you'), tr('Confirm the date, or tell me what to drop or who can help if it needs to be earlier.'),
-          "", tr('## The options I compared'), tr('| What I could say | Date | Chance | Risk |'), "|---|---|---|---|"]
+          *_levers_section(result), "", tr('## The options I compared'), tr('| What I could say | Date | Chance | Risk |'), "|---|---|---|---|"]
     for o in result["options"]:
         d = tr('{frm} to {to}', frm=o['dateFrom'], to=o['date']) if o["key"] == "range" else o["date"]
         L.append(f"| {sit['options'][o['key']]['label']} | {d} | {o['probability']} % | {o['riskLevel']} |")

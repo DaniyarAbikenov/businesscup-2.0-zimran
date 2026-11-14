@@ -350,5 +350,9 @@
  "Deliver the good-enough version": "Сдать версию «достаточно хорошо»",
  "{pct}% of the hours: agree what is left out.": "{pct}% часов: согласуйте, что останется за рамками.",
  "Pay to speed up": "Заплатить, чтобы ускорить",
- "Must not be more than the hours of the task": "Не больше часов самой задачи"
+ "Must not be more than the hours of the task": "Не больше часов самой задачи",
+ "## Ways to fix it and what each costs": "## Как это исправить и чего это стоит",
+ "{n} late, {d} working days in total": "опоздают: {n}, суммарно {d} раб. дн.",
+ "{date} ({days} working days)": "{date} ({days} раб. дн.)",
+ "- {label}: time {t}; money {m}; quality risk {q}.": "- {label}: время — {t}; деньги — {m}; риск для качества — {q}."
 }

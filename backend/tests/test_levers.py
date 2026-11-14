@@ -59,3 +59,13 @@ def test_estimate_good_enough_and_pay_to_speed_up():
     assert ge["days"] == 6 and ge["date"] == "2026-11-24" and ge["quality"]["cutShare"] == 0.3 and ge["quality"]["risk"] == "medium" and ge["payWith"] == ["quality"]
     pay = lv(r, "pay")  # 25 h a week * 0.8 = 4 h a day -> ceil(25.49 / 4) = 7 days -> 2026-11-25; 1 h a day x 7 days x 40 = 280
     assert pay["days"] == 7 and pay["date"] == "2026-11-25" and pay["extraHours"] == 7 and pay["money"]["total"] == 280
+
+
+def test_document_shows_the_three_axes_only_with_money_data():
+    from app.document import build_document
+    r0 = engine.run(SIT, BASE)
+    assert "Ways to fix it" not in build_document(BASE, r0, "deadline", "why", None, "a@b.c", "2026-11-16", "competing-priorities", SIT)
+    tasks = [{**t} for t in BASE["tasks"]]; tasks[0].update(costPerLateDay=100, minEffortHours=8)
+    i = {**BASE, "tasks": tasks, "extraHourCost": 30, "extraHoursPerWeek": 10}
+    doc = build_document(i, engine.run(SIT, i), "deadline", "why", None, "a@b.c", "2026-11-16", "competing-priorities", SIT)
+    assert "## Ways to fix it and what each costs" in doc and "Cut scope on the late tasks" in doc and "quality risk medium" in doc

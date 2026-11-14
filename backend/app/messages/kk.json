@@ -350,5 +350,9 @@
  "Deliver the good-enough version": "«Жеткілікті жақсы» нұсқаны тапсыру",
  "{pct}% of the hours: agree what is left out.": "Сағаттың {pct}%: нені қалдыратыныңызды келісіңіз.",
  "Pay to speed up": "Жеделдету үшін төлеу",
- "Must not be more than the hours of the task": "Тапсырманың өз сағатынан артық болмауы керек"
+ "Must not be more than the hours of the task": "Тапсырманың өз сағатынан артық болмауы керек",
+ "## Ways to fix it and what each costs": "## Қалай түзетуге болады және бағасы қандай",
+ "{n} late, {d} working days in total": "кешігеді: {n}, барлығы {d} жұмыс күні",
+ "{date} ({days} working days)": "{date} ({days} жұмыс күні)",
+ "- {label}: time {t}; money {m}; quality risk {q}.": "- {label}: уақыт — {t}; ақша — {m}; сапаға тәуекел — {q}."
 }

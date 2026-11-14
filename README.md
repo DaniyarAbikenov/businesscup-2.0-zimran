@@ -69,6 +69,16 @@ The promise: "Facing a decision in a new role? Try your options with your own nu
 - **Every case** shows four steps (Fill in, Compare, Decide, Follow up), a "Best by the numbers" sentence and a two-sentence "how to read this" above the results, and small "Why we ask" notes on the fields that need one.
 - Notes on what was confusing and what changed: `UX_NOTES.md`.
 
+## Time, money and quality
+
+"Competing priorities" and "Asked for a deadline" have an optional "Money and quality" group. Leave it empty and nothing changes. Fill it in and the result gets a table of ways to fix lateness, each recomputed by the same engine (`backend/app/levers.py`) and shown on three axes:
+
+- **Time**: late tasks and late working days (priorities), or the date and working days (estimate).
+- **Money**: late cost (late working days x cost per late day, summed) plus extra hours x cost per hour.
+- **Quality**: share of hours cut = hours cut / all hours. Up to 15 % low, up to 35 % medium, above that high. This is a rule of thumb on the person's own numbers, not a measurement of quality.
+
+Ways: scope cut (late tasks go to their minimum hours, largest saving first), pay for extra hours (smallest number up to the cap that removes lateness, or the cap if it cannot), move a deadline (paid for with goodwill), and for estimates "good enough" (hours x chosen %) and pay to speed up. The same table goes into the generated document.
+
 ## Languages
 
 English (source), Russian and Kazakh. The language switcher (EN / RU / KZ) is in the header and on the sign-in and Account pages; the choice is saved in `profiles.language` and in the browser. The API reads the language from `?lang=`, the `X-Lang` header (the frontend always sends it), the saved profile, then `Accept-Language`. English is the default and every text falls back to English if a translation is missing. **RU and KK are machine-written and need review by a native speaker**, see [TRANSLATION_NOTES.md](TRANSLATION_NOTES.md).
