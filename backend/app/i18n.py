@@ -51,6 +51,21 @@ def _question(q: dict, ov: dict) -> dict:
     return q
 
 
+def _merge_answers(base, ov):
+    """Overlay for storyline answers: only text fields. Rows of a list are addressed by their index ("0", "1", ...)."""
+    if isinstance(base, list):
+        out = list(base)
+        for k, v in ov.items():
+            i = int(k)
+            if i < len(out):
+                out[i] = _merge_answers(out[i], v) if isinstance(v, dict) else v
+        return out
+    out = dict(base)
+    for k, v in ov.items():
+        out[k] = _merge_answers(base.get(k, {}), v) if isinstance(v, dict) and k in base else v
+    return out
+
+
 def localize_situation(sit: dict, lang: str) -> dict:
     """The situation with the language overlay on top. Custom (AI-made) situations have no overlay and stay as they are."""
     ov = overlay(lang).get("situations", {}).get(sit["id"])
@@ -69,7 +84,13 @@ def localize_situation(sit: dict, lang: str) -> dict:
     if ov.get("pitfalls"):
         s["pitfalls"] = ov["pitfalls"]
     s["reflectionPrompts"] = [{**p, "label": (ov.get("reflectionPrompts") or {}).get(p["id"], p["label"])} for p in s["reflectionPrompts"]]
-    s["storylines"] = [{**st, **{k: v for k, v in (ov.get("storylines") or {}).get(st["id"], {}).items() if k in ("title", "story")}} for st in s.get("storylines", [])]
+    def _story(st):
+        o = (ov.get("storylines") or {}).get(st["id"], {})
+        out = {**st, **{k: v for k, v in o.items() if k in ("title", "story")}}
+        if o.get("answers"):
+            out["answers"] = _merge_answers(st["answers"], o["answers"])
+        return out
+    s["storylines"] = [_story(st) for st in s.get("storylines", [])]
     return s
 
 

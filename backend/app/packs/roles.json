@@ -125,6 +125,66 @@
       ]
     },
     {
+      "id": "director",
+      "label": "Director / head of an organisation",
+      "terms": {
+        "milestone": "deadline",
+        "work": "team",
+        "unit": "person-day"
+      },
+      "duties": [
+        "Direction and priorities",
+        "Budget and people",
+        "Accountability to owners or the board",
+        "Decisions with incomplete information"
+      ]
+    },
+    {
+      "id": "chief-accountant",
+      "label": "Chief accountant / finance lead",
+      "terms": {
+        "milestone": "deadline",
+        "work": "team",
+        "unit": "person-day"
+      },
+      "duties": [
+        "Reporting deadlines",
+        "Compliance and audit",
+        "Team workload",
+        "Saying no to requests that break the rules"
+      ]
+    },
+    {
+      "id": "officer",
+      "label": "Officer (military, police, emergency services)",
+      "terms": {
+        "milestone": "deadline",
+        "work": "team",
+        "unit": "person-day"
+      },
+      "duties": [
+        "Orders and responsibility",
+        "People under my command",
+        "Procedures and reporting",
+        "Decisions under pressure"
+      ]
+    },
+    {
+      "id": "public-official",
+      "label": "Mayor / public official",
+      "terms": {
+        "milestone": "deadline",
+        "work": "team",
+        "unit": "person-day"
+      },
+      "duties": [
+        "Competing demands from residents and superiors",
+        "Budget and procurement",
+        "Public accountability",
+        "Decisions with legal limits"
+      ]
+    },
+    {
       "id": "other",
       "label": "Other new position",
       "terms": {

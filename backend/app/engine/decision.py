@@ -19,6 +19,7 @@ Risk of a strategy's pick: how far its weighted score is below the best (under 5
 decision itself: min(3, impact * uncertainty // 2) where impact = how hard to undo (easy 0, costly 1, cannot 2)
 + 1 if other teams or a client are affected, and uncertainty = how close the winner is (robust 0, close 1, too
 close 2) + how unsure you are of your scores (high 0, medium 1, low 2)."""
+from ..msg import tr
 from .change_request import level_of, rnd
 
 REV = {"easy": 0, "costly": 1, "cannot": 2}
@@ -35,7 +36,7 @@ def check(i: dict) -> dict:
     for r, o in enumerate(i["options"]):
         for k in range(n):
             if not 1 <= (o.get(f"s{k + 1}") or 0) <= 5:
-                errs[f"options.{r}.s{k + 1}"] = "Score from 1 to 5"
+                errs[tr('options.{r}.s{v}', r=r, v=k + 1)] = tr('Score from 1 to 5')
     return errs
 
 
@@ -79,7 +80,8 @@ def compute(i: dict) -> dict:
     rank = {o: r + 1 for r, o in enumerate(order)}
     win, run = order[0], order[1]
     margin = pct[win] - pct[run]
-    label = "robust" if margin >= 10 else "close call" if margin >= 4 else "too close to call"
+    label = "robust" if margin >= 10 else "close call" if margin >= 4 else "too close to call"  # stays English: used in logic and by the API
+    label_t = tr(label)
 
     flip_score = _flip(names, weights, scores, win, run, crit)
     flip_weight = None
@@ -95,17 +97,16 @@ def compute(i: dict) -> dict:
         if flip_weight:
             break
     if label == "robust":
-        robust_text = f"\"{names[win]}\" leads \"{names[run]}\" by {rnd(margin, 1):g} points: the result is robust."
+        robust_text = tr('"{win}" leads "{run}" by {v:g} points: the result is robust.', win=names[win], run=names[run], v=rnd(margin, 1))
     else:
-        robust_text = f"\"{names[win]}\" leads \"{names[run]}\" by only {rnd(margin, 1):g} points: {label}."
+        robust_text = tr('"{win}" leads "{run}" by only {v:g} points: {label}.', win=names[win], run=names[run], v=rnd(margin, 1), label=label_t)
     notes = [robust_text]
     notes.append(
-        f"Smallest score change that flips it: {'lower' if flip_score['side'] == 'winner' else 'raise'} \"{flip_score['option']}\" on "
-        f"\"{flip_score['criterion']}\" from {flip_score['from']} to {flip_score['to']}." if flip_score else
-        "No single score change of up to 2 points flips the winner.")
+        tr('Smallest score change that flips it: {raise_} "{option}" on "{criterion}" from {from_} to {to}.', raise_=tr('lower') if flip_score['side'] == 'winner' else tr('raise'), option=flip_score['option'], criterion=flip_score['criterion'], from_=flip_score['from'], to=flip_score['to']) if flip_score else
+        tr('No single score change of up to 2 points flips the winner.'))
     notes.append(
-        f"Smallest weight change that flips it: \"{flip_weight['criterion']}\" from {flip_weight['from']} to {flip_weight['to']} makes \"{flip_weight['newWinner']}\" the winner."
-        if flip_weight else "Moving any one weight by 1 does not change the winner.")
+        tr('Smallest weight change that flips it: "{criterion}" from {from_} to {to} makes "{newWinner}" the winner.', criterion=flip_weight['criterion'], from_=flip_weight['from'], to=flip_weight['to'], newWinner=flip_weight['newWinner'])
+        if flip_weight else tr('Moving any one weight by 1 does not change the winner.'))
 
     # strategies
     picks = {
@@ -124,18 +125,18 @@ def compute(i: dict) -> dict:
         risks = []
         if gap > 1e-9:
             risks.append((1 if gap < 5 else 2 if gap < 10 else 3,
-                          f"\"{names[p]}\" scores {rnd(pct[p], 1):g} against {rnd(pct[win], 1):g} for \"{names[win]}\", {rnd(gap, 1):g} points lower on your own weights."))
+                          tr('"{p}" scores {v:g} against {v2:g} for "{win}", {v3:g} points lower on your own weights.', p=names[p], v=rnd(pct[p], 1), v2=rnd(pct[win], 1), win=names[win], v3=rnd(gap, 1))))
         weak = [(weights[k], k) for k in range(n) if scores[p][k] <= 2]
         if weak:
             w, k = max(weak)
-            risks.append((2 if w >= 4 else 1, f"\"{names[p]}\" scores {scores[p][k]} on \"{crit[k]}\", which you weighted {w} of 5."))
+            risks.append((2 if w >= 4 else 1, tr('"{p}" scores {k} on "{k2}", which you weighted {w} of 5.', p=names[p], k=scores[p][k], k2=crit[k], w=w)))
         if shared:
-            who = WHO[i["whoAffected"]][0]
-            advice = "try a cheap test or a trial first, or ask someone who knows the area to check your scores" if (REV[i["reversibility"]] == 2 or CONF[i["confidence"]] == 2) \
-                else "ask for a second opinion on the scores before you commit"
-            risks.append((shared, f"This decision is {REV_TEXT[i['reversibility']]}, it affects {who}, you are {i['confidence']}-confident in your scores and the result is {label}. Before committing, {advice}."))
+            who = tr(WHO[i["whoAffected"]][0])
+            advice = tr('try a cheap test or a trial first, or ask someone who knows the area to check your scores') if (REV[i["reversibility"]] == 2 or CONF[i["confidence"]] == 2) \
+                else tr('ask for a second opinion on the scores before you commit')
+            risks.append((shared, tr('This decision is {reversibility}, it affects {who}, you are {confidence}-confident in your scores and the result is {label}. Before committing, {advice}.', reversibility=tr(REV_TEXT[i['reversibility']]), who=who, confidence=tr(i['confidence']), label=label_t, advice=advice)))
         if not risks:
-            risks.append((0, f"No warning signs on your numbers: \"{names[p]}\" scores {rnd(pct[p], 1):g} and the result is {label}."))
+            risks.append((0, tr('No warning signs on your numbers: "{p}" scores {v:g} and the result is {label}.', p=names[p], v=rnd(pct[p], 1), label=label_t)))
         score = sum(s for s, _ in risks)
         options.append({"key": key, "pick": names[p], "pickIndex": p, "score": rnd(pct[p], 1), "rank": rank[p],
                         "sameAs": [k for k in STRATEGIES if k != key and picks[k] == p],
@@ -144,17 +145,14 @@ def compute(i: dict) -> dict:
     ranking = [{"index": o, "name": names[o], "score": rnd(pct[o], 1), "rank": rank[o], "marginToNext": rnd(pct[o] - pct[order[r + 1]], 1) if r + 1 < len(order) else None,
                 "worst": min(scores[o]), "scores": [{"criterion": crit[k], "weight": weights[k], "score": scores[o][k]} for k in range(n)]} for r, o in enumerate(order)]
     best_risk = min(options, key=lambda x: x["riskScore"])  # stable: list order wins ties
-    headline = (f"\"{names[win]}\" scores {rnd(pct[win], 1):g} out of 100, \"{names[run]}\" {rnd(pct[run], 1):g}: {label}. "
-                + ("All four strategies pick the same option." if agree else
-                   "The strategies disagree: " + "; ".join(f"{LABELS[k].lower()}: {names[picks[k]]}" for k in STRATEGIES) + "."))
+    headline = (tr('"{win}" scores {v:g} out of 100, "{run}" {v2:g}: {label}. ', win=names[win], v=rnd(pct[win], 1), run=names[run], v2=rnd(pct[run], 1), label=label_t)
+                + (tr('All four strategies pick the same option.') if agree else
+                   tr('The strategies disagree: ') + "; ".join(f"{tr(LABELS[k]).lower()}: {names[picks[k]]}" for k in STRATEGIES) + "."))
     return {
         "engine": "decision", "asOf": i["asOf"], "headline": headline, "ranking": ranking, "robustness": {"label": label, "margin": rnd(margin, 1)},
         "notes": notes, "flipScore": flip_score, "flipWeight": flip_weight, "agree": agree, "criteria": [{"name": c, "weight": w} for c, w in zip(crit, weights)],
         "options": options, "lowestRiskKey": best_risk["key"], "winner": names[win],
-        "assumptions": (f"Weighted score = sum(weight x score) / (sum of weights x 5) x 100, with your weights {', '.join(f'{c} {w}' for c, w in zip(crit, weights))} and your scores (1-5, 5 is best). "
-                        f"Robust means the lead is 10 points or more, a close call 4 to 10, too close to call under 4. Four strategies: best weighted score, safest (best worst-criterion score), "
-                        f"best with equal weights, best counting only the two heaviest criteria. Risk adds the gap to the best option, weak spots on heavy criteria, and how hard the decision is to undo "
-                        f"given who is affected and how sure you are of your scores. The scores are your own judgement: the calculator only shows what follows from them."),
+        "assumptions": (tr('Weighted score = sum(weight x score) / (sum of weights x 5) x 100, with your weights {weights} and your scores (1-5, 5 is best). Robust means the lead is 10 points or more, a close call 4 to 10, too close to call under 4. Four strategies: best weighted score, safest (best worst-criterion score), best with equal weights, best counting only the two heaviest criteria. Risk adds the gap to the best option, weak spots on heavy criteria, and how hard the decision is to undo given who is affected and how sure you are of your scores. The scores are your own judgement: the calculator only shows what follows from them.', weights=', '.join((f'{c} {w}' for (c, w) in zip(crit, weights))))),
     }
 
 

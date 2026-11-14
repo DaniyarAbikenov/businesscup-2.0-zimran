@@ -1,4 +1,5 @@
 """Validates user input against the question spec from the situation pack."""
+from .msg import tr
 import re
 from datetime import date
 
@@ -15,7 +16,7 @@ def validate_answers(questions: list, raw) -> tuple[dict, dict]:
         v = body.get(qid)
         if v is None or (isinstance(v, str) and v.strip() == ""):
             if q.get("required"):
-                errors[qid] = "Required"
+                errors[qid] = tr('Required')
             else:
                 out[qid] = q.get("default", 0) if q["type"] == "number" else ""
             continue
@@ -24,10 +25,10 @@ def validate_answers(questions: list, raw) -> tuple[dict, dict]:
             rows = v if isinstance(v, list) else []
             rows = [r for r in rows if isinstance(r, dict) and any(str(x).strip() for x in r.values() if x is not None)]
             if len(rows) < q.get("minRows", 1):
-                errors[qid] = f"Add at least {q.get('minRows', 1)}"
+                errors[qid] = tr('Add at least {v}', v=q.get('minRows', 1))
                 continue
             if len(rows) > q.get("maxRows", 10):
-                errors[qid] = f"At most {q.get('maxRows', 10)}"
+                errors[qid] = tr('At most {v}', v=q.get('maxRows', 10))
                 continue
             vals = []
             for n, row in enumerate(rows):
@@ -42,15 +43,15 @@ def validate_answers(questions: list, raw) -> tuple[dict, dict]:
                 if isinstance(v, bool):
                     raise ValueError
                 n = float(str(v).replace(",", "")) if not isinstance(v, (int, float)) else float(v)
-                if n != n or n in (float("inf"), float("-inf")):
+                if n != n or n in (float("inf"), float(tr('-inf'))):
                     raise ValueError
             except ValueError:
-                errors[qid] = "Enter a number"
+                errors[qid] = tr('Enter a number')
                 continue
             if "min" in q and n < q["min"]:
-                errors[qid] = f"Must be at least {q['min']}"
+                errors[qid] = tr('Must be at least {min}', min=q['min'])
             elif "max" in q and n > q["max"]:
-                errors[qid] = f"Must be at most {q['max']}"
+                errors[qid] = tr('Must be at most {max}', max=q['max'])
             else:
                 out[qid] = int(n) if n == int(n) else n
         elif t == "date":
@@ -60,16 +61,16 @@ def validate_answers(questions: list, raw) -> tuple[dict, dict]:
                 date.fromisoformat(v)
                 out[qid] = v
             except ValueError:
-                errors[qid] = "Enter a valid date"
+                errors[qid] = tr('Enter a valid date')
         elif t == "select":
             if v not in [o["value"] for o in q["options"]]:
-                errors[qid] = "Choose one of the options"
+                errors[qid] = tr('Choose one of the options')
             else:
                 out[qid] = v
         elif not isinstance(v, str):
-            errors[qid] = "Enter text"
+            errors[qid] = tr('Enter text')
         elif q.get("max") and len(v) > q["max"]:
-            errors[qid] = f"Max {q['max']} characters"
+            errors[qid] = tr('Max {max} characters', max=q['max'])
         else:
             out[qid] = v.strip()
     return out, errors

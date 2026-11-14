@@ -29,6 +29,12 @@ def clean(migrated):
     get_redis().flushdb()
 
 
+@pytest.fixture(autouse=True)
+def english_by_default():
+    from app import msg
+    msg.set_lang("en")
+
+
 @pytest.fixture
 def client():
     return TestClient(app)

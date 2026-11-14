@@ -14,6 +14,7 @@ from ..document import build_debrief, build_document
 from ..documents import KINDS, MAX_LEN, get_doc, save_document
 from .. import engine
 from ..errors import ApiError
+from ..msg import tr
 from ..models import Case, Decision, FollowUp, JournalEntry, Profile, Reflection
 from ..security import sha
 from ..validate import validate_answers
@@ -83,7 +84,7 @@ def create_case(body: dict, user=Depends(current_user), db: Session = Depends(ge
     c = Case(user_id=user.id, situation_id=sit["id"], inputs=inputs, result=result, confidence_before=conf)
     db.add(c)
     db.flush()
-    log(db, user.id, c.id, "case", f"Started: {packs.case_title(sit['id'], inputs)}")
+    log(db, user.id, c.id, "case", tr("Started: {title}", title=packs.case_title(sit['id'], inputs)))
     db.commit()
     return {"case": case_dict(c)}
 
@@ -121,7 +122,7 @@ def decide(body: dict, c: Case = Depends(own_case), user=Depends(current_user), 
     )
     c.status = "decided"
     save_document(db, c, "change_request", c.decision.document, source="generated")
-    log(db, user.id, c.id, "decision", f"Decided: {sit['options'][option]['label']}. {packs.case_title(c.situation_id, c.inputs)}")
+    log(db, user.id, c.id, "decision", tr("Decided: {option}. {title}", option=sit['options'][option]['label'], title=packs.case_title(c.situation_id, c.inputs)))
     db.commit()
     reminders.schedule(r, user.id, c.id, due.isoformat())
     return {"case": case_dict(c)}
@@ -136,7 +137,7 @@ def reflect(body: dict, c: Case = Depends(own_case), user=Depends(current_user),
         raise ApiError(400, "Rate your confidence from 1 to 5")
     refl = {"learned": str(body.get("learned") or "").strip()[:600], "different": str(body.get("different") or "").strip()[:600], "confidenceAfter": after}
     c.reflection = Reflection(learned=refl["learned"], different=refl["different"], confidence_after=after)
-    log(db, user.id, c.id, "reflection", f"Reflection: confidence {c.confidence_before} -> {after}." + (f" {refl['learned']}" if refl["learned"] else ""))
+    log(db, user.id, c.id, "reflection", tr("Reflection: confidence {before} -> {after}.", before=c.confidence_before, after=after) + (f" {refl['learned']}" if refl["learned"] else ""))
     db.commit()
     return {"case": case_dict(c)}
 
@@ -150,7 +151,7 @@ def followup(body: dict, c: Case = Depends(own_case), user=Depends(current_user)
         raise ApiError(400, "Choose what happened")
     notes = str(body.get("notes") or "").strip()[:800]
     c.followup = FollowUp(outcome=outcome, notes=notes)
-    log(db, user.id, c.id, "followup", f"Follow-up (as you reported): {OUTCOMES[outcome]}." + (f" {notes}" if notes else ""))
+    log(db, user.id, c.id, "followup", tr("Follow-up (as you reported): {outcome}.", outcome=tr(OUTCOMES[outcome])) + (f" {notes}" if notes else ""))
     db.commit()
     reminders.clear(r, user.id, c.id)
     return {"case": case_dict(c)}
@@ -191,7 +192,7 @@ def save_doc(kind: str, body: dict, c: Case = Depends(own_case), db: Session = D
     if not isinstance(text, str) or not text.strip():
         raise ApiError(400, "The document cannot be empty")
     if len(text) > MAX_LEN:
-        raise ApiError(400, f"The document is too long (max {MAX_LEN} characters)")
+        raise ApiError(400, tr("The document is too long (max {n} characters)", n=MAX_LEN))
     save_document(db, c, kind, text.replace("\r\n", "\n"), source="user")
     db.commit()
     return {"case": case_dict(c)}
@@ -213,6 +214,6 @@ def record_export(body: dict, c: Case = Depends(own_case), db: Session = Depends
         raise ApiError(400, "Unknown export type")
     if c.status != "decided":
         raise ApiError(409, "Make a decision first")
-    log(db, c.user_id, c.id, "export", f"Exported the Change Request ({'copied' if how == 'copy' else 'downloaded'}): {packs.case_title(c.situation_id, c.inputs)}")
+    log(db, c.user_id, c.id, "export", tr("Exported the document ({how}): {title}", how=tr("copied") if how == "copy" else tr("downloaded"), title=packs.case_title(c.situation_id, c.inputs)))
     db.commit()
     return {"ok": True}

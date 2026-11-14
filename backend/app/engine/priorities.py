@@ -4,6 +4,7 @@ The user lists 2-5 tasks (effort, deadline, who asked, what happens if it is lat
 a week they really have. Each option is an order of work. Tasks run one after another at the user's free
 capacity, on working days only, so every option shows when each task finishes and which ones are late.
 No LLM involved: the same inputs always give the same numbers."""
+from ..msg import tr
 import math
 
 from .change_request import add_workdays, level_of, rnd, workdays_between
@@ -48,7 +49,7 @@ def _schedule(tasks: list, order: list, as_of: str, per_day: float) -> list:
 def check(i: dict) -> dict:
     """Rules that span several fields. Returns {field: message}."""
     if i["committedHours"] >= i["hoursPerWeek"]:
-        return {"committedHours": "Must be less than your working hours, or there is no time for these tasks"}
+        return {"committedHours": tr('Must be less than your working hours, or there is no time for these tasks')}
     return {}
 
 
@@ -71,19 +72,18 @@ def compute(i: dict) -> dict:
                 continue
             rw, who = REQUESTER[s["requester"]]
             iw, what = IMPACT[s["impact"]]
+            who, what = tr(who), tr(what)
             sev = iw + (1 if rw >= 3 else 0) + (1 if s["lateDays"] > 5 else 0)
             weighted += s["lateDays"] * (iw + rw)
-            risks.append((sev, f"\"{s['name']}\" finishes {s['finish']}, {s['lateDays']} working day{'s' if s['lateDays'] != 1 else ''} "
-                               f"after its {s['deadline']} deadline. That lands on {who}, and {what}."))
+            risks.append((sev, tr('"{name}" finishes {finish}, {lateDays} working day{sfx} after its {deadline} deadline. That lands on {who}, and {what}.', name=s['name'], finish=s['finish'], lateDays=s['lateDays'], sfx='s' if s['lateDays'] != 1 else '', deadline=s['deadline'], who=who, what=what)))
         if not fits:
-            risks.append((1, f"Not everything fits: the tasks need {rnd(total)} hours, you have about {rnd(available)} free hours "
-                             f"before the last deadline. Someone has to hear \"later\". Better now than on the deadline."))
+            risks.append((1, tr('Not everything fits: the tasks need {total} hours, you have about {available} free hours before the last deadline. Someone has to hear "later". Better now than on the deadline.', total=rnd(total), available=rnd(available))))
         if not [r for r in risks if r[0] > 0]:
-            risks.append((0, "Every task finishes on time with these numbers. Keep a little slack for surprises."))
+            risks.append((0, tr('Every task finishes on time with these numbers. Keep a little slack for surprises.')))
         same = [k for k, o in orders.items() if o == order and k != key]
         score = sum(s for s, _ in risks)
         options.append({
-            "key": key, "label": LABELS[key], "sameAs": same, "order": order, "schedule": sched,
+            "key": key, "label": tr(LABELS[key]), "sameAs": same, "order": order, "schedule": sched,
             "lateCount": sum(1 for s in sched if s["lateDays"] > 0), "totalLateDays": sum(s["lateDays"] for s in sched),
             "weightedLateness": weighted, "riskScore": score, "riskLevel": level_of(score),
             "risks": [{"severity": s, "text": t} for s, t in risks],
@@ -91,14 +91,12 @@ def compute(i: dict) -> dict:
     # lowest risk = least weighted lateness, then fewest late tasks; first wins on ties (stable)
     best = min(options, key=lambda o: (o["weightedLateness"], o["lateCount"]))
     late_best = best["lateCount"]
-    headline = (f"{len(tasks)} tasks, {rnd(total)} hours of work, about {rnd(per_day, 1)} free hours a day. "
-                + ("Everything fits before the last deadline if you pick the right order." if fits and late_best == 0 else
-                   f"Even the best order leaves {late_best} task{'s' if late_best != 1 else ''} late, so you need to renegotiate something."))
+    headline = (tr('{tasks} tasks, {total} hours of work, about {v} free hours a day. ', tasks=len(tasks), total=rnd(total), v=rnd(per_day, 1))
+                + (tr('Everything fits before the last deadline if you pick the right order.') if fits and late_best == 0 else
+                   tr('Even the best order leaves {late_best} task{sfx} late, so you need to renegotiate something.', late_best=late_best, sfx='s' if late_best != 1 else '')))
     return {
         "asOf": i["asOf"], "engine": "priorities", "totalHours": rnd(total, 1), "freeHoursPerDay": rnd(per_day, 1),
         "availableHours": rnd(available, 1), "fits": fits, "headline": headline,
         "options": options, "lowestRiskKey": best["key"],
-        "assumptions": (f"You have {i['hoursPerWeek']} working hours a week, {i['committedHours']} already taken by meetings and "
-                        f"ongoing work, so {rnd(free_week, 1)} free hours a week ({rnd(per_day, 1)} a day). Tasks run one after "
-                        f"another on working days from {i['asOf']}. Weekends are skipped. Effort numbers are your estimates."),
+        "assumptions": (tr('You have {hoursPerWeek} working hours a week, {committedHours} already taken by meetings and ongoing work, so {v} free hours a week ({v2} a day). Tasks run one after another on working days from {asOf}. Weekends are skipped. Effort numbers are your estimates.', hoursPerWeek=i['hoursPerWeek'], committedHours=i['committedHours'], v=rnd(free_week, 1), v2=rnd(per_day, 1), asOf=i['asOf'])),
     }

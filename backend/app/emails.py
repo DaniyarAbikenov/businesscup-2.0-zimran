@@ -1,6 +1,7 @@
 """Opt-in reminder emails: "how did it go?" for a decision whose follow-up date has come, and one nudge on day 7.
 Only users who turned reminders on, never demo users, each email at most once. One-click links record an outcome or
 unsubscribe; tokens are random, stored hashed, expire after 30 days (outcome links are single use)."""
+from .msg import tr
 import logging
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -18,6 +19,13 @@ TOKEN_DAYS = 30
 OUTCOME_LINKS = [("worked", "It worked"), ("partly", "Partly"), ("not_yet", "It did not work yet")]
 
 
+def lang_for(db: Session, user: User) -> None:
+    """Emails are written in the language the user chose (profile), English if none."""
+    from . import i18n, msg
+    p = db.get(Profile, user.id)
+    msg.set_lang(i18n.norm(p.language if p else None) or "en")
+
+
 def make_token(db: Session, user_id: int, case_id: int | None, kind: str, days: int = TOKEN_DAYS) -> str:
     raw = secrets.token_urlsafe(24)
     db.add(EmailToken(user_id=user_id, case_id=case_id, kind=kind, token_hash=sha(raw), expires_at=datetime.now(timezone.utc) + timedelta(days=days)))
@@ -25,22 +33,21 @@ def make_token(db: Session, user_id: int, case_id: int | None, kind: str, days: 
 
 
 def _footer(db: Session, user_id: int) -> str:
-    return f"\n--\nYou get this because you turned on reminders in RoleShift.\nTurn them off: {config.APP_URL}/api/unsubscribe/{make_token(db, user_id, None, 'unsubscribe', 365)}\n"
+    return tr('\n--\nYou get this because you turned on reminders in RoleShift.\nTurn them off: {APP_URL}/api/unsubscribe/{v}\n', APP_URL=config.APP_URL, v=make_token(db, user_id, None, 'unsubscribe', 365))
 
 
 def followup_email(db: Session, user: User, case: Case) -> tuple[str, str]:
+    lang_for(db, user)
     title = packs.case_title(case.situation_id, case.inputs)
-    links = "\n".join(f"  {label}: {config.APP_URL}/api/followup/{make_token(db, user.id, case.id, kind)}" for kind, label in OUTCOME_LINKS)
-    body = (f"How did it go with \"{title}\"?\n\nYou decided on {case.decision.decided_at.date().isoformat()} and asked us to check back. "
-            f"One click records what happened (it is what you tell us, nothing is checked):\n{links}\n\n"
-            f"Or open the case and write more: {config.APP_URL}/case/{case.id}\n" + _footer(db, user.id))
-    return f"How did it go with {title}?", body
+    links = "\n".join(tr('  {label}: {APP_URL}/api/followup/{kind}', label=tr(label), APP_URL=config.APP_URL, kind=make_token(db, user.id, case.id, kind)) for kind, label in OUTCOME_LINKS)
+    body = (tr('How did it go with "{title}"?\n\nYou decided on {isoformat} and asked us to check back. One click records what happened (it is what you tell us, nothing is checked):\n{links}\n\nOr open the case and write more: {APP_URL}/case/{id}\n', title=title, isoformat=case.decision.decided_at.date().isoformat(), links=links, APP_URL=config.APP_URL, id=case.id) + _footer(db, user.id))
+    return tr('How did it go with {title}?', title=title), body
 
 
 def day7_email(db: Session, user: User) -> tuple[str, str]:
-    body = (f"A week ago you started with RoleShift. A small step helps most: pick the next scenario you expect at work "
-            f"and rehearse it with your own numbers.\n\nPick your next scenario: {config.APP_URL}/\n" + _footer(db, user.id))
-    return "Pick your next scenario", body
+    lang_for(db, user)
+    body = (tr('A week ago you started with RoleShift. A small step helps most: pick the next scenario you expect at work and rehearse it with your own numbers.\n\nPick your next scenario: {APP_URL}/\n', APP_URL=config.APP_URL) + _footer(db, user.id))
+    return tr('Pick your next scenario'), body
 
 
 def _eligible(db: Session):
@@ -64,12 +71,12 @@ def send_due_followups(db: Session, r, now: datetime | None = None, only_user: i
             mailer.send(r, user.email, subject, body)
         except Exception as e:  # SMTP down: leave it unsent, the next run retries
             db.rollback()
-            log.warning("followup email failed user=%s case=%s reason=%s", user.id, case.id, type(e).__name__)
+            log.warning(tr('followup email failed user=%s case=%s reason=%s'), user.id, case.id, type(e).__name__)
             continue
         case.decision.reminder_sent_at = now
         db.commit()
         sent += 1
-        log.info("followup email sent user=%s case=%s", user.id, case.id)
+        log.info(tr('followup email sent user=%s case=%s'), user.id, case.id)
     return sent
 
 
@@ -92,12 +99,12 @@ def send_day7_nudges(db: Session, r, now: datetime | None = None, only_user: int
             mailer.send(r, user.email, subject, body)
         except Exception as e:
             db.rollback()
-            log.warning("day7 email failed user=%s reason=%s", user.id, type(e).__name__)
+            log.warning(tr('day7 email failed user=%s reason=%s'), user.id, type(e).__name__)
             continue
         db.get(Profile, user.id).day7_nudge_sent_at = now
         db.commit()
         sent += 1
-        log.info("day7 email sent user=%s", user.id)
+        log.info(tr('day7 email sent user=%s'), user.id)
     return sent
 
 
@@ -123,8 +130,8 @@ def record_outcome(db: Session, r, raw: str) -> Case | None:
     now = datetime.now(timezone.utc)
     if not case.followup:
         case.followup = FollowUp(outcome=t.kind, notes="")
-        label = {"worked": "It worked", "partly": "Partly worked", "not_yet": "Not resolved yet"}[t.kind]
-        db.add(JournalEntry(user_id=case.user_id, case_id=case.id, type="followup", text=f"Follow-up from the email link (as you reported): {label}."))
+        label = {"worked": tr('It worked'), "partly": tr('Partly worked'), "not_yet": tr('Not resolved yet')}[t.kind]
+        db.add(JournalEntry(user_id=case.user_id, case_id=case.id, type="followup", text=tr('Follow-up from the email link (as you reported): {label}.', label=label)))
         reminders.clear(r, case.user_id, case.id)
     for other in db.scalars(select(EmailToken).where(EmailToken.case_id == case.id, EmailToken.kind.in_(["worked", "partly", "not_yet"]))):
         other.used_at = other.used_at or now

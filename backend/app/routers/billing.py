@@ -5,6 +5,7 @@ from .. import billing, config
 from ..db import get_db
 from ..deps import current_user
 from ..errors import ApiError
+from ..msg import tr
 from ..models import JournalEntry
 
 router = APIRouter(prefix="/api")
@@ -32,6 +33,6 @@ def test_checkout(body: dict, user=Depends(current_user), db: Session = Depends(
         raise ApiError(400, "Confirm the test purchase")
     p = billing.grant_pass(db, user.id, "test")
     db.add(JournalEntry(user_id=user.id, type="purchase",
-                        text=f"Test purchase: {billing.plans()['pass']['name']} until {p.expires_at.date().isoformat()}. No money was charged."))
+                        text=tr("Test purchase: {name} until {date}. No money was charged.", name=billing.plans()['pass']['name'], date=p.expires_at.date().isoformat())))
     db.commit()
     return billing.status(db, user.id)

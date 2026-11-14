@@ -13,6 +13,7 @@ from ..cache import get_redis
 from ..db import get_db
 from ..deps import current_user
 from ..errors import ApiError
+from ..msg import tr
 from ..models import Case, CustomSituation, JournalEntry, User
 
 router = APIRouter(prefix="/api")
@@ -38,7 +39,7 @@ def draft(body: DraftIn, user: User = Depends(current_user), r=Depends(get_redis
     n = r.incr(key)
     r.expire(key, 2 * 86400)
     if n > DRAFTS_PER_DAY:
-        raise ApiError(429, f"You used today's {DRAFTS_PER_DAY} AI drafts. Try again tomorrow.")
+        raise ApiError(429, tr("You used today's {n} AI drafts. Try again tomorrow.", n=DRAFTS_PER_DAY))
     try:
         preset = presets.normalize(llm.generate_preset(text, presets.engine_specs()))
     except llm.LlmError as e:
@@ -53,10 +54,10 @@ def draft(body: DraftIn, user: User = Depends(current_user), r=Depends(get_redis
 def save(body: dict, user: User = Depends(current_user), db: Session = Depends(get_db)):
     preset = presets.normalize(body.get("preset"))
     if presets.count(db, user.id) >= presets.MAX_PER_USER:
-        raise ApiError(400, f"You can keep up to {presets.MAX_PER_USER} situations of your own. Delete one first.")
+        raise ApiError(400, tr("You can keep up to {n} scenarios of your own. Delete one first.", n=presets.MAX_PER_USER))
     slug = presets.unique_slug(db, user.id, preset["title"])
     db.add(CustomSituation(user_id=user.id, slug=slug, engine=preset["engine"], preset=preset, source="ai"))
-    db.add(JournalEntry(user_id=user.id, type="situation", text=f"Saved a situation of your own: {preset['title']}"))
+    db.add(JournalEntry(user_id=user.id, type="situation", text=tr("Saved a scenario of your own: {title}", title=preset['title'])))
     db.commit()
     return {"situation": packs.public_situation(presets.build(preset, slug))}
 

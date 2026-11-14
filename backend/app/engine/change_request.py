@@ -1,5 +1,6 @@
 """Deterministic impact calculation for a late client change request.
 No LLM involved: the same inputs always give the same numbers."""
+from ..msg import tr
 import math
 from datetime import date, timedelta
 
@@ -65,41 +66,41 @@ def compute(i: dict) -> dict:
 
     ar = []
     if slip > 5:
-        ar.append((3, f"Release slips {slip} working days to {new_date}. Expect a hard conversation with the client."))
+        ar.append((3, tr('Release slips {slip} working days to {new_date}. Expect a hard conversation with the client.', slip=slip, new_date=new_date)))
     elif slip > 0:
-        ar.append((2, f"Release slips {slip} working day{'' if slip == 1 else 's'} to {new_date}."))
+        ar.append((2, tr('Release slips {slip} working day{s} to {new_date}.', slip=slip, s='' if slip == 1 else 's', new_date=new_date)))
     elif i["bufferDays"] > 0 and added / i["bufferDays"] >= 0.7:
-        ar.append((1, f"The change uses {added} of your {i['bufferDays']} buffer days. Almost no room for surprises."))
+        ar.append((1, tr('The change uses {added} of your {bufferDays} buffer days. Almost no room for surprises.', added=added, bufferDays=i['bufferDays'])))
     if budget_after < 0:
-        ar.append((3, f"Budget overrun of ${fmt(-budget_after)}. You need approval for more money."))
+        ar.append((3, tr('Budget overrun of ${budget_after}. You need approval for more money.', budget_after=fmt(-budget_after))))
     elif i["budgetRemaining"] > 0 and budget_after < i["budgetRemaining"] * 0.15:
-        ar.append((1, f"Only ${fmt(budget_after)} of budget left afterwards (under 15%)."))
+        ar.append((1, tr('Only ${budget_after} of budget left afterwards (under 15%).', budget_after=fmt(budget_after))))
     if workdays_to_release <= 10:
-        ar.append((1, f"Only {workdays_to_release} working days to the release. Late changes carry extra regression risk."))
+        ar.append((1, tr('Only {workdays_to_release} working days to the release. Late changes carry extra regression risk.', workdays_to_release=workdays_to_release)))
     if workdays_to_release > 0 and added > workdays_to_release * 0.3:
-        ar.append((1, f"The change needs {added} working days, over 30% of the time left."))
+        ar.append((1, tr('The change needs {added} working days, over 30% of the time left.', added=added)))
     if i["clientCoversPct"] == 0 and i["priority"] != "must":
-        ar.append((1, "The client pays nothing for this. Consider asking for a funded change order."))
+        ar.append((1, tr('The client pays nothing for this. Consider asking for a funded change order.')))
 
     # ---- Defer ----
     planning = i["dailyRate"] * 1  # ~1 person-day to re-baseline, write it up and talk to the client
     dr = []
     if i["priority"] == "must":
-        dr.append((4, "The client says this is a must-have. Deferring it likely blocks their launch."))
+        dr.append((4, tr('The client says this is a must-have. Deferring it likely blocks their launch.')))
     elif i["priority"] == "important":
-        dr.append((2, "Important to the client. They may push back or escalate."))
+        dr.append((2, tr('Important to the client. They may push back or escalate.')))
     else:
-        dr.append((0, "Low relationship risk for a nice-to-have, as long as the next slot is dated."))
-    dr.append((0, f"The work still costs about ${fmt(labor)} later ({rnd(total_days, 1)} person-days incl. overhead)."))
+        dr.append((0, tr('Low relationship risk for a nice-to-have, as long as the next slot is dated.')))
+    dr.append((0, tr('The work still costs about ${labor} later ({v} person-days incl. overhead).', labor=fmt(labor), v=rnd(total_days, 1))))
 
     # ---- Decline ----
     cr = []
     if i["priority"] == "must":
-        cr.append((5, "Declining a must-have is rarely viable. Escalate to your manager first."))
+        cr.append((5, tr('Declining a must-have is rarely viable. Escalate to your manager first.')))
     elif i["priority"] == "important":
-        cr.append((3, "The client will feel unheard unless you offer an alternative."))
+        cr.append((3, tr('The client will feel unheard unless you offer an alternative.')))
     else:
-        cr.append((1, "Low risk for a nice-to-have if you explain the reason with dates and cost."))
+        cr.append((1, tr('Low risk for a nice-to-have if you explain the reason with dates and cost.')))
 
     def mk(key, risks, **extra):
         score = sum(s for s, _ in risks)
@@ -126,8 +127,6 @@ def compute(i: dict) -> dict:
         "options": options,
         "lowestRiskKey": lowest["key"],
         "assumptions": (
-            f"Effort {i['changeEffortDays']} person-days + {i['overheadPct']}% overhead = {rnd(total_days, 1)}. "
-            f"{i['parallelPct']}% of it is split across {i['teamSize']} people at {i['focusPct']}% productivity, "
-            f"which adds {added} working days. Weekends are skipped. Rates are your inputs."
+            tr('Effort {changeEffortDays} person-days + {overheadPct}% overhead = {v}. {parallelPct}% of it is split across {teamSize} people at {focusPct}% productivity, which adds {added} working days. Weekends are skipped. Rates are your inputs.', changeEffortDays=i['changeEffortDays'], overheadPct=i['overheadPct'], v=rnd(total_days, 1), parallelPct=i['parallelPct'], teamSize=i['teamSize'], focusPct=i['focusPct'], added=added)
         ),
     }

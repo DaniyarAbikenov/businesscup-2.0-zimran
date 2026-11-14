@@ -1,6 +1,7 @@
 """Saving documents. Every change is stored as a revision, so nothing the user wrote is overwritten for good."""
 from sqlalchemy.orm import Session
 
+from .msg import tr
 from . import packs, presets
 from .models import Case, Document, DocumentRevision, JournalEntry, now
 
@@ -25,11 +26,11 @@ def save_document(db: Session, c: Case, kind: str, body: str, source: str = "use
         doc.revisions.append(DocumentRevision(body=body, source=source))
         c.documents.append(doc)
         if journal and source != "generated":
-            db.add(JournalEntry(user_id=c.user_id, case_id=c.id, type="document", text=f"Saved: {doc_label(sit, kind)}. {packs.case_title(c.situation_id, c.inputs)}"))
+            db.add(JournalEntry(user_id=c.user_id, case_id=c.id, type="document", text=tr("Saved: {label}. {title}", label=doc_label(sit, kind), title=packs.case_title(c.situation_id, c.inputs))))
     elif doc.body != body:
         doc.body = body
         doc.updated_at = now()
         doc.revisions.append(DocumentRevision(body=body, source=source))
         if journal:
-            db.add(JournalEntry(user_id=c.user_id, case_id=c.id, type="document", text=f"Edited: {doc_label(sit, kind)}. {packs.case_title(c.situation_id, c.inputs)}"))
+            db.add(JournalEntry(user_id=c.user_id, case_id=c.id, type="document", text=tr("Edited: {label}. {title}", label=doc_label(sit, kind), title=packs.case_title(c.situation_id, c.inputs))))
     return doc

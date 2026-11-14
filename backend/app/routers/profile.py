@@ -5,6 +5,7 @@ from .. import packs
 from ..db import get_db
 from ..deps import current_user
 from ..errors import ApiError
+from ..msg import tr
 from ..models import JournalEntry, Profile
 from .auth import profile_dict
 
@@ -25,7 +26,7 @@ def put_profile(body: dict, user=Depends(current_user), db: Session = Depends(ge
     p = db.get(Profile, user.id) or Profile(user_id=user.id)
     p.role_id, p.industry, p.tenure, p.fears, p.fear_note = role["id"], industry, body["tenure"], fears, fear_note
     db.add(p)
-    db.add(JournalEntry(user_id=user.id, type="onboarding", text=f"Set up profile as {role['label']}" + (f" in {industry}" if industry else "") + "."))
+    db.add(JournalEntry(user_id=user.id, type="onboarding", text=tr("Set up profile as {role}", role=role['label']) + (tr(" in {industry}", industry=industry) if industry else "") + "."))
     db.commit()
     return {"profile": profile_dict(p)}
 

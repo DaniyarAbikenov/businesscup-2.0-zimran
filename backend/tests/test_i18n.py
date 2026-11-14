@@ -78,3 +78,69 @@ def test_accept_language_for_public_resolution():
     assert i18n.resolve(R()) == "ru"
     R.headers = {"accept-language": "de-DE,fr;q=0.8,kk;q=0.5"}
     assert i18n.resolve(R()) == "kk"
+
+
+def _server_keys():
+    import ast
+    import glob
+    keys = set()
+    for f in glob.glob("app/**/*.py", recursive=True):
+        for n in ast.walk(ast.parse(open(f).read())):
+            if isinstance(n, ast.Call) and getattr(n.func, "id", "") == "tr" and n.args and isinstance(n.args[0], ast.Constant) and isinstance(n.args[0].value, str):
+                keys.add(n.args[0].value)
+    return keys
+
+
+def test_server_texts_have_russian_with_matching_placeholders():
+    from app import msg
+    table = msg.table("ru")
+    skip = {"options.{r}.s{v}"}  # a field key, not a text
+    missing = [k for k in _server_keys() if k not in table and k not in skip and re.search(r"[A-Za-z]{4}", k) and "user=%s" not in k]
+    assert not missing, missing[:10]
+    for en, ru in table.items():
+        assert set(PH.findall(ru)) <= set(PH.findall(en)) | {"{sfx}", "{s}"}, (en, ru)  # a translation may drop {sfx} but never invent a placeholder
+        assert set(PH.findall(en)) - set(PH.findall(ru)) <= {"{sfx}", "{s}"}, (en, ru)
+
+
+def test_engine_outputs_and_documents_follow_the_language(client):
+    signup(client, "ru-doc@example.com")
+    client.put("/api/profile", json={"roleId": "promoted-to-lead", "industry": "", "tenure": "1-3m", "fears": []})
+    body = {"situationId": "competing-priorities", "privacyAck": True, "confidenceBefore": 3, "inputs": {
+        "title": "Три просьбы", "context": "", "hoursPerWeek": 40, "committedHours": 15,
+        "tasks": [{"name": "Отчёт", "effortHours": 14, "deadline": "2030-01-23", "requester": "manager", "impact": "reputation", "note": ""},
+                  {"name": "Данные", "effortHours": 6, "deadline": "2030-01-18", "requester": "peer", "impact": "money", "note": ""}]}}
+    en = client.post("/api/cases", json=body).json()["case"]
+    ru = client.post("/api/cases", json=body, headers={"x-lang": "ru"}).json()["case"]
+    assert not re.search("[А-Яа-я]", en["result"]["assumptions"]) and re.search("[А-Яа-я]", ru["result"]["assumptions"])
+    assert re.search("[А-Яа-я]", ru["result"]["options"][0]["label"]) and ru["result"]["options"][0]["key"] == "deadline"
+    done = client.post(f"/api/cases/{ru['id']}/decision", json={"option": "deadline", "rationale": "x"}, headers={"x-lang": "ru"}).json()["case"]
+    assert done["document"].startswith("# Предложение по приоритетам: Три просьбы") and "Почему этот порядок" in done["document"]
+    assert "Earliest deadline first" not in done["document"] and re.search("[А-Яа-я]", done["debrief"]["points"][0])
+    # errors and field messages are localized too, with the same status and field ids
+    bad = client.post("/api/cases", json={**body, "inputs": {**body["inputs"], "hoursPerWeek": "abc"}}, headers={"x-lang": "ru"})
+    assert bad.status_code == 400 and bad.json()["error"] == "Проверьте выделенные поля" and bad.json()["fields"]["hoursPerWeek"] == "Введите число"
+
+
+def test_emails_follow_the_profile_language(client):
+    import json
+    from sqlalchemy import text as sql
+
+    from app import emails
+    from app.cache import get_redis
+    from app.db import SessionLocal, engine
+    signup(client, "ru-mail@example.com")
+    client.put("/api/profile", json={"roleId": "director", "industry": "", "tenure": "1-3m", "fears": []})
+    client.put("/api/profile/language", json={"language": "ru"})
+    client.post("/api/progress/reminders", json={"enabled": True})
+    body = {"situationId": "competing-priorities", "privacyAck": True, "confidenceBefore": 3, "inputs": {
+        "title": "Заявки", "context": "СЕКРЕТ", "hoursPerWeek": 40, "committedHours": 15,
+        "tasks": [{"name": "А", "effortHours": 14, "deadline": "2030-01-23", "requester": "manager", "impact": "reputation", "note": ""},
+                  {"name": "Б", "effortHours": 6, "deadline": "2030-01-18", "requester": "peer", "impact": "money", "note": ""}]}}
+    cid = client.post("/api/cases", json=body).json()["case"]["id"]
+    client.post(f"/api/cases/{cid}/decision", json={"option": "deadline", "rationale": "x"})
+    with engine.begin() as conn:
+        conn.execute(sql("UPDATE decisions SET followup_due = CURRENT_DATE - 1"))
+    with SessionLocal() as db:
+        assert emails.send_due_followups(db, get_redis()) == 1
+    mail = json.loads(get_redis().lrange("outbox", 0, 0)[0])
+    assert "Как всё прошло" in mail["subject"] and "Сработало" in mail["body"] and f"/case/{cid}" in mail["body"] and "СЕКРЕТ" not in mail["body"]

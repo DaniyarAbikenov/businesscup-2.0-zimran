@@ -15,6 +15,7 @@ from ..cache import get_redis
 from ..db import SessionLocal, get_db
 from ..deps import current_user
 from ..errors import ApiError
+from ..msg import tr
 from ..models import Case, Document, JournalEntry, Profile
 from .cases import OUTCOMES
 
@@ -49,8 +50,8 @@ def progress(user=Depends(current_user), db: Session = Depends(get_db)):
         timeline.append({
             "caseId": c.id, "date": _day(c.created_at), "title": packs.case_title(c.situation_id, c.inputs), "situation": sit.get("title", ""),
             "category": sit.get("category") or "Other", "chosen": (sit.get("options", {}).get(c.decision.option, {}).get("label") if c.decision else None),
-            "status": status, "statusLabel": STATUS[status], "outcome": c.followup.outcome if c.followup else None,
-            "outcomeLabel": OUTCOMES[c.followup.outcome] if c.followup else None})
+            "status": status, "statusLabel": tr(STATUS[status]), "outcome": c.followup.outcome if c.followup else None,
+            "outcomeLabel": tr(OUTCOMES[c.followup.outcome]) if c.followup else None})
 
     practiced: dict = {}
     for c in cases:
@@ -119,14 +120,14 @@ def email_outcome(token: str, db: Session = Depends(get_db), r=Depends(get_redis
     case = emails.record_outcome(db, r, token)
     if not case:
         raise ApiError(404, "This link is not valid any more")
-    return _page("Thanks, saved", "Your answer is in your journal. You can add details on the case page.", f"{config.APP_URL}/case/{case.id}")
+    return _page(tr("Thanks, saved"), tr("Your answer is in your journal. You can add details on the case page."), f"{config.APP_URL}/case/{case.id}")
 
 
 @router.get("/unsubscribe/{token}")
 def email_unsubscribe(token: str, db: Session = Depends(get_db)):
     if not emails.unsubscribe(db, token):
         raise ApiError(404, "This link is not valid any more")
-    return _page("Reminders are off", "We will not email you any more reminders. You can turn them on again in the app.")
+    return _page(tr("Reminders are off"), tr("We will not email you any more reminders. You can turn them on again in the app."))
 
 
 async def reminder_loop():

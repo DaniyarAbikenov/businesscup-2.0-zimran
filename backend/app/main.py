@@ -9,7 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
-from . import reminders
+from . import i18n, msg, reminders
 from .cache import get_redis
 from .db import SessionLocal
 from .errors import ApiError
@@ -38,9 +38,9 @@ for module in (auth, profile, cases, journal, telemetry, billing, intake, situat
 
 @app.exception_handler(ApiError)
 async def api_error(request: Request, e: ApiError):
-    body = {"error": e.message}
+    body = {"error": msg.tr(e.message)}
     if e.fields:
-        body["fields"] = e.fields
+        body["fields"] = {k: msg.tr(v) for k, v in e.fields.items()}
     return JSONResponse(body, status_code=e.status)
 
 
@@ -57,6 +57,7 @@ async def api_rules(request: Request, call_next):
     is_api = path.startswith("/api")
     rid = request.headers.get("x-request-id", "")[:40] or uuid.uuid4().hex[:12]
     started = time.perf_counter()
+    msg.set_lang(i18n.resolve(request))  # the language of this request: engines, documents and errors read it
     if is_api and request.method not in ("GET", "HEAD", "OPTIONS") and "application/json" not in request.headers.get("content-type", ""):
         resp = JSONResponse({"error": "JSON required"}, status_code=415)
     else:

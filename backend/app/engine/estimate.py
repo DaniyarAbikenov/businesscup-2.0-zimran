@@ -15,6 +15,7 @@ Risk points: missing the date (chance >= 85 % : 0, >= 65 % : 1, >= 45 % : 2, >= 
 cost of being late is medium or high and the chance is under 65 % (plus 1 if the one asking is a client), plus 1 to 3
 when the date is after the deadline they asked for (1-2 days : 1, 3-5 : 2, more : 3). A range with a check-in
 removes one miss point, because you can warn early."""
+from ..msg import tr
 import math
 
 from .change_request import add_workdays, level_of, rnd, workdays_between
@@ -35,9 +36,9 @@ def check(i: dict) -> dict:
     """Rules that span several fields. Returns {field: message}."""
     errs = {}
     if i["likelyHours"] < i["optimisticHours"]:
-        errs["likelyHours"] = "Must not be less than the optimistic estimate"
+        errs["likelyHours"] = tr('Must not be less than the optimistic estimate')
     if i["pessimisticHours"] < i["likelyHours"]:
-        errs["pessimisticHours"] = "Must not be less than the likely estimate"
+        errs["pessimisticHours"] = tr('Must not be less than the likely estimate')
     return errs
 
 
@@ -74,20 +75,18 @@ def compute(i: dict) -> dict:
         if key == "range":
             miss = max(0, miss - 1)
         if miss:
-            risks.append((miss, f"About {pct}% chance to finish by {date}. That is {'less than even' if pr < .5 else 'not safe'}: "
-                                f"if it slips, {COST_TEXT[cost]}."))
+            risks.append((miss, tr('About {pct}% chance to finish by {date}. That is {safe}: if it slips, {cost}.', pct=pct, date=date, safe=tr('less than even') if pr < 0.5 else tr('not safe'), cost=tr(COST_TEXT[cost]))))
         bonus = COST_BONUS[cost] + (1 if who == "client" else 0) if pr < .65 else 0
         if bonus:
-            risks.append((bonus, f"{REQUESTER[who].capitalize()} is asking and {COST_TEXT[cost]}, so a missed date costs more here."))
+            risks.append((bonus, tr('{capitalize} is asking and {cost}, so a missed date costs more here.', capitalize=tr(REQUESTER[who]).capitalize(), cost=tr(COST_TEXT[cost]))))
         if late:
             pts = 1 if late <= 2 else 2 if late <= 5 else 3
-            risks.append((pts, f"{date} is {late} working day{'s' if late != 1 else ''} after the date they asked for ({asked}). "
-                               "Expect pushback; say what the date is based on and what could be cut."))
+            risks.append((pts, tr('{date} is {late} working day{sfx} after the date they asked for ({asked}). Expect pushback; say what the date is based on and what could be cut.', date=date, late=late, sfx='s' if late != 1 else '', asked=asked)))
         if key == "range":
-            risks.append((0, f"A range is only useful with a check-in. Re-check on {recheck} (after about half of the likely work) and tell them then."))
+            risks.append((0, tr('A range is only useful with a check-in. Re-check on {recheck} (after about half of the likely work) and tell them then.', recheck=recheck)))
         if not [r for r in risks if r[0] > 0]:
-            risks.append((0, f"About {pct}% chance to make {date}, and it is not after the date they asked for." if asked
-                          else f"About {pct}% chance to make {date}."))
+            risks.append((0, tr('About {pct}% chance to make {date}, and it is not after the date they asked for.', pct=pct, date=date) if asked
+                          else tr('About {pct}% chance to make {date}.', pct=pct, date=date)))
         score = sum(s for s, _ in risks)
         options.append({
             "key": key, "date": date, "dateFrom": date_from, "workdays": n, "hours": rnd(hours.get(key, hours["safe"]), 1),
@@ -96,14 +95,9 @@ def compute(i: dict) -> dict:
         })
     best = min(options, key=lambda x: (x["riskScore"], x["lateDays"]))  # stable: list order wins ties
     safe = next(x for x in options if x["key"] == "safe")
-    headline = (f"You think {m:g} hours is most likely, but with the spread in your estimate the expected effort is {rnd(mean, 1):g} hours. "
-                f"At {rnd(per_day, 1):g} real hours a day, the likely date is {next(x for x in options if x['key'] == 'likely')['date']} "
-                f"and the safe date (about 90 % chance) is {safe['date']}.")
+    headline = (tr('You think {m:g} hours is most likely, but with the spread in your estimate the expected effort is {v:g} hours. At {v2:g} real hours a day, the likely date is {date} and the safe date (about 90 % chance) is {date2}.', m=m, v=rnd(mean, 1), v2=rnd(per_day, 1), date=next((x for x in options if x['key'] == 'likely'))['date'], date2=safe['date']))
     return {
         "engine": "estimate", "asOf": i["asOf"], "headline": headline, "meanHours": rnd(mean, 1), "sdHours": rnd(sd, 1),
         "hoursPerDay": rnd(per_day, 1), "askedDeadline": asked or None, "options": options, "lowestRiskKey": best["key"],
-        "assumptions": (f"Expected effort = (optimistic + 4 x likely + pessimistic) / 6 = {rnd(mean, 1)} hours, spread (pessimistic - optimistic) / 6 = {rnd(sd, 1)} hours. "
-                        f"You have {i['hoursPerWeek']} free hours a week and lose {i['interruptionsPct']}% to interruptions, so {rnd(per_day, 1)} real hours a working day. "
-                        f"Working days start on {start}, weekends are skipped. Chance to make a date = normal distribution with that mean and spread, "
-                        f"at the hours available by that date. Safe date = mean + {Z_SAFE} x spread (about 90 %). These are rules of thumb, not a prediction."),
+        "assumptions": (tr('Expected effort = (optimistic + 4 x likely + pessimistic) / 6 = {v} hours, spread (pessimistic - optimistic) / 6 = {v2} hours. You have {hoursPerWeek} free hours a week and lose {interruptionsPct}% to interruptions, so {v3} real hours a working day. Working days start on {start}, weekends are skipped. Chance to make a date = normal distribution with that mean and spread, at the hours available by that date. Safe date = mean + {Z_SAFE} x spread (about 90 %). These are rules of thumb, not a prediction.', v=rnd(mean, 1), v2=rnd(sd, 1), hoursPerWeek=i['hoursPerWeek'], interruptionsPct=i['interruptionsPct'], v3=rnd(per_day, 1), start=start, Z_SAFE=Z_SAFE)),
     }

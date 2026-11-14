@@ -16,7 +16,7 @@ import re
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from . import intake, packs
+from . import i18n, intake, msg, packs
 from .errors import ApiError
 from .models import CustomSituation
 
@@ -210,6 +210,6 @@ def resolve(db: Session, user_id: int, sid) -> dict | None:
     """A built-in situation, or one of this user's own. Another user's id never resolves."""
     s = packs.get_situation(sid)
     if s or not isinstance(sid, str) or not sid.startswith("my-"):
-        return s
+        return i18n.localize_situation(s, msg.current()) if s else s
     row = db.scalar(select(CustomSituation).where(CustomSituation.user_id == user_id, CustomSituation.slug == sid[3:]))
     return build(row.preset, row.slug) if row else None

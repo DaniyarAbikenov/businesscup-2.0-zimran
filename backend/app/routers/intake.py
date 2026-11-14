@@ -11,6 +11,7 @@ from .. import intake, llm, packs
 from ..cache import get_redis
 from ..deps import current_user
 from ..errors import ApiError
+from ..msg import tr
 from ..models import User
 
 router = APIRouter(prefix="/api")
@@ -41,7 +42,7 @@ def describe(body: IntakeIn, user: User = Depends(current_user), r=Depends(get_r
         n = r.incr(key)
         r.expire(key, 2 * 86400)
         if n > AI_PER_DAY:
-            note = f"You used today's {AI_PER_DAY} AI readings, so we matched your text by keywords."
+            note = tr("You used today's {n} AI readings, so we matched your text by keywords.", n=AI_PER_DAY)
         else:
             try:
                 proposal = llm.extract_situation(text, intake.catalog(), packs.today())

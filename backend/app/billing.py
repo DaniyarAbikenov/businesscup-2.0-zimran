@@ -1,4 +1,5 @@
 """What a user may do on their plan. Free: FREE_CASES situations of their own. Pass: everything for PASS_DAYS."""
+from .msg import tr
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import func, select
@@ -12,12 +13,12 @@ PLAN = "pass90"
 
 def plans() -> dict:
     return {
-        "free": {"name": "Free", "priceCents": 0, "cases": config.FREE_CASES,
-                 "features": [f"{config.FREE_CASES} situations of your own", "All storylines to practise with", "Documents, journal and follow-ups"]},
-        "pass": {"id": PLAN, "name": f"First {config.PASS_DAYS} Days Pass", "priceCents": config.PASS_PRICE_CENTS, "days": config.PASS_DAYS,
-                 "billing": "one-time payment, no subscription",
-                 "features": ["Unlimited situations", "Every new situation we add during your pass", "AI drafts when available",
-                              "Keep all documents after the pass ends"]},
+        "free": {"name": tr('Free'), "priceCents": 0, "cases": config.FREE_CASES,
+                 "features": [tr('{FREE_CASES} situations of your own', FREE_CASES=config.FREE_CASES), tr('All storylines to practise with'), tr('Documents, journal and follow-ups')]},
+        "pass": {"id": PLAN, "name": tr('First {PASS_DAYS} Days Pass', PASS_DAYS=config.PASS_DAYS), "priceCents": config.PASS_PRICE_CENTS, "days": config.PASS_DAYS,
+                 "billing": tr('one-time payment, no subscription'),
+                 "features": [tr('Unlimited situations'), tr('Every new situation we add during your pass'), tr('AI drafts when available'),
+                              tr('Keep all documents after the pass ends')]},
         "testCheckout": config.TEST_CHECKOUT,
     }
 

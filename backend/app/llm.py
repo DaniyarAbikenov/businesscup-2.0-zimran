@@ -27,7 +27,13 @@ def _client() -> anthropic.Anthropic:
     return anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY, timeout=60, max_retries=1)
 
 
+LANG_NAMES = {"ru": "Russian", "kk": "Kazakh"}
+
+
 def _call(prompt: str, max_tokens: int, schema: dict | None = None) -> str:
+    from . import msg
+    if msg.current() in LANG_NAMES:  # user-facing text in the user's language; keys, ids and enum values stay English
+        prompt += f"\n\nWrite all user-facing text in {LANG_NAMES[msg.current()]}. Keep JSON keys, ids, option keys and enum values exactly as given (English)."
     output_config: dict = {"effort": "low"}
     if schema:
         output_config["format"] = {"type": "json_schema", "schema": schema}
