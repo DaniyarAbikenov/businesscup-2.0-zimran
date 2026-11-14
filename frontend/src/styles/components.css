@@ -98,3 +98,5 @@ textarea.input.doc { font: 13px/20px var(--font-mono); min-height: 420px; white-
   .nav a, .nav button { font-size: 13px; white-space: nowrap; }
   .brand { font-size: 18px; }
 }
+.check { display: flex; gap: var(--s-2); align-items: flex-start; font-size: 14px; margin-top: var(--s-4); }
+.check input { margin-top: 3px; }

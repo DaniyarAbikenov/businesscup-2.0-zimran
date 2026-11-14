@@ -3,6 +3,7 @@ import { Link, NavLink, Navigate, Route, Routes, useNavigate } from 'react-route
 import { Me, Pack, api } from './api';
 import Auth from './pages/Auth';
 import CasePage from './pages/Case';
+import AccountPage from './pages/Account';
 import DocumentsPage from './pages/Documents';
 import Home from './pages/Home';
 import JournalPage from './pages/Journal';
@@ -46,13 +47,14 @@ export default function App() {
               <Route path="/case/:id" element={<CasePage />} />
               <Route path="/journal" element={<JournalPage />} />
               <Route path="/documents" element={<DocumentsPage />} />
+              <Route path="/account" element={<AccountPage />} />
               <Route path="/login" element={<Navigate to="/" replace />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </>
           )}
         </Routes>
       </main>
-      <footer className="footer">Practice with realistic numbers. Do not enter confidential employer or client data.</footer>
+      <footer className="footer">Practice with realistic numbers. Do not enter confidential employer or client data. <Link to="/account">Account and data</Link></footer>
     </Ctx.Provider>
   );
 }

@@ -124,7 +124,7 @@ function Decided({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: 
   const d = c.debrief!;
 
   const copy = async () => {
-    try { await navigator.clipboard.writeText(doc); toast.show('Change Request copied to clipboard'); } catch { toast.show('Select the text and copy it manually'); }
+    try { await navigator.clipboard.writeText(doc); toast.show('Change Request copied to clipboard'); api('POST', `/cases/${c.id}/export`, { how: 'copy' }).catch(() => {}); } catch { toast.show('Select the text and copy it manually'); }
   };
   const download = () => {
     const a = document.createElement('a');
@@ -132,6 +132,7 @@ function Decided({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: 
     a.download = `change-request-${c.id}.md`;
     document.body.append(a); a.click(); a.remove();
     notify('Downloaded change-request-' + c.id + '.md');
+    api('POST', `/cases/${c.id}/export`, { how: 'download' }).catch(() => {});
   };
   const getHint = async () => {
     setHintBusy(true); setHintErr('');

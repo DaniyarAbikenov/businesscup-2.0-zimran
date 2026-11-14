@@ -48,10 +48,12 @@ def test_full_flow(client):
     p = client.put("/api/profile", json={"roleId": "it-pm", "industry": "Fintech", "tenure": "1-3m", "fears": ["wrong-call", "bogus"]})
     assert p.json()["profile"]["fears"] == ["wrong-call"]
 
-    bad = client.post("/api/cases", json={"situationId": "client-change-request", "confidenceBefore": 2, "inputs": {**ANSWERS, "teamSize": -1}})
+    bad = client.post("/api/cases", json={"situationId": "client-change-request", "privacyAck": True, "confidenceBefore": 2, "inputs": {**ANSWERS, "teamSize": -1}})
     assert bad.status_code == 400 and "teamSize" in bad.json()["fields"]
 
-    made = client.post("/api/cases", json={"situationId": "client-change-request", "confidenceBefore": 2, "inputs": ANSWERS})
+    no_ack = client.post("/api/cases", json={"situationId": "client-change-request", "confidenceBefore": 2, "inputs": ANSWERS})
+    assert no_ack.status_code == 400 and "confidential" in no_ack.json()["error"]
+    made = client.post("/api/cases", json={"situationId": "client-change-request", "privacyAck": True, "confidenceBefore": 2, "inputs": ANSWERS})
     assert made.status_code == 201
     cid = made.json()["case"]["id"]
     assert len(made.json()["case"]["result"]["options"]) == 3
@@ -73,14 +75,14 @@ def test_full_flow(client):
     assert get_redis().zcard("followups:1") == 0
 
     j = client.get("/api/journal").json()
-    assert j["stats"] == {"started": 1, "decided": 1, "followedUp": 1, "reportedWorked": 1, "confidenceChange": 2.0}
+    assert j["stats"] == {"started": 1, "decided": 1, "exported": 0, "followedUp": 1, "reportedWorked": 1, "confidenceChange": 2.0}
     assert j["followups"] == [] and any(e["type"] == "followup" for e in j["entries"])
 
 
 def test_ownership(client, make_client):
     signup(client, "owner@example.com")
     intruder = signup(make_client(), "intruder@example.com")
-    cid = client.post("/api/cases", json={"situationId": "client-change-request", "confidenceBefore": 3, "inputs": ANSWERS}).json()["case"]["id"]
+    cid = client.post("/api/cases", json={"situationId": "client-change-request", "privacyAck": True, "confidenceBefore": 3, "inputs": ANSWERS}).json()["case"]["id"]
     assert intruder.get(f"/api/cases/{cid}").status_code == 404
     assert intruder.post(f"/api/cases/{cid}/decision", json={"option": "accept"}).status_code == 404
     assert intruder.put(f"/api/cases/{cid}/inputs", json={"inputs": ANSWERS}).status_code == 404
@@ -90,7 +92,7 @@ def test_ownership(client, make_client):
 
 def test_recalculate_draft_only(client):
     signup(client, "re@example.com")
-    cid = client.post("/api/cases", json={"situationId": "client-change-request", "confidenceBefore": 3, "inputs": ANSWERS}).json()["case"]["id"]
+    cid = client.post("/api/cases", json={"situationId": "client-change-request", "privacyAck": True, "confidenceBefore": 3, "inputs": ANSWERS}).json()["case"]["id"]
     r = client.put(f"/api/cases/{cid}/inputs", json={"inputs": {**ANSWERS, "changeEffortDays": 1, "bufferDays": 9}})
     assert r.json()["case"]["result"]["options"][0]["slipWorkdays"] == 0
     client.post(f"/api/cases/{cid}/decision", json={"option": "decline"})
@@ -128,7 +130,7 @@ def test_client_log_accepts_events_without_login(client):
 
 def test_documents_are_saved_and_versioned(client, make_client):
     signup(client, "docs@example.com")
-    cid = client.post("/api/cases", json={"situationId": "client-change-request", "confidenceBefore": 3, "inputs": ANSWERS}).json()["case"]["id"]
+    cid = client.post("/api/cases", json={"situationId": "client-change-request", "privacyAck": True, "confidenceBefore": 3, "inputs": ANSWERS}).json()["case"]["id"]
     assert client.put(f"/api/cases/{cid}/documents/change_request", json={"body": "x"}).status_code == 409  # not decided yet
     case = client.post(f"/api/cases/{cid}/decision", json={"option": "accept"}).json()["case"]
     generated = case["document"]
@@ -155,3 +157,27 @@ def test_documents_are_saved_and_versioned(client, make_client):
     assert other.put(f"/api/cases/{cid}/documents/change_request", json={"body": "hijack"}).status_code == 404
     assert other.get(f"/api/cases/{cid}/documents/change_request/revisions").status_code == 404
     assert other.get("/api/documents").json()["documents"] == []
+
+
+def test_export_is_recorded_and_account_can_be_deleted(client, make_client):
+    signup(client, "gone@example.com")
+    client.put("/api/profile", json={"roleId": "it-pm", "industry": "", "tenure": "1-3m", "fears": []})
+    cid = client.post("/api/cases", json={"situationId": "client-change-request", "privacyAck": True, "confidenceBefore": 3, "inputs": ANSWERS}).json()["case"]["id"]
+    assert client.post(f"/api/cases/{cid}/export", json={"how": "copy"}).status_code == 409  # nothing to export yet
+    client.post(f"/api/cases/{cid}/decision", json={"option": "accept", "followupDays": 2})
+    assert client.post(f"/api/cases/{cid}/export", json={"how": "fax"}).status_code == 400
+    assert client.post(f"/api/cases/{cid}/export", json={"how": "copy"}).status_code == 200
+    assert client.post(f"/api/cases/{cid}/export", json={"how": "download"}).status_code == 200
+    j = client.get("/api/journal").json()
+    assert j["stats"]["exported"] == 1 and sum(e["type"] == "export" for e in j["entries"]) == 2
+
+    other = signup(make_client(), "stays@example.com")
+    other_case = other.post("/api/cases", json={"situationId": "client-change-request", "privacyAck": True, "confidenceBefore": 3, "inputs": ANSWERS}).json()["case"]["id"]
+
+    assert client.request("DELETE", "/api/account", json={"confirm": "yes"}).status_code == 400
+    assert client.request("DELETE", "/api/account", json={"confirm": "DELETE"}).status_code == 200
+    assert client.get("/api/me").status_code == 401
+    assert get_redis().zcard("followups:1") == 0
+    # login no longer works, and the other user's data is untouched
+    assert client.post("/api/auth/login", json={"email": "gone@example.com", "password": "correct-horse"}).status_code == 401
+    assert other.get(f"/api/cases/{other_case}").status_code == 200

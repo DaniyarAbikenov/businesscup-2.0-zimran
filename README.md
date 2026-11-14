@@ -75,7 +75,7 @@ users 1--* journal   timeline events, optionally linked to a case
 - **Redis:** `sess:*` sessions with TTL, `login:*` throttle counters, `followups:<user>` sorted set that drives the "follow-ups due" badge (rebuilt from Postgres at startup), `hint:*` cache of the AI draft.
 - **AI (optional):** set `ANTHROPIC_API_KEY` to enable "Draft a message to the client". Without a key the button is hidden and nothing else changes. When used, the change title, decision, date, cost and your reasoning are sent to the API.
 - **Security:** scrypt password hashes, random session tokens (stored hashed) in HttpOnly SameSite cookies, JSON-only writes, per-user ownership checks, login throttling, server-side validation. Set `COOKIE_SECURE=true` behind HTTPS.
-- **Privacy:** the UI warns users not to enter confidential employer or client data.
+- **Privacy:** the UI warns users not to enter confidential employer or client data, and a case cannot be started without ticking a confirmation (also enforced by the API). Users can delete their account and all data (`DELETE /api/account`, page "Account and data"). Copying or downloading the Change Request is recorded as an export event in the journal.
 
 ## Logs
 

@@ -91,6 +91,22 @@ def logout(request: Request, response: Response, r=Depends(get_redis)):
     return {"ok": True}
 
 
+@router.delete("/account")
+def delete_account(body: dict, request: Request, response: Response, user=Depends(current_user), db: Session = Depends(get_db), r=Depends(get_redis)):
+    """Removes the user and everything they created (cascade). The user must type DELETE."""
+    if body.get("confirm") != "DELETE":
+        raise ApiError(400, "Type DELETE to confirm")
+    uid = user.id
+    db.delete(user)
+    db.commit()
+    r.delete(f"followups:{uid}")
+    token = request.cookies.get(COOKIE)
+    if token:
+        r.delete("sess:" + sha(token))
+    response.delete_cookie(COOKIE, path="/")
+    return {"ok": True}
+
+
 def profile_dict(p: Profile | None):
     return None if not p else {"roleId": p.role_id, "industry": p.industry, "tenure": p.tenure, "fears": p.fears, "fearNote": p.fear_note}
 

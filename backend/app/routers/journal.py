@@ -29,6 +29,7 @@ def journal(user=Depends(current_user), db: Session = Depends(get_db)):
         "stats": {
             "started": len(cases),
             "decided": len(decided),
+            "exported": len({e.case_id for e in entries if e.type == "export"}),
             "followedUp": sum(1 for c in decided if c.followup),
             "reportedWorked": sum(1 for c in decided if c.followup and c.followup.outcome in ("worked", "partly")),
             "confidenceChange": round(sum(c.reflection.confidence_after - c.confidence_before for c in reflected) / len(reflected), 1) if reflected else None,

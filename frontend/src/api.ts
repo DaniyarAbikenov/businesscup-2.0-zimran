@@ -48,6 +48,7 @@ export interface Situation {
   id: string; title: string; summary: string; applies_to: string[]; questions: Question[];
   options: Record<string, { label: string; nextSteps: string[] }>;
   reflectionPrompts: { id: string; label: string }[];
+  sample?: Record<string, string | number>;
 }
 export interface Pack {
   roles: { id: string; label: string; terms: Record<string, string> }[];
@@ -76,7 +77,7 @@ export interface Journal {
   entries: { id: number; case_id: number | null; type: string; text: string; created_at: string }[];
   cases: { id: number; title: string; status: string; followupDone: boolean }[];
   followups: { caseId: number; title: string; due: string; overdue: boolean }[];
-  stats: { started: number; decided: number; followedUp: number; reportedWorked: number; confidenceChange: number | null };
+  stats: { exported?: number; started: number; decided: number; followedUp: number; reportedWorked: number; confidenceChange: number | null };
 }
 
 export const usd = (n: number) => (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString('en-US');

@@ -65,6 +65,8 @@ def create_case(body: dict, user=Depends(current_user), db: Session = Depends(ge
     sit = packs.get_situation(body.get("situationId"))
     if not sit:
         raise ApiError(400, "Unknown situation")
+    if body.get("privacyAck") is not True:
+        raise ApiError(400, "Confirm that you did not enter confidential employer or client information")
     conf = confidence(body.get("confidenceBefore"))
     if not conf:
         raise ApiError(400, "Rate your confidence from 1 to 5")
@@ -190,3 +192,16 @@ def revisions(kind: str, c: Case = Depends(own_case)):
     if not doc:
         raise ApiError(404, "Not found")
     return {"revisions": [{"id": r.id, "source": r.source, "createdAt": r.created_at.isoformat(), "body": r.body} for r in reversed(doc.revisions)]}
+
+
+@router.post("/cases/{case_id}/export")
+def record_export(body: dict, c: Case = Depends(own_case), db: Session = Depends(get_db)):
+    """The user copied or downloaded the document: a weak but objective sign they mean to use it."""
+    how = body.get("how")
+    if how not in ("copy", "download"):
+        raise ApiError(400, "Unknown export type")
+    if c.status != "decided":
+        raise ApiError(409, "Make a decision first")
+    log(db, c.user_id, c.id, "export", f"Exported the Change Request ({'copied' if how == 'copy' else 'downloaded'}): {c.inputs['changeTitle']}")
+    db.commit()
+    return {"ok": True}
