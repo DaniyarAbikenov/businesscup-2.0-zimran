@@ -1,0 +1,48 @@
+{
+  "roles": [
+    {
+      "id": "it-pm",
+      "label": "IT Project Manager",
+      "terms": { "milestone": "release", "work": "engineering", "unit": "person-day" },
+      "duties": ["Schedule and release planning", "Change control", "Risk management", "Stakeholder communication", "Budget tracking"]
+    },
+    {
+      "id": "animation-pm",
+      "label": "Animation / CGI Production Manager",
+      "terms": { "milestone": "delivery", "work": "production", "unit": "artist-day" },
+      "duties": ["Shot and render scheduling", "Client approvals and revisions", "Vendor budgets", "Risk management", "Studio communication"]
+    },
+    {
+      "id": "construction-pm",
+      "label": "Construction Project Manager",
+      "terms": { "milestone": "handover", "work": "site work", "unit": "crew-day" },
+      "duties": ["Site schedule", "Change orders", "Subcontractor budgets", "Permits and compliance", "Owner communication"]
+    },
+    {
+      "id": "eng-lead",
+      "label": "Engineering / Team Lead",
+      "terms": { "milestone": "release", "work": "engineering", "unit": "person-day" },
+      "duties": ["Scope negotiation", "Estimation", "Delivery commitments", "Team capacity", "Stakeholder updates"]
+    },
+    {
+      "id": "other",
+      "label": "Other first-time lead or manager",
+      "terms": { "milestone": "deadline", "work": "team", "unit": "person-day" },
+      "duties": ["Priorities and scope", "Deadlines", "Budget", "Communicating with stakeholders"]
+    }
+  ],
+  "tenures": [
+    { "id": "not-started", "label": "Not started yet" },
+    { "id": "lt-1m", "label": "Less than 1 month" },
+    { "id": "1-3m", "label": "1 to 3 months" },
+    { "id": "3-6m", "label": "3 to 6 months" }
+  ],
+  "fears": [
+    { "id": "wrong-call", "label": "Making a wrong call that costs the team" },
+    { "id": "promise-dates", "label": "Promising dates I cannot keep" },
+    { "id": "pushback", "label": "Pushing back on a client or executive" },
+    { "id": "looking-lost", "label": "Looking like I do not know what I am doing" },
+    { "id": "scope", "label": "Scope growing out of control" },
+    { "id": "conflict", "label": "Handling conflict inside the team" }
+  ]
+}

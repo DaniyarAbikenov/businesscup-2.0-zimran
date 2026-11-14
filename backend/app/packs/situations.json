@@ -1,0 +1,73 @@
+{
+  "situations": [
+    {
+      "id": "client-change-request",
+      "engine": "change_request",
+      "title": "The client changes requirements 2 weeks before release",
+      "summary": "A client asks for a change late in the project. Enter your real numbers, compare accepting, deferring and declining, then produce a Change Request you can send.",
+      "applies_to": ["*"],
+      "questions": [
+        { "id": "changeTitle", "group": "change", "type": "text", "label": "What is the change, in one line?", "required": true, "max": 120, "placeholder": "Add CSV export to the reports screen" },
+        { "id": "changeDescription", "group": "change", "type": "textarea", "label": "What exactly does the client want?", "help": "Ask the client for specifics: which screens or deliverables, what is the acceptance criterion, what happens if it is not there.", "required": false, "max": 1000 },
+        { "id": "requestedBy", "group": "change", "type": "text", "label": "Who asked for it?", "required": true, "max": 80, "placeholder": "Jordan, VP Operations (client)" },
+        { "id": "priority", "group": "change", "type": "select", "label": "How critical is it for the client?", "help": "Ask: what happens to them if this is not in this release?", "required": true, "default": "important",
+          "options": [
+            { "value": "must", "label": "Must-have (blocks their launch, legal or contractual)" },
+            { "value": "important", "label": "Important (hurts, but they can launch without it)" },
+            { "value": "nice", "label": "Nice-to-have" }
+          ] },
+        { "id": "releaseDate", "group": "numbers", "type": "date", "label": "Current release date", "required": true, "defaultDaysFromNow": 14 },
+        { "id": "teamSize", "group": "numbers", "type": "number", "label": "People working on the project", "required": true, "min": 1, "max": 200, "step": 1, "default": 6 },
+        { "id": "dailyRate", "group": "numbers", "type": "number", "label": "Average cost per person-day (USD)", "help": "Use the internal blended rate or your best estimate.", "required": true, "min": 1, "max": 20000, "default": 600 },
+        { "id": "budgetRemaining", "group": "numbers", "type": "number", "label": "Budget remaining for the project (USD)", "required": true, "min": 0, "max": 1000000000, "default": 40000 },
+        { "id": "changeEffortDays", "group": "numbers", "type": "number", "label": "Estimated effort for the change (person-days)", "help": "Ask the team for a quick estimate. Do not guess alone.", "required": true, "min": 0.5, "max": 5000, "step": 0.5, "default": 10 },
+        { "id": "bufferDays", "group": "numbers", "type": "number", "label": "Schedule buffer left before the release (working days)", "required": true, "min": 0, "max": 365, "step": 1, "default": 2 },
+        { "id": "clientCoversPct", "group": "numbers", "type": "number", "label": "Share of the change cost the client will pay (%)", "help": "0 if the contract does not allow billing the change.", "required": true, "min": 0, "max": 100, "step": 5, "default": 0 },
+        { "id": "delayPenaltyPerDay", "group": "numbers", "type": "number", "label": "Contract penalty per day of delay (USD, optional)", "required": false, "min": 0, "max": 100000000, "default": 0 },
+        { "id": "overheadPct", "group": "assumptions", "type": "number", "label": "Testing and coordination overhead (%)", "help": "Extra effort on top of the raw estimate for QA, regression, docs and meetings.", "required": true, "min": 0, "max": 200, "step": 5, "default": 25 },
+        { "id": "parallelPct", "group": "assumptions", "type": "number", "label": "Share of the work that can be split across the team (%)", "help": "Not all work can be shared. 100 means perfectly splittable.", "required": true, "min": 0, "max": 100, "step": 5, "default": 60 },
+        { "id": "focusPct", "group": "assumptions", "type": "number", "label": "Productive share of a working day (%)", "required": true, "min": 10, "max": 100, "step": 5, "default": 70 }
+      ],
+      "options": {
+        "accept": {
+          "label": "Accept the change",
+          "nextSteps": [
+            "Send the Change Request to the client and get written approval before any work starts.",
+            "Tell the team what is changing and re-baseline the plan together.",
+            "Update the schedule, budget and risk register.",
+            "Agree on a freeze: no further changes without a new Change Request."
+          ]
+        },
+        "defer": {
+          "label": "Defer to the next release",
+          "nextSteps": [
+            "Offer the client a dated slot in the next release, not an open-ended promise.",
+            "Write the change into the backlog with the agreed priority.",
+            "Explain what the client gets on time instead.",
+            "Confirm with the client in writing."
+          ]
+        },
+        "decline": {
+          "label": "Decline the change",
+          "nextSteps": [
+            "Prepare the reason in the client's terms: dates and money, not 'we are busy'.",
+            "Offer an alternative such as a smaller version or a workaround.",
+            "Raise it with your manager before the call if the client is senior.",
+            "Record the decision and the reason."
+          ]
+        }
+      },
+      "pitfalls": [
+        "Saying yes in the meeting before anyone has estimated the change.",
+        "Ignoring the testing and coordination effort that comes with every change.",
+        "Absorbing the cost silently, so the client never sees what each change costs.",
+        "Telling the client about the delay after the date has already slipped.",
+        "Declining without offering a deferred or smaller alternative."
+      ],
+      "reflectionPrompts": [
+        { "id": "learned", "label": "What did you learn from comparing the options?" },
+        { "id": "different", "label": "What would you do differently next time?" }
+      ]
+    }
+  ]
+}

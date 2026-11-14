@@ -1,0 +1,97 @@
+from app.cache import get_redis
+
+ANSWERS = dict(
+    changeTitle="Add CSV export", requestedBy="Jordan", priority="important", releaseDate="2026-12-15",
+    teamSize=6, dailyRate=600, budgetRemaining=40000, changeEffortDays=10, bufferDays=2,
+    clientCoversPct=0, overheadPct=25, parallelPct=60, focusPct=70,
+)
+
+
+def signup(c, email, pw="correct-horse"):
+    r = c.post("/api/auth/register", json={"email": email, "password": pw})
+    assert r.status_code == 201
+    return c
+
+
+def test_auth_rules(client, make_client):
+    assert client.post("/api/auth/register", json={"email": "bad", "password": "longenough"}).status_code == 400
+    assert client.post("/api/auth/register", json={"email": "a@b.co", "password": "short"}).status_code == 400
+    signup(client, "ann@example.com")
+    assert make_client().post("/api/auth/register", json={"email": "ANN@example.com", "password": "correct-horse"}).status_code == 409
+    assert make_client().get("/api/me").status_code == 401
+    assert client.get("/api/me").json()["user"]["email"] == "ann@example.com"
+
+    other = make_client()
+    assert other.post("/api/auth/login", json={"email": "ann@example.com", "password": "nope-nope"}).status_code == 401
+    assert other.post("/api/auth/login", json={"email": "ann@example.com", "password": "correct-horse"}).status_code == 200
+    assert other.get("/api/me").status_code == 200
+    other.post("/api/auth/logout", json={})
+    assert other.get("/api/me").status_code == 401  # session removed from Redis
+
+
+def test_login_throttle(client):
+    signup(client, "t@example.com")
+    c = client.__class__(client.app)
+    for _ in range(10):
+        assert c.post("/api/auth/login", json={"email": "t@example.com", "password": "wrong-pass"}).status_code == 401
+    assert c.post("/api/auth/login", json={"email": "t@example.com", "password": "correct-horse"}).status_code == 429
+
+
+def test_non_json_write_rejected(client):
+    r = client.post("/api/auth/login", content="x", headers={"content-type": "text/plain"})
+    assert r.status_code == 415
+
+
+def test_full_flow(client):
+    signup(client, "flow@example.com")
+    assert client.put("/api/profile", json={"roleId": "nope", "tenure": "1-3m"}).status_code == 400
+    p = client.put("/api/profile", json={"roleId": "it-pm", "industry": "Fintech", "tenure": "1-3m", "fears": ["wrong-call", "bogus"]})
+    assert p.json()["profile"]["fears"] == ["wrong-call"]
+
+    bad = client.post("/api/cases", json={"situationId": "client-change-request", "confidenceBefore": 2, "inputs": {**ANSWERS, "teamSize": -1}})
+    assert bad.status_code == 400 and "teamSize" in bad.json()["fields"]
+
+    made = client.post("/api/cases", json={"situationId": "client-change-request", "confidenceBefore": 2, "inputs": ANSWERS})
+    assert made.status_code == 201
+    cid = made.json()["case"]["id"]
+    assert len(made.json()["case"]["result"]["options"]) == 3
+
+    d = client.post(f"/api/cases/{cid}/decision", json={"option": "accept", "rationale": "Funded by phase 2", "followupDays": 2})
+    assert d.status_code == 200
+    case = d.json()["case"]
+    assert "# Change Request: Add CSV export" in case["document"] and case["debrief"]["points"]
+    assert client.post(f"/api/cases/{cid}/decision", json={"option": "defer"}).status_code == 409
+
+    # Redis reminder index: due in 2 days, so nothing is due yet but the entry exists
+    assert get_redis().zcard("followups:1") == 1
+    assert client.get("/api/reminders").json()["due"] == 0
+
+    assert client.post(f"/api/cases/{cid}/reflection", json={"confidenceAfter": 9}).status_code == 400
+    client.post(f"/api/cases/{cid}/reflection", json={"learned": "Ask for estimates", "confidenceAfter": 4})
+    fu = client.post(f"/api/cases/{cid}/followup", json={"outcome": "worked", "notes": "Client signed"})
+    assert fu.json()["case"]["followup"]["outcome"] == "worked"
+    assert get_redis().zcard("followups:1") == 0
+
+    j = client.get("/api/journal").json()
+    assert j["stats"] == {"started": 1, "decided": 1, "followedUp": 1, "reportedWorked": 1, "confidenceChange": 2.0}
+    assert j["followups"] == [] and any(e["type"] == "followup" for e in j["entries"])
+
+
+def test_ownership(client, make_client):
+    signup(client, "owner@example.com")
+    intruder = signup(make_client(), "intruder@example.com")
+    cid = client.post("/api/cases", json={"situationId": "client-change-request", "confidenceBefore": 3, "inputs": ANSWERS}).json()["case"]["id"]
+    assert intruder.get(f"/api/cases/{cid}").status_code == 404
+    assert intruder.post(f"/api/cases/{cid}/decision", json={"option": "accept"}).status_code == 404
+    assert intruder.put(f"/api/cases/{cid}/inputs", json={"inputs": ANSWERS}).status_code == 404
+    assert client.get(f"/api/cases/{cid}").status_code == 200
+    assert intruder.get("/api/journal").json()["stats"]["started"] == 0
+
+
+def test_recalculate_draft_only(client):
+    signup(client, "re@example.com")
+    cid = client.post("/api/cases", json={"situationId": "client-change-request", "confidenceBefore": 3, "inputs": ANSWERS}).json()["case"]["id"]
+    r = client.put(f"/api/cases/{cid}/inputs", json={"inputs": {**ANSWERS, "changeEffortDays": 1, "bufferDays": 9}})
+    assert r.json()["case"]["result"]["options"][0]["slipWorkdays"] == 0
+    client.post(f"/api/cases/{cid}/decision", json={"option": "decline"})
+    assert client.put(f"/api/cases/{cid}/inputs", json={"inputs": ANSWERS}).status_code == 409
