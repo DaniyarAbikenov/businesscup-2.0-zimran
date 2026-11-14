@@ -28,7 +28,7 @@ def _walk_sit(sit, ov, where):
         assert len(ov["pitfalls"]) == len(sit["pitfalls"]), where
 
 
-@pytest.mark.parametrize("lang", ["ru"])
+@pytest.mark.parametrize("lang", ["ru", "kk"])
 def test_overlay_references_only_existing_ids(lang):
     ov = i18n.overlay(lang)
     assert set(ov["situations"]) == {s["id"] for s in packs.situations}  # every situation has its translation
