@@ -12,3 +12,13 @@ def test_only_english_when_not_enabled(monkeypatch):
 def test_overlays_still_work_when_enabled(monkeypatch):
     monkeypatch.setattr(i18n, "LANGS", ("en", "ru", "kk"))
     assert i18n.norm("ru") == "ru"
+
+
+def test_form_steps_cover_every_group_once():
+    """The form wizard: every built-in scenario has 3 to 4 named steps and each question group sits in exactly one."""
+    from app import packs
+    for s in packs.situations:
+        groups = [g["id"] for g in s["groups"]]
+        in_steps = [g for st in s["steps"] for g in st["groups"]]
+        assert sorted(in_steps) == sorted(groups), s["id"]
+        assert 3 <= len(s["steps"]) <= 4 and all(st["title"] for st in s["steps"]), s["id"]

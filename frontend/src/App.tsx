@@ -2,7 +2,6 @@ import { t } from './i18n';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { Me, Pack, api } from './api';
-import { adopt, getLang } from './i18n';
 import { TourProvider, useTour } from './tour/TourHost';
 import Auth from './pages/Auth';
 import CasePage from './pages/Case';
@@ -27,8 +26,6 @@ export default function App() {
   const refresh = useCallback(async () => {
     try {
       const me = await api<Me>('GET', '/me');
-      const saved = me.profile?.language;
-      if (saved && saved !== getLang()) { adopt(saved); window.location.reload(); return; } // the account's language wins
       const pack = await api<Pack>('GET', '/packs');
       setState({ me, pack, loading: false });
     } catch {

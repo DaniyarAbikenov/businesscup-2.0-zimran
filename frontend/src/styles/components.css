@@ -230,3 +230,16 @@ ol.path .card.first { border-color: var(--accent-700); }
 
 .slider-unit { color: var(--n-800); font-size: 14px; min-width: 20px; }
 .listq-sum { font-weight: 400; color: var(--n-800); }
+
+/* Form wizard */
+.wiz-progress { margin: 0 0 20px; }
+.wiz-label { font-size: 14px; color: var(--n-800); margin-bottom: 8px; }
+.wiz-label b { color: var(--n-1000); }
+.wiz-bar { display: flex; gap: 6px; }
+.wiz-seg { flex: 1; height: 8px; border-radius: 4px; border: 0; padding: 0; background: var(--n-400); cursor: pointer; }
+.wiz-seg.on { background: var(--accent-700); }
+.wiz-seg:disabled { cursor: default; }
+.review { margin: 0; display: grid; gap: 10px; }
+.review-row { display: grid; grid-template-columns: minmax(140px, 40%) 1fr; gap: 12px; border-bottom: 1px solid var(--n-400); padding-bottom: 8px; }
+.review dt { color: var(--n-800); font-size: 14px; }
+.review dd { margin: 0; overflow-wrap: anywhere; }

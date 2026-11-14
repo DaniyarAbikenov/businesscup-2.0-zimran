@@ -50,6 +50,7 @@ export interface Question {
 }
 export interface Storyline { id: string; title: string; story: string; answers: Record<string, any> }
 export interface Situation {
+  steps?: { title: string; groups: string[] }[];
   id: string; engine: 'change_request' | 'priorities' | 'estimate' | 'decision'; aiMade?: boolean; category?: string; title: string; summary: string; applies_to: string[]; questions: Question[];
   skill?: string; titleField?: string; documentName?: string; storylines?: Storyline[];
   groups?: { id: string; title: string; columns?: number; collapsed?: boolean }[];

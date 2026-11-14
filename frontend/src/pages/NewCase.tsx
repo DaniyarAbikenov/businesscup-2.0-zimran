@@ -5,6 +5,7 @@ import { useSession } from '../App';
 import { Intake, Storyline, api } from '../api';
 import { notify } from '../components/Toaster';
 import { TourScreen } from '../tour/TourHost';
+import { Wizard } from '../components/Wizard';
 import { Button, DateChips, Field, PageHeader, Panel, PrivacyBanner, QuestionGroups, Stepper, initialAnswers } from '../components/ui';
 
 /** Keyed by scenario so moving between scenarios starts a fresh form. */
@@ -122,17 +123,7 @@ function NewCase() {
         </Panel>
       )}
       {story && <div className="banner ok" role="note"><strong>{t('Example: {title}.', { title: story.title })}</strong> {t('These are example numbers, not yours. Edit them freely.')}</div>}
-      <form onSubmit={submit} noValidate>
-        <QuestionGroups sit={sit} answers={answers} fields={fields} onChange={setAnswers} />
-        <Panel>
-          <Field id="conf" label={t('How confident do you feel handling this right now?')} help={t('1 is not at all, 5 is very.')} why={t('After you decide, we ask again. The change shows you whether working through it helped, and it feeds your Progress page. It never affects the calculation.')}>
-            {(a) => <select className="input" {...a} value={conf} onChange={(e) => setConf(e.target.value)}>{[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}</select>}
-          </Field>
-          <label className="check"><input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} /> {t('I did not enter confidential employer or client information.')}</label>
-          {error && <div className="field error" role="alert">{error}</div>}
-          <div className="row" style={{ marginTop: 24 }} data-tour="form-submit"><Button type="submit" busy={busy}>{t('Compare my options')}</Button></div>
-        </Panel>
-      </form>
+      <Wizard sit={sit} answers={answers} setAnswers={setAnswers} serverFields={fields} conf={conf} setConf={setConf} ack={ack} setAck={setAck} error={error} busy={busy} onSubmit={submit} />
     </div>
   );
 }

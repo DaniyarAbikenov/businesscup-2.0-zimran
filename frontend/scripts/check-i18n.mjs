@@ -1,4 +1,5 @@
 // Parity check: every t('...') / tn(n, '..', '..') text used in src has a translation in each dictionary, with the same {placeholders}.
+// The product is English only, so by default nothing is compared. To check the unused ru/kk dictionaries: I18N_LANGS=ru,kk node scripts/check-i18n.mjs
 // Run: docker compose exec frontend node scripts/check-i18n.mjs
 import fs from 'fs';
 import path from 'path';
@@ -23,7 +24,7 @@ const SKIP = new Set(['Shift', 'RoleShift', 'DELETE', 'low', 'medium', 'high']);
 let bad = 0;
 const JSON_OUT = process.argv.includes('--json');
 const missingKeys = [];
-for (const lang of ['ru', 'kk']) {
+for (const lang of (process.env.I18N_LANGS || '').split(',').filter(Boolean)) {
   if (!fs.existsSync(`src/i18n/${lang}.ts`)) continue;
   const d = load(lang);
   if (!Object.keys(d).length) { console.log(`${lang}: empty dictionary, skipped`); continue; }
