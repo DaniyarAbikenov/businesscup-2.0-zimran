@@ -47,3 +47,14 @@ def test_test_checkout_can_be_switched_off(client, monkeypatch):
     monkeypatch.setattr(config, "TEST_CHECKOUT", False)
     assert client.post("/api/billing/test-checkout", json={"plan": "pass90", "confirm": True}).status_code == 404
     assert client.get("/api/billing").status_code == 200
+
+
+def test_default_pass_price_is_19_dollars(monkeypatch):
+    import importlib
+    monkeypatch.delenv("PASS_PRICE_CENTS", raising=False)
+    from app import config
+    try:
+        assert importlib.reload(config).PASS_PRICE_CENTS == 1900
+    finally:
+        monkeypatch.undo()
+        importlib.reload(config)

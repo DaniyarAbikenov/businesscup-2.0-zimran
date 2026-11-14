@@ -17,3 +17,13 @@ def check_password(pw: str, stored: str) -> bool:
 
 def sha(s: str) -> str:
     return hashlib.sha256(s.encode()).hexdigest()
+
+
+def client_ip(request) -> str:
+    """The caller's address. Behind Vercel's proxy the real address is the first entry of X-Forwarded-For; elsewhere that header is not trusted."""
+    from . import config
+    if config.ON_VERCEL:
+        first = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+        if first:
+            return first
+    return request.client.host if request.client else ""

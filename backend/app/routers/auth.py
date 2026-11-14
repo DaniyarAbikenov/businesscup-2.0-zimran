@@ -14,7 +14,7 @@ from ..deps import COOKIE, current_user
 from ..errors import ApiError
 from ..models import Profile, User
 from ..packs import public_pack
-from ..security import check_password, hash_password, sha
+from ..security import check_password, client_ip, hash_password, sha
 
 router = APIRouter(prefix="/api")
 EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -50,7 +50,7 @@ def register(body: Credentials, response: Response, db: Session = Depends(get_db
 @router.post("/auth/login")
 def login(body: Credentials, request: Request, response: Response, db: Session = Depends(get_db), r=Depends(get_redis)):
     email = body.email.strip().lower()
-    key = f"login:{email}|{request.client.host if request.client else ''}"
+    key = f"login:{email}|{client_ip(request)}"
     if int(r.get(key) or 0) >= 10:
         raise ApiError(429, "Too many attempts. Try again in 15 minutes.")
     user = db.scalar(select(User).where(User.email == email))
@@ -73,10 +73,12 @@ def demo(request: Request, response: Response, db: Session = Depends(get_db), r=
     """Creates a throwaway demo user with sample data at every step, and signs in."""
     if not config.DEMO_MODE:
         raise ApiError(404, "Demo mode is off")
-    key = f"demo:{request.client.host if request.client else ''}"
-    if r.incr(key) > 30:
+    key = f"demo:{client_ip(request)}"
+    n = r.incr(key)
+    if n == 1:
+        r.expire(key, 3600)
+    if n > config.DEMO_PER_HOUR:
         raise ApiError(429, "Too many demo accounts from this address. Try again in an hour.")
-    r.expire(key, 3600)
     user = seed_demo_user(db, r)
     start_session(response, r, user.id)
     return {"ok": True}

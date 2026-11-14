@@ -45,11 +45,13 @@ CRON_SECRET = env("CRON_SECRET")  # Vercel Cron sends it as "Authorization: Bear
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY")
 LLM_MODEL = env("LLM_MODEL", "claude-opus-5-5")
 DEMO_MODE = env("DEMO_MODE", "true") == "true"
+DEMO_PER_HOUR = int(env("DEMO_PER_HOUR", "10"))  # demo accounts one address may create per hour
+DEMO_KEEP_DAYS = int(env("DEMO_KEEP_DAYS", "7"))  # the daily job removes demo accounts older than this
 SESSION_DAYS = 14
 
 # Pricing. Free users can start FREE_CASES situations of their own; the pass unlocks everything for PASS_DAYS.
 FREE_CASES = int(env("FREE_CASES", "3"))
-PASS_PRICE_CENTS = int(env("PASS_PRICE_CENTS", "2900"))
+PASS_PRICE_CENTS = int(env("PASS_PRICE_CENTS", "1900"))
 PASS_DAYS = int(env("PASS_DAYS", "90"))
 # Built-in test checkout: no payment provider, no card data, the purchase is stored as provider "test".
 TEST_CHECKOUT = env("TEST_CHECKOUT", "true") == "true"

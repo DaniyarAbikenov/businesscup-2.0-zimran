@@ -149,7 +149,7 @@ users 1--* journal   timeline events, optionally linked to a case
 ## Pricing
 
 - Free: `FREE_CASES` (default 3) situations of your own. Demo sample cases do not count.
-- First 90 Days Pass: `PASS_PRICE_CENTS` (default 2900 = $29), one-time, `PASS_DAYS` (default 90). Buying again extends the pass.
+- First 90 Days Pass: `PASS_PRICE_CENTS` (default 1900 = $19), one-time, `PASS_DAYS` (default 90). Buying again extends the pass.
 - Checkout is a built-in **test checkout** (`TEST_CHECKOUT=true`): no payment provider, no card details, the purchase is stored with provider `test`. The pricing page (`/pricing`) works without signing in, and starting a situation over the limit leads to it.
 
 ## Logs

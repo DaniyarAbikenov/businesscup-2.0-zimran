@@ -102,6 +102,15 @@ def _guess_history(db, user):
         db.add(JournalEntry(user_id=user.id, case_id=c.id, type="case", created_at=c.created_at, text="Started: " + packs.case_title(sid, inputs)))
 
 
+def cleanup(db, days: int) -> int:
+    """Removes demo accounts (and, by cascade, everything they created) older than `days`. Returns how many."""
+    from sqlalchemy import delete
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    res = db.execute(delete(User).where(User.email.like("%@" + DEMO_DOMAIN), User.created_at < cutoff))
+    db.commit()
+    return res.rowcount or 0
+
+
 def seed_demo_user(db, r) -> User:
     user = User(email=f"demo-{secrets.token_hex(4)}@{DEMO_DOMAIN}", password_hash=hash_password(secrets.token_hex(16)))
     db.add(user)

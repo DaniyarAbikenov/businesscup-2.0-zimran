@@ -150,9 +150,11 @@ def cron_followups(request: Request, db: Session = Depends(get_db)):
     secret = config.CRON_SECRET
     if not secret or not hmac.compare_digest(request.headers.get("authorization", ""), f"Bearer {secret}"):
         raise ApiError(404, "Not found")
+    from .. import demo
     res = emails.run_all(db, get_redis())
-    log.info("cron reminders %s", res)
-    return {"ok": True, **res}
+    removed = demo.cleanup(db, config.DEMO_KEEP_DAYS)
+    log.info("cron reminders %s, old demo accounts removed %s", res, removed)
+    return {"ok": True, **res, "demoRemoved": removed}
 
 
 async def reminder_loop():

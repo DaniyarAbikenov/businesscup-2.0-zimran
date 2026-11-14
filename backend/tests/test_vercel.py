@@ -37,4 +37,31 @@ def test_cron_needs_the_secret(client, monkeypatch):
     assert client.get("/api/internal/cron/followups").status_code == 404
     assert client.get("/api/internal/cron/followups", headers={"Authorization": "Bearer wrong"}).status_code == 404
     ok = client.get("/api/internal/cron/followups", headers={"Authorization": "Bearer s3cret"})
-    assert ok.status_code == 200 and ok.json()["ok"] is True and set(ok.json()) == {"ok", "followups", "day7"}
+    assert ok.status_code == 200 and ok.json()["ok"] is True and set(ok.json()) == {"ok", "followups", "day7", "demoRemoved"}
+
+
+def test_demo_accounts_are_limited_per_address_and_old_ones_are_cleaned(client, monkeypatch):
+    from datetime import datetime, timedelta, timezone
+    from sqlalchemy import select
+    from app import demo
+    from app.db import SessionLocal
+    from app.models import User
+    monkeypatch.setattr(config, "DEMO_PER_HOUR", 2)
+    assert client.post("/api/auth/demo", json={}).status_code == 201
+    assert client.post("/api/auth/demo", json={}).status_code == 201
+    assert client.post("/api/auth/demo", json={}).status_code == 429  # the third one in the hour
+    with SessionLocal() as db:
+        old = db.scalars(select(User).order_by(User.id)).first()
+        old.created_at = datetime.now(timezone.utc) - timedelta(days=8)
+        db.commit()
+        assert demo.cleanup(db, 7) == 1  # only the one older than 7 days
+        assert len(db.scalars(select(User)).all()) == 1
+
+
+def test_client_address_comes_from_the_proxy_only_on_vercel(monkeypatch):
+    from app.security import client_ip
+    req = type("R", (), {"headers": {"x-forwarded-for": "203.0.113.5, 10.0.0.1"}, "client": type("C", (), {"host": "10.0.0.1"})()})()
+    monkeypatch.setattr(config, "ON_VERCEL", False)
+    assert client_ip(req) == "10.0.0.1"
+    monkeypatch.setattr(config, "ON_VERCEL", True)
+    assert client_ip(req) == "203.0.113.5"
