@@ -111,7 +111,7 @@ How to use the service (Russian and English): [docs/USER_GUIDE.md](docs/USER_GUI
 
 ## Deploy on Vercel
 
-One Vercel project with Neon and Upstash: see [DEPLOY_VERCEL.md](DEPLOY_VERCEL.md). Set `AUTO_MIGRATE=true` so the tables are created on the first cold start.
+One Vercel project with Neon and Upstash: see [DEPLOY_VERCEL.md](DEPLOY_VERCEL.md). Set `AUTO_MIGRATE=true` so the tables are created on the first cold start. The test deployment is at https://businesscup-2-0-zimran.vercel.app.
 
 ## Design system
 
