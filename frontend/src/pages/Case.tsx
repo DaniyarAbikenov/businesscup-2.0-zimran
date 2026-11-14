@@ -4,7 +4,7 @@ import { TourScreen } from '../tour/TourHost';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useSession } from '../App';
-import { Case, Option, Situation, api, fmtDate, usd } from '../api';
+import { Case, Lever, Option, Situation, api, fmtDate, usd } from '../api';
 import { notify } from '../components/Toaster';
 import { Badge, Button, Field, PageHeader, Panel, QuestionGroups, Stepper, Why, initialAnswers, useToast } from '../components/ui';
 
@@ -21,6 +21,29 @@ export default function CasePage() {
 }
 
 /** The answer first: one sentence from the server's numbers, before the details. */
+/** Time, money and quality side by side: only when the person entered optional money or scope data. A rule of thumb, not a measurement. */
+function Levers({ c }: { c: Case }) {
+  const ls = c.result.levers;
+  if (!ls || ls.length < 2) return null;
+  const risk = (r: string) => r === 'high' ? t('high') : r === 'medium' ? t('medium') : t('low');
+  const time = (l: Lever) => l.date ? `${fmtDate(l.date)} (${tn(l.days ?? 0, '{n} working day', '{n} working days')})` : (l.time && l.time.lateCount ? t('{n} late, {d} in total', { n: l.time.lateCount, d: tn(l.time.lateDays, '{n} working day', '{n} working days') }) : t('On time'));
+  const money = (l: Lever) => l.money.total == null ? t('not entered') : l.money.total === 0 ? '0' : String(l.money.total);
+  const qual = (l: Lever) => l.quality.cutShare ? `${t('Quality risk')}: ${risk(l.quality.risk)} (${Math.round(l.quality.cutShare * 100)}% ${t('cut')})` : t('Nothing cut');
+  const pays = (l: Lever) => l.payWith.length ? l.payWith.map((p) => p === 'time' ? t('time') : p === 'money' ? t('money') : p === 'quality' ? t('quality') : t('goodwill')).join(', ') : t('nothing');
+  return (
+    <div className="levers" data-tour="res-levers">
+      <h3 style={{ fontSize: 16, margin: '16px 0 4px' }}>{t('Time, money, quality: what you pay with')}</h3>
+      <p className="small muted" style={{ margin: '0 0 8px' }}>{t('Every way to fix lateness costs something. These are rules of thumb on your own numbers, not measurements.')}</p>
+      <div style={{ overflowX: 'auto' }}>
+        <table className="ledger">
+          <thead><tr><th scope="col">{t('Way')}</th><th scope="col">{t('Time')}</th><th scope="col">{t('Money')}</th><th scope="col">{t('Quality')}</th><th scope="col">{t('You pay with')}</th></tr></thead>
+          <tbody>{ls.map((l) => <tr key={l.key}><th scope="row">{l.label}<div className="small muted">{l.note}</div></th><td>{time(l)}</td><td>{money(l)}</td><td>{qual(l)}</td><td>{pays(l)}</td></tr>)}</tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 /** "Why this label": the points behind a risk label, the thresholds, and what would change it. Everything comes from the server's numbers. */
 function WhyLabel({ o }: { o: Option }) {
   const next = o.riskLevel === 'high' ? 3 : o.riskLevel === 'medium' ? 1 : null;
@@ -305,6 +328,7 @@ function Draft({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: Ca
         {sit.engine === 'decision' ? <><DecisionRanking c={c} /><DecisionLedger c={c} sit={sit} chosen={chosen} onPick={setChosen} /></>
           : sit.engine === 'estimate' ? <EstimateLedger c={c} sit={sit} chosen={chosen} onPick={setChosen} />
           : sit.engine === 'priorities' ? <PriorityLedger c={c} sit={sit} chosen={chosen} onPick={setChosen} /> : <Ledger c={c} sit={sit} chosen={chosen} onPick={setChosen} />}
+        <Levers c={c} />
         <Challenge c={c} />
         <details><summary>{t('How was this calculated?')}</summary><p className="small muted">{c.result.assumptions}</p></details>
       </Panel>

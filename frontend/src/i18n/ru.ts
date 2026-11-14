@@ -509,6 +509,26 @@ const ru: Record<string, string> = {
  "Optional. We email you when a follow-up is due, never your numbers.": "Необязательно. Мы пишем, когда пора отметить итог, и никогда не присылаем ваши числа.",
  "Journal and documents": "Журнал и документы",
  "Your timeline and every document you saved live here. Switch with the tabs.": "Здесь ваша хронология и все сохранённые документы. Переключайтесь вкладками.",
- "Do not show tours again": "Больше не показывать подсказки"
+ "Do not show tours again": "Больше не показывать подсказки",
+ "{n} late, {d} in total": "Опоздают: {n}, суммарно {d}",
+ "On time": "В срок",
+ "not entered": "не указано",
+ "Quality risk": "Риск для качества",
+ "cut": "урезано",
+ "Nothing cut": "Ничего не урезано",
+ "time": "временем",
+ "money": "деньгами",
+ "quality": "качеством",
+ "goodwill": "доверием",
+ "nothing": "ничем",
+ "Time, money, quality: what you pay with": "Время, деньги, качество: чем вы платите",
+ "Every way to fix lateness costs something. These are rules of thumb on your own numbers, not measurements.": "Любой способ убрать опоздание чем-то стоит. Это ориентиры по вашим же числам, а не измерения.",
+ "Way": "Способ",
+ "Time": "Время",
+ "Money": "Деньги",
+ "Quality": "Качество",
+ "You pay with": "Вы платите",
+ "{n} working day": "{n} рабочий день | {n} рабочих дня | {n} рабочих дней",
+ "{n} working days": "{n} рабочих дней"
 };
 export default ru;

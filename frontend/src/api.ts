@@ -71,10 +71,16 @@ export interface Option {
   costBreakdown?: { labor: number; extendedRun: number; delayPenalty: number; clientCovers: number };
   risks: { severity: number; text: string }[];
 }
+export interface Lever {
+  key: string; label: string; note: string; payWith: string[];
+  time?: { lateCount: number; lateDays: number }; date?: string; days?: number;
+  money: { total: number | null; late?: number | null; extra?: number | null };
+  quality: { cutShare: number; risk: string; reducedTasks?: number };
+}
 export interface Case {
   id: number; situationId: string; title: string; inputs: Record<string, any>; confidenceBefore: number;
   status: 'draft' | 'decided'; chosenOption: string | null; document: string | null; followupDue: string | null;
-  result: { headline?: string; fits?: boolean; workdaysToRelease: number; addedWorkdays: number; assumptions: string; lowestRiskKey: string; options: Option[] };
+  result: { headline?: string; fits?: boolean; workdaysToRelease: number; addedWorkdays: number; assumptions: string; lowestRiskKey: string; options: Option[]; levers?: Lever[] };
   prediction?: { items: { label: string; guess: string; actual: string; hit: boolean; gap?: string }[]; overall: number; sentence: string; missed: string | null } | null;
   reflection: { learned: string; different: string; confidenceAfter: number } | null;
   followup: { outcome: string; notes: string } | null;

@@ -506,6 +506,26 @@ const kk: Record<string, string> = {
  "Your timeline and every document you saved live here. Switch with the tabs.": "Хронологияңыз бен сақталған барлық құжаттар осында. Қойындылармен ауысыңыз.",
  "low": "төмен",
  "medium": "орташа",
- "high": "жоғары"
+ "high": "жоғары",
+ "{n} late, {d} in total": "Кешігеді: {n}, барлығы {d}",
+ "On time": "Мерзімінде",
+ "not entered": "көрсетілмеген",
+ "Quality risk": "Сапаға тәуекел",
+ "cut": "қысқартылған",
+ "Nothing cut": "Ештеңе қысқартылмайды",
+ "time": "уақытпен",
+ "money": "ақшамен",
+ "quality": "сапамен",
+ "goodwill": "сеніммен",
+ "nothing": "ештеңемен",
+ "Time, money, quality: what you pay with": "Уақыт, ақша, сапа: немен төлейсіз",
+ "Every way to fix lateness costs something. These are rules of thumb on your own numbers, not measurements.": "Кешігуді түзетудің кез келген жолының бағасы бар. Бұл өз сандарыңыздағы бағдар, өлшем емес.",
+ "Way": "Жол",
+ "Time": "Уақыт",
+ "Money": "Ақша",
+ "Quality": "Сапа",
+ "You pay with": "Төлейтініңіз",
+ "{n} working day": "{n} жұмыс күні",
+ "{n} working days": "{n} жұмыс күні"
 };
 export default kk;
