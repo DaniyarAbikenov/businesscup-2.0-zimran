@@ -28,3 +28,17 @@ def put_profile(body: dict, user=Depends(current_user), db: Session = Depends(ge
     db.add(JournalEntry(user_id=user.id, type="onboarding", text=f"Set up profile as {role['label']}" + (f" in {industry}" if industry else "") + "."))
     db.commit()
     return {"profile": profile_dict(p)}
+
+
+@router.put("/profile/language")
+def put_language(body: dict, user=Depends(current_user), db: Session = Depends(get_db)):
+    from .. import i18n
+    lang = body.get("language")
+    if lang is not None and i18n.norm(lang) != lang:
+        raise ApiError(400, "Unknown language")
+    p = db.get(Profile, user.id)
+    if not p:
+        raise ApiError(409, "Set up your profile first")
+    p.language = lang
+    db.commit()
+    return {"language": p.language}

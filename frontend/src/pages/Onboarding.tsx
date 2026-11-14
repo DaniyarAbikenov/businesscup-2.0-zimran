@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { notify } from '../components/Toaster';
 import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -24,7 +25,7 @@ export default function Onboarding() {
     try {
       await api('PUT', '/profile', { roleId, industry, tenure, fears, fearNote });
       await refresh();
-      notify('Profile saved.');
+      notify(t('Profile saved.'));
       nav('/');
     } catch (x: any) {
       setError(x.message);
@@ -35,23 +36,23 @@ export default function Onboarding() {
 
   return (
     <div className="narrow">
-      <PageHeader eyebrow="Welcome" title="Tell us about your new position" lead="Facing a decision in a new role? You will try your options with your own numbers before you commit, and get a ready message to send. Tell us your position (one minute) and we pick the right scenarios." />
+      <PageHeader eyebrow={t('Welcome')} title={t('Tell us about your new position')} lead={t('Facing a decision in a new role? You will try your options with your own numbers before you commit, and get a ready message to send. Tell us your position (one minute) and we pick the right scenarios.')} />
       <PrivacyBanner />
       <Panel>
         <form onSubmit={submit}>
-          <Field id="role" label="Your new position">{(a) => (
+          <Field id="role" label={t('Your new position')}>{(a) => (
             <select className="input" {...a} value={roleId} onChange={(e) => setRoleId(e.target.value)}>
               {pack.roles.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
             </select>)}
           </Field>
-          <Field id="industry" label="Industry (optional)">{(a) => <input className="input" {...a} maxLength={80} placeholder="Fintech, healthcare, games" value={industry} onChange={(e) => setIndustry(e.target.value)} />}</Field>
-          <Field id="tenure" label="How long have you been in this position?">{(a) => (
+          <Field id="industry" label={t('Industry (optional)')}>{(a) => <input className="input" {...a} maxLength={80} placeholder={t('Fintech, healthcare, games')} value={industry} onChange={(e) => setIndustry(e.target.value)} />}</Field>
+          <Field id="tenure" label={t('How long have you been in this position?')}>{(a) => (
             <select className="input" {...a} value={tenure} onChange={(e) => setTenure(e.target.value)}>
               {pack.tenures.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
             </select>)}
           </Field>
           <fieldset style={{ border: 0, padding: 0, margin: '16px 0 0' }}>
-            <legend style={{ fontSize: 14, fontWeight: 600, padding: 0, marginBottom: 4 }}>What worries you most? Pick any.</legend>
+            <legend style={{ fontSize: 14, fontWeight: 600, padding: 0, marginBottom: 4 }}>{t('What worries you most? Pick any.')}</legend>
             <div className="checks">
               {pack.fears.map((f) => (
                 <label key={f.id} className="check">
@@ -61,11 +62,11 @@ export default function Onboarding() {
               ))}
             </div>
           </fieldset>
-          <Field id="note" label="Anything else? (optional)" help="Keep it generic: no names or company details.">
+          <Field id="note" label={t('Anything else? (optional)')} help={t('Keep it generic: no names or company details.')}>
             {(a) => <textarea className="input" {...a} maxLength={500} value={fearNote} onChange={(e) => setFearNote(e.target.value)} />}
           </Field>
           {error && <div className="field error" role="alert">{error}</div>}
-          <div className="row" style={{ marginTop: 24 }}><Button type="submit" busy={busy}>Save and continue</Button></div>
+          <div className="row" style={{ marginTop: 24 }}><Button type="submit" busy={busy}>{t('Save and continue')}</Button></div>
         </form>
       </Panel>
     </div>

@@ -1,6 +1,9 @@
+import { t } from './i18n';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { Me, Pack, api } from './api';
+import { adopt, getLang } from './i18n';
+import { LanguageSwitch } from './components/ui';
 import Auth from './pages/Auth';
 import CasePage from './pages/Case';
 import AccountPage from './pages/Account';
@@ -23,7 +26,10 @@ export default function App() {
 
   const refresh = useCallback(async () => {
     try {
-      const [me, pack] = await Promise.all([api<Me>('GET', '/me'), api<Pack>('GET', '/packs')]);
+      const me = await api<Me>('GET', '/me');
+      const saved = me.profile?.language;
+      if (saved && saved !== getLang()) { adopt(saved); window.location.reload(); return; } // the account's language wins
+      const pack = await api<Pack>('GET', '/packs');
       setState({ me, pack, loading: false });
     } catch {
       setState({ me: null, pack: null, loading: false });
@@ -31,7 +37,7 @@ export default function App() {
   }, []);
   useEffect(() => { refresh(); }, [refresh]);
 
-  if (state.loading) return <main className="page"><p className="muted">Loading</p></main>;
+  if (state.loading) return <main className="page"><p className="muted">{t('Loading')}</p></main>;
   if (!state.me || !state.pack) return <Routes><Route path="/pricing" element={<main className="page"><PricingPage signedIn={false} /></main>} /><Route path="/register" element={<Auth mode="register" onDone={refresh} />} /><Route path="*" element={<Auth mode="login" onDone={refresh} />} /></Routes>;
   const session = { me: state.me, pack: state.pack, refresh };
   const needsProfile = !state.me.profile;
@@ -64,7 +70,7 @@ export default function App() {
           )}
         </Routes>
       </main>
-      <footer className="footer">Practice with realistic numbers. Do not enter confidential employer or client data. <Link to="/guide">How it works</Link> · <Link to="/account">Account and data</Link> · <Link to="/pricing">Pricing</Link></footer>
+      <footer className="footer">{t('Practice with realistic numbers. Do not enter confidential employer or client data.')} <Link to="/guide">{t('How it works')}</Link> · <Link to="/account">{t('Account and data')}</Link> · <Link to="/pricing">{t('Pricing')}</Link></footer>
     </Ctx.Provider>
   );
 }
@@ -80,14 +86,15 @@ function TopBar() {
   return (
     <header className="topbar">
       <div className="topbar-inner">
-        <Link to="/" className="brand">Role<span>Shift</span></Link>
-        <nav className="nav" aria-label="Main">
-          <NavLink to="/" end>Home</NavLink>
-          <NavLink to="/journal" className={() => (/^\/(journal|documents)/.test(loc.pathname) ? 'active' : '')} aria-current={/^\/(journal|documents)/.test(loc.pathname) ? 'page' : undefined}>My cases{due > 0 && <span className="count" aria-label={`${due} follow-ups due`}>{due}</span>}</NavLink>
-          <NavLink to="/progress">Progress</NavLink>
-          <NavLink to="/guide" className="hide-sm">How it works</NavLink>
-          <NavLink to="/account">Account</NavLink>
-          <button onClick={async () => { await api('POST', '/auth/logout', {}); await refresh(); nav('/'); }}>Sign out</button>
+        <Link to="/" className="brand">Role<span>{t('Shift')}</span></Link>
+        <nav className="nav" aria-label={t('Main')}>
+          <NavLink to="/" end>{t('Home')}</NavLink>
+          <NavLink to="/journal" className={() => (/^\/(journal|documents)/.test(loc.pathname) ? 'active' : '')} aria-current={/^\/(journal|documents)/.test(loc.pathname) ? 'page' : undefined}>{t('My cases')}{due > 0 && <span className="count" aria-label={t('{due} follow-ups due', { due: due })}>{due}</span>}</NavLink>
+          <NavLink to="/progress">{t('Progress')}</NavLink>
+          <NavLink to="/guide" className="hide-sm">{t('How it works')}</NavLink>
+          <NavLink to="/account">{t('Account')}</NavLink>
+          <LanguageSwitch />
+          <button onClick={async () => { await api('POST', '/auth/logout', {}); await refresh(); nav('/'); }}>{t('Sign out')}</button>
         </nav>
       </div>
     </header>

@@ -1,19 +1,21 @@
+import { t } from '../i18n';
 import { NavLink } from 'react-router-dom';
+import { LANGS, getLang, setLang, t as tt, Lang } from '../i18n';
 import { notify } from './Toaster';
 import { ReactNode, useState } from 'react';
 import { Question } from '../api';
 
 export const PrivacyBanner = () => (
   <div className="banner" role="note">
-    <strong>Privacy:</strong> do not enter confidential employer or client information. Use rounded or made-up numbers and generic names.
+    <strong>{t('Privacy:')}</strong> {t('do not enter confidential employer or client information. Use rounded or made-up numbers and generic names.')}
   </div>
 );
 
 /** Four steps of every scenario, with what the person does in each. `current` is 1-4; earlier steps show as done. */
 export function Stepper({ current }: { current: 1 | 2 | 3 | 4 }) {
-  const steps = [['Fill in', 'Tell us the facts and your numbers.'], ['Compare', 'See each option with its outcome.'], ['Decide', 'Pick one and get a ready message.'], ['Follow up', 'Record how it went.']];
+  const steps = [[t('Fill in'), t('Tell us the facts and your numbers.')], [t('Compare'), t('See each option with its outcome.')], [t('Decide'), t('Pick one and get a ready message.')], [t('Follow up'), t('Record how it went.')]];
   return (
-    <ol className="stepper" aria-label="Steps">
+    <ol className="stepper" aria-label={t('Steps')}>
       {steps.map(([t, d], n) => (
         <li key={t} className={n + 1 === current ? 'on' : n + 1 < current ? 'done' : ''} aria-current={n + 1 === current ? 'step' : undefined}>
           <b><span className="num">{n + 1 < current ? '✓' : n + 1}</span> {t}</b><span>{d}</span>
@@ -25,13 +27,13 @@ export function Stepper({ current }: { current: 1 | 2 | 3 | 4 }) {
 
 /** Small expandable "Why we ask", no modal. */
 export function Why({ children }: { children: ReactNode }) {
-  return <details className="why"><summary>Why we ask</summary><p>{children}</p></details>;
+  return <details className="why"><summary>{t('Why we ask')}</summary><p>{children}</p></details>;
 }
 
 export function CaseTabs() {
   return (
-    <nav className="subtabs" aria-label="My cases">
-      <NavLink to="/journal">Journal</NavLink><NavLink to="/documents">Documents</NavLink>
+    <nav className="subtabs" aria-label={t('My cases')}>
+      <NavLink to="/journal">{t('Journal')}</NavLink><NavLink to="/documents">{t('Documents')}</NavLink>
     </nav>
   );
 }
@@ -62,7 +64,7 @@ export function Button({ variant = 'primary', busy, children, className, ...rest
   );
 }
 
-export const Badge = ({ level }: { level: 'low' | 'medium' | 'high' }) => <span className={`badge ${level}`}>{level} risk</span>;
+export const Badge = ({ level }: { level: 'low' | 'medium' | 'high' }) => <span className={`badge ${level}`}>{t('{level} risk', { level: t(level) })}</span>;
 
 interface FieldProps { id: string; label: string; help?: string; why?: string; error?: string; children: (a: { id: string; 'aria-invalid'?: boolean; 'aria-describedby'?: string }) => ReactNode }
 export function Field({ id, label, help, why, error, children }: FieldProps) {
@@ -109,13 +111,13 @@ function dynamicField(f: Question, answers: Record<string, any>): Question | nul
   if (!l) return f;
   const rows: Record<string, string>[] = answers[l.list] ?? [];
   if (rows.length <= l.index) return null;
-  const name = (rows[l.index]?.[l.field] ?? '').trim() || `criterion ${l.index + 1}`;
+  const name = (rows[l.index]?.[l.field] ?? '').trim() || t('criterion {n}', { n: l.index + 1 });
   return { ...f, label: l.template.replace('{name}', name) };
 }
 
 function ListField({ q, rows, error, errors, onChange, answers }: { q: Question; rows: Record<string, string>[]; error?: string; errors: Record<string, string>; onChange: (v: any) => void; answers: Record<string, any> }) {
   const fields = q.fields!;
-  const item = q.itemLabel ?? 'Item';
+  const item = q.itemLabel ?? t('Item');
   const set = (n: number, id: string, v: string) => onChange(rows.map((r, i) => (i === n ? { ...r, [id]: v } : r)));
   const move = (n: number, d: number) => {
     const next = rows.slice(); const [r] = next.splice(n, 1); next.splice(n + d, 0, r); onChange(next);
@@ -130,9 +132,9 @@ function ListField({ q, rows, error, errors, onChange, answers }: { q: Question;
             <div className="listq-head">
               <b>{item} {n + 1}</b>
               <span className="row">
-                <Button type="button" variant="quiet" disabled={n === 0} onClick={() => move(n, -1)} aria-label={`Move ${item.toLowerCase()} ${n + 1} up`}>Up</Button>
-                <Button type="button" variant="quiet" disabled={n === rows.length - 1} onClick={() => move(n, 1)} aria-label={`Move ${item.toLowerCase()} ${n + 1} down`}>Down</Button>
-                <Button type="button" variant="quiet" disabled={rows.length <= (q.minRows ?? 1)} onClick={() => onChange(rows.filter((_, i) => i !== n))} aria-label={`Remove ${item.toLowerCase()} ${n + 1}`}>Remove</Button>
+                <Button type="button" variant="quiet" disabled={n === 0} onClick={() => move(n, -1)} aria-label={t('Move {item} {n} up', { item: item.toLowerCase(), n: n + 1 })}>{t('Up')}</Button>
+                <Button type="button" variant="quiet" disabled={n === rows.length - 1} onClick={() => move(n, 1)} aria-label={t('Move {item} {n} down', { item: item.toLowerCase(), n: n + 1 })}>{t('Down')}</Button>
+                <Button type="button" variant="quiet" disabled={rows.length <= (q.minRows ?? 1)} onClick={() => onChange(rows.filter((_, i) => i !== n))} aria-label={t('Remove {item} {n}', { item: item.toLowerCase(), n: n + 1 })}>{t('Remove')}</Button>
               </span>
             </div>
             <div className="grid-3">
@@ -143,7 +145,7 @@ function ListField({ q, rows, error, errors, onChange, answers }: { q: Question;
           </li>
         ))}
       </ol>
-      {rows.length < (q.maxRows ?? 10) && <Button type="button" variant="secondary" onClick={() => onChange([...rows, emptyRow(fields)])}>Add {item.toLowerCase()}</Button>}
+      {rows.length < (q.maxRows ?? 10) && <Button type="button" variant="secondary" onClick={() => onChange([...rows, emptyRow(fields)])}>{t('Add {item}', { item: item.toLowerCase() })}</Button>}
     </div>
   );
 }
@@ -174,4 +176,19 @@ export function QuestionGroups({ sit, answers, fields, onChange, skipCollapsed }
 
 export function useToast() {
   return { show: (m: string) => notify(m), node: null as React.ReactNode };
+}
+
+
+/** EN / RU / KZ. Saves the choice (this browser, and the account when signed in) and reloads so every text and every server answer changes. */
+export function LanguageSwitch({ signedIn = true }: { signedIn?: boolean }) {
+  const change = async (code: Lang) => {
+    setLang(code);
+    if (signedIn) { try { await fetch('/api/profile/language', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ language: code }) }); } catch { /* the browser choice still applies */ } }
+    window.location.reload();
+  };
+  return (
+    <select className="langsel" aria-label={tt('Language')} value={getLang()} onChange={(e) => change(e.target.value as Lang)}>
+      {LANGS.map((l) => <option key={l.code} value={l.code}>{l.short}</option>)}
+    </select>
+  );
 }

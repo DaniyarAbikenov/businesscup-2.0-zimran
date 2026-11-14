@@ -58,10 +58,11 @@ def public_situation(s: dict) -> dict:
     return {**s, "questions": qs, "storylines": _resolve(s.get("storylines", []))}
 
 
-def public_pack(extra: list | None = None) -> dict:
-    """The shared pack plus the signed-in user's own situations (`extra`, already built)."""
-    out = dict(roles_pack)
-    out["situations"] = [public_situation(s) for s in [*situations, *(extra or [])]]
+def public_pack(extra: list | None = None, lang: str = "en") -> dict:
+    """The shared pack plus the signed-in user's own situations (`extra`, already built), in the user's language."""
+    from . import i18n
+    out = i18n.localize_roles(dict(roles_pack), lang)
+    out["situations"] = [public_situation(i18n.localize_situation(s, lang)) for s in situations] + [public_situation(s) for s in (extra or [])]
     return out
 
 

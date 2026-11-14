@@ -97,7 +97,9 @@ textarea.input.doc { font: 13px/20px var(--font-mono); min-height: 420px; white-
   .nav { gap: 10px; }
   .nav a, .nav button { font-size: 12px; white-space: nowrap; }
   .brand { font-size: 16px; }
-  .topbar-inner { padding: 0 12px; gap: 8px; }
+  .topbar-inner { padding: 6px 12px; gap: 4px 8px; height: auto; min-height: 56px; flex-wrap: wrap; }
+  .nav { flex-wrap: wrap; gap: 4px 12px; }
+  .nav a[aria-current='page'] { padding: 8px 0; }
   .nav .hide-sm { display: none; }
 }
 .check { display: flex; gap: var(--s-2); align-items: flex-start; font-size: 14px; margin-top: var(--s-4); }
@@ -177,3 +179,5 @@ textarea.input.doc { font: 13px/20px var(--font-mono); min-height: 420px; white-
 
 details.more { border: 1px solid var(--n-400, #ccc); border-radius: var(--r-control, 8px); padding: 12px 16px; margin: 0 0 16px; }
 details.more > summary { cursor: pointer; font-weight: 600; margin: 0; }
+
+.langsel { background: var(--n-100); color: var(--n-900); border: 1px solid var(--n-400); border-radius: 6px; font: 500 12px var(--font-ui, inherit); padding: 2px 4px; width: auto; }

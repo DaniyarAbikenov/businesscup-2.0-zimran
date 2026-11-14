@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { FormEvent, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useSession } from '../App';
@@ -13,13 +14,13 @@ export function CreateSituation({ compact, initialText = '' }: { compact?: boole
   const [ack, setAck] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  if (!me.llmEnabled) return <p className="small muted">Creating your own scenario needs the AI, and the AI is not configured on this server (no ANTHROPIC_API_KEY). The catalog above still works without it.</p>;
+  if (!me.llmEnabled) return <p className="small muted">{t('Creating your own scenario needs the AI, and the AI is not configured on this server (no ANTHROPIC_API_KEY). The catalog above still works without it.')}</p>;
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     setError('');
-    if (text.trim().length < 30) return setError('Write a few sentences (at least 30 characters).');
-    if (!ack) return setError('Confirm there is no confidential information.');
+    if (text.trim().length < 30) return setError(t('Write a few sentences (at least 30 characters).'));
+    if (!ack) return setError(t('Confirm there is no confidential information.'));
     setBusy(true);
     try {
       const draft = await api<Draft>('POST', '/situations/draft', { text, privacyAck: ack });
@@ -28,13 +29,13 @@ export function CreateSituation({ compact, initialText = '' }: { compact?: boole
   }
   return (
     <form onSubmit={submit} noValidate>
-      <Field id="newsit" label="Describe the case" help="What happens, who is involved, what you have to decide. Leave out names and confidential details.">
+      <Field id="newsit" label={t('Describe the case')} help={t('What happens, who is involved, what you have to decide. Leave out names and confidential details.')}>
         {(a) => <textarea className="input" rows={compact ? 4 : 6} maxLength={4000} {...a} value={text} onChange={(e) => setText(e.target.value)}
-          placeholder="A client asked me to change the invoice terms after the contract was signed. I am not sure whether to ask my manager first, and the project lead wants me to answer today." />}
+          placeholder={t('A client asked me to change the invoice terms after the contract was signed. I am not sure whether to ask my manager first, and the project lead wants me to answer today.')} />}
       </Field>
-      <label className="check"><input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} /> The text has no confidential employer or client information. It is sent to our AI provider, Anthropic, and not stored by us.</label>
+      <label className="check"><input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} /> {t('The text has no confidential employer or client information. It is sent to our AI provider, Anthropic, and not stored by us.')}</label>
       {error && <div className="field error" role="alert">{error}</div>}
-      <div className="row" style={{ marginTop: 16 }}><Button type="submit" busy={busy}>Generate a scenario</Button></div>
+      <div className="row" style={{ marginTop: 16 }}><Button type="submit" busy={busy}>{t('Generate a scenario')}</Button></div>
     </form>
   );
 }
@@ -43,7 +44,7 @@ export function CreateSituationPage() {
   const text = (useLocation().state as { text?: string } | null)?.text ?? '';
   return (
     <div className="narrow">
-      <PageHeader eyebrow="My scenarios" title="Create a new scenario" lead="AI proposes the wording, the steps and an example. The calculation stays with our calculators, and you see everything before it is saved." />
+      <PageHeader eyebrow={t('My scenarios')} title={t('Create a new scenario')} lead={t('AI proposes the wording, the steps and an example. The calculation stays with our calculators, and you see everything before it is saved.')} />
       <PrivacyBanner />
       <Panel><CreateSituation initialText={text} /></Panel>
     </div>
@@ -58,40 +59,40 @@ export function PreviewSituationPage() {
   const [error, setError] = useState('');
   if (!draft) return <Navigate to="/" replace />;
   const s = draft.situation;
-  const engineName = s.engine === 'priorities' ? 'competing priorities' : 'change request';
+  const engineName = s.engine === 'priorities' ? t('competing priorities') : t('change request');
 
   async function save() {
     setBusy(true); setError('');
     try {
       const r = await api<{ situation: { id: string } }>('POST', '/situations', { preset: draft!.preset });
       await refresh();
-      notify('Saved to My scenarios.');
+      notify(t('Saved to My scenarios.'));
       nav(`/new/${r.situation.id}`, { replace: true });
     } catch (x: any) { setError(x.message); } finally { setBusy(false); }
   }
   const qs = s.questions.flatMap((q) => [q, ...(q.fields ?? [])]);
   return (
     <div className="narrow">
-      <PageHeader eyebrow="Preview · nothing is saved yet" title={s.title} lead={s.summary} />
-      <div className="banner ok" role="note"><strong className="ai-badge">AI-made, not expert-checked</strong> The wording and example come from AI. The numbers come from our {engineName} calculator, and every value is checked by code. Read it before you rely on it.</div>
-      <Panel title="Questions you will answer" lead="The questions are fixed by the calculator. The AI may only reword them.">
+      <PageHeader eyebrow={t('Preview · nothing is saved yet')} title={s.title} lead={s.summary} />
+      <div className="banner ok" role="note"><strong className="ai-badge">{t('AI-made, not expert-checked')}</strong> {t('The wording and example come from AI. The numbers come from our {name} calculator, and every value is checked by code. Read it before you rely on it.', { name: engineName })}</div>
+      <Panel title={t('Questions you will answer')} lead={t('The questions are fixed by the calculator. The AI may only reword them.')}>
         <ul className="plain">{qs.map((q) => <li key={q.id}><b>{q.label}</b>{q.help && <span className="muted"> {q.help}</span>}</li>)}</ul>
       </Panel>
-      <Panel title="Options it will compare">
+      <Panel title={t('Options it will compare')}>
         {Object.entries(s.options).map(([k, o]) => (
           <div key={k} className="stack"><h3>{o.label}</h3><ol className="plain">{o.nextSteps.map((n, i) => <li key={i}>{n}</li>)}</ol></div>
         ))}
       </Panel>
-      <Panel title="Common mistakes"><ul className="plain">{s.pitfalls.map((p, i) => <li key={i}>{p}</li>)}</ul></Panel>
+      <Panel title={t('Common mistakes')}><ul className="plain">{s.pitfalls.map((p, i) => <li key={i}>{p}</li>)}</ul></Panel>
       {s.storylines && s.storylines.length > 0 && (
-        <Panel title="Example storyline" lead="Invented numbers to try it out. You can also start with your own.">
+        <Panel title={t('Example storyline')} lead={t('Invented numbers to try it out. You can also start with your own.')}>
           {s.storylines.map((st) => <div key={st.id}><b>{st.title}</b><p className="muted">{st.story}</p></div>)}
         </Panel>
       )}
       {error && <div className="banner bad" role="alert">{error}</div>}
       <div className="row" style={{ marginTop: 16 }}>
-        <Button onClick={save} busy={busy}>Save to My scenarios</Button>
-        <Link className="btn btn-secondary" to="/">Discard</Link>
+        <Button onClick={save} busy={busy}>{t('Save to My scenarios')}</Button>
+        <Link className="btn btn-secondary" to="/">{t('Discard')}</Link>
       </div>
     </div>
   );

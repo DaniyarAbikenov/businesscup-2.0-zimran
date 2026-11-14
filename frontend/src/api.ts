@@ -1,3 +1,4 @@
+import { getLang, locale } from './i18n';
 import { log } from './log';
 import { notify } from './components/Toaster';
 
@@ -18,7 +19,7 @@ export async function api<T = any>(method: string, path: string, body?: unknown)
   try {
     res = await fetch('/api' + path, {
       method,
-      headers: { 'content-type': 'application/json', 'x-request-id': rid },
+      headers: { 'content-type': 'application/json', 'x-request-id': rid, 'x-lang': getLang() },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch (e) {
@@ -61,7 +62,7 @@ export interface Pack {
   fears: { id: string; label: string }[];
   situations: Situation[];
 }
-export interface Profile { roleId: string; industry: string; tenure: string; fears: string[]; fearNote: string; emailReminders?: boolean }
+export interface Profile { roleId: string; industry: string; tenure: string; fears: string[]; fearNote: string; emailReminders?: boolean; language?: string | null }
 export interface Me { user: { id: number; email: string }; profile: Profile | null; llmEnabled: boolean; isDemo: boolean }
 export interface ScheduledTask { index: number; name: string; finish: string; deadline: string; lateDays: number; requester: string; impact: string }
 export interface Option {
@@ -86,9 +87,9 @@ export interface Journal {
   stats: { exported?: number; started: number; decided: number; followedUp: number; reportedWorked: number; confidenceChange: number | null };
 }
 
-export const usd = (n: number) => (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString('en-US');
-export const fmtDate = (s: string) => new Date(s + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
-export const fmtStamp = (s: string) => new Date(s).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+export const usd = (n: number) => (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString(locale());
+export const fmtDate = (s: string) => new Date(s + 'T00:00:00Z').toLocaleDateString(locale(), { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+export const fmtStamp = (s: string) => new Date(s).toLocaleDateString(locale(), { month: 'short', day: 'numeric' });
 
 export interface SavedDoc {
   id: number; caseId: number; kind: 'change_request' | 'client_message'; label: string; caseTitle: string; body: string;

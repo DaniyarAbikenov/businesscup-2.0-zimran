@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .. import config, llm, presets
+from .. import config, i18n, llm, presets
 from ..demo import is_demo_email, seed_demo_user
 from ..cache import get_redis
 from ..db import get_db
@@ -108,7 +108,7 @@ def delete_account(body: dict, request: Request, response: Response, user=Depend
 
 
 def profile_dict(p: Profile | None):
-    return None if not p else {"roleId": p.role_id, "industry": p.industry, "tenure": p.tenure, "fears": p.fears, "fearNote": p.fear_note, "emailReminders": p.email_reminders}
+    return None if not p else {"roleId": p.role_id, "industry": p.industry, "tenure": p.tenure, "fears": p.fears, "fearNote": p.fear_note, "emailReminders": p.email_reminders, "language": p.language}
 
 
 @router.get("/me")
@@ -117,5 +117,5 @@ def me(user=Depends(current_user), db: Session = Depends(get_db)):
 
 
 @router.get("/packs")
-def packs(user=Depends(current_user), db: Session = Depends(get_db)):
-    return public_pack(presets.for_user(db, user.id))
+def packs(request: Request, user=Depends(current_user), db: Session = Depends(get_db)):
+    return public_pack(presets.for_user(db, user.id), i18n.resolve(request, db.get(Profile, user.id)))

@@ -1,3 +1,5 @@
+import { t } from '../i18n';
+import { LanguageSwitch } from '../components/ui';
 import { FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
@@ -34,29 +36,30 @@ export default function Auth({ mode, onDone }: { mode: 'login' | 'register'; onD
 
   return (
     <main className="page narrow">
-      <div className="caption">RoleShift</div>
-      <h1 style={{ marginTop: 8 }}>The first 90 days in a new position are the hardest. Decide with numbers, not nerves.</h1>
+      <div className="caption">{t('RoleShift')}</div>
+      <h1 style={{ marginTop: 8 }}>{t('The first 90 days in a new position are the hardest. Decide with numbers, not nerves.')}</h1>
       <p className="lead muted" style={{ marginTop: 12, fontSize: 18 }}>
-        Work through a real scenario with your real figures. See what each choice costs, then send a document you can stand behind.
+        
+        {t('Work through a real scenario with your real figures. See what each choice costs, then send a document you can stand behind.')}
       </p>
       {demoEnabled && (
         <div className="panel">
-          <h2>See it in one click</h2>
-          <p className="muted">Opens a demo account with a finished case, a decision waiting for follow-up and a draft ready to decide. No sign-up.</p>
-          <div className="row" style={{ marginTop: 16 }}><Button onClick={startDemo} busy={busy}>Try the demo</Button></div>
+          <h2>{t('See it in one click')}</h2>
+          <p className="muted">{t('Opens a demo account with a finished case, a decision waiting for follow-up and a draft ready to decide. No sign-up.')}</p>
+          <div className="row" style={{ marginTop: 16 }}><Button onClick={startDemo} busy={busy}>{t('Try the demo')}</Button></div>
         </div>
       )}
       <PrivacyBanner />
       <form className="panel" onSubmit={submit} noValidate>
-        <h2>{reg ? 'Create your account' : 'Sign in'}</h2>
-        <Field id="email" label="Email">{(a) => <input className="input" {...a} type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />}</Field>
-        <Field id="password" label={'Password' + (reg ? ' (at least 8 characters)' : '')}>
+        <h2>{reg ? t('Create your account') : t('Sign in')}</h2>
+        <Field id="email" label={t('Email')}>{(a) => <input className="input" {...a} type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />}</Field>
+        <Field id="password" label={t('Password') + (reg ? t(' (at least 8 characters)') : '')}>
           {(a) => <input className="input" {...a} type="password" autoComplete={reg ? 'new-password' : 'current-password'} value={password} onChange={(e) => setPassword(e.target.value)} />}
         </Field>
         {error && <div className="field error" role="alert">{error}</div>}
         <div className="row" style={{ marginTop: 24 }}>
-          <Button type="submit" busy={busy}>{reg ? 'Create account' : 'Sign in'}</Button>
-          <Link to={reg ? '/login' : '/register'}>{reg ? 'I already have an account' : 'Create an account'}</Link>{' · '}<Link to="/pricing">Pricing</Link>
+          <Button type="submit" busy={busy}>{reg ? t('Create account') : t('Sign in')}</Button>
+          <Link to={reg ? '/login' : '/register'}>{reg ? t('I already have an account') : t('Create an account')}</Link>{' · '}<Link to="/pricing">{t('Pricing')}</Link>
         </div>
       </form>
     </main>
