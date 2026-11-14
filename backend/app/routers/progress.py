@@ -10,7 +10,7 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .. import config, emails, mailer, packs, presets
+from .. import config, emails, mailer, packs, prediction, presets
 from ..cache import get_redis
 from ..db import SessionLocal, get_db
 from ..deps import current_user
@@ -21,6 +21,7 @@ from .cases import OUTCOMES
 
 router = APIRouter(prefix="/api")
 log = logging.getLogger("roleshift.progress")
+SKILLS = {"prioritising": "Prioritising under pressure", "estimating": "Estimating and promising dates", "choosing": "Choosing between options", "changes": "Handling late changes"}
 STATUS = {"draft": "In progress", "decided": "Decided", "due": "Follow-up due", "done": "Outcome recorded"}
 
 
@@ -51,7 +52,9 @@ def progress(user=Depends(current_user), db: Session = Depends(get_db)):
             "caseId": c.id, "date": _day(c.created_at), "title": packs.case_title(c.situation_id, c.inputs), "situation": sit.get("title", ""),
             "category": sit.get("category") or "Other", "chosen": (sit.get("options", {}).get(c.decision.option, {}).get("label") if c.decision else None),
             "status": status, "statusLabel": tr(STATUS[status]), "outcome": c.followup.outcome if c.followup else None,
-            "outcomeLabel": tr(OUTCOMES[c.followup.outcome]) if c.followup else None})
+            "outcomeLabel": tr(OUTCOMES[c.followup.outcome]) if c.followup else None,
+            "guess": ({"hits": sum(p["hit"] for p in c.prediction_score["parts"]), "parts": len(c.prediction_score["parts"]), "overall": c.prediction_score["overall"]}
+                      if c.prediction_score else None)})
 
     practiced: dict = {}
     for c in cases:
@@ -59,6 +62,15 @@ def progress(user=Depends(current_user), db: Session = Depends(get_db)):
         cat = practiced.setdefault(sit.get("category") or "Other", {})
         cat[sit.get("title", c.situation_id)] = cat.get(sit.get("title", c.situation_id), 0) + 1
 
+    # skills: how often the guess made before the numbers agreed with the calculator (never a trend from fewer than 3 guesses)
+    skills = []
+    for key, label in SKILLS.items():
+        mine = [c for c in reversed(cases) if (sits.get(c.situation_id) or {}).get("skill") == key]
+        guesses = [c.prediction_score["overall"] for c in mine if c.prediction_score]
+        enough = len(guesses) >= prediction.MIN_FOR_TREND
+        skills.append({"key": key, "label": tr(label), "cases": len(mine), "guesses": len(guesses), "enough": enough,
+                       "hitRate": round(100 * sum(guesses[-10:]) / len(guesses[-10:])) if enough else None,
+                       "ticks": guesses[-10:] if enough else []})
     outcomes = {k: sum(1 for c in decided if c.followup and c.followup.outcome == k) for k in OUTCOMES}
     entries = db.scalars(select(JournalEntry).where(JournalEntry.user_id == user.id)).all()
     last = max([c.created_at for c in cases] + [e.created_at for e in entries], default=None)
@@ -75,6 +87,7 @@ def progress(user=Depends(current_user), db: Session = Depends(get_db)):
                    "documents": db.query(Document).filter(Document.user_id == user.id).count(),
                    "exported": len({e.case_id for e in entries if e.type == "export"})},
         "practiced": [{"category": k, "situations": [{"title": t, "count": n} for t, n in v.items()]} for k, v in practiced.items()],
+        "skills": skills, "minForTrend": prediction.MIN_FOR_TREND,
         "outcomes": outcomes, "outcomesTotal": sum(outcomes.values()),
         "firsts": {"situation": firsts([c.created_at for c in cases]), "decision": firsts([c.decision.decided_at for c in decided]),
                    "debrief": firsts([c.reflection.created_at for c in decided if c.reflection])},

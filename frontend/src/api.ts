@@ -51,7 +51,7 @@ export interface Question {
 export interface Storyline { id: string; title: string; story: string; answers: Record<string, any> }
 export interface Situation {
   id: string; engine: 'change_request' | 'priorities' | 'estimate' | 'decision'; aiMade?: boolean; category?: string; title: string; summary: string; applies_to: string[]; questions: Question[];
-  titleField?: string; documentName?: string; storylines?: Storyline[];
+  skill?: string; titleField?: string; documentName?: string; storylines?: Storyline[];
   groups?: { id: string; title: string; columns?: number; collapsed?: boolean }[];
   options: Record<string, { label: string; nextSteps: string[] }>;
   reflectionPrompts: { id: string; label: string }[]; pitfalls: string[];
@@ -75,6 +75,7 @@ export interface Case {
   id: number; situationId: string; title: string; inputs: Record<string, any>; confidenceBefore: number;
   status: 'draft' | 'decided'; chosenOption: string | null; document: string | null; followupDue: string | null;
   result: { headline?: string; fits?: boolean; workdaysToRelease: number; addedWorkdays: number; assumptions: string; lowestRiskKey: string; options: Option[] };
+  prediction?: { items: { label: string; guess: string; actual: string; hit: boolean; gap?: string }[]; overall: number; sentence: string; missed: string | null } | null;
   reflection: { learned: string; different: string; confidenceAfter: number } | null;
   followup: { outcome: string; notes: string } | null;
   documentUpdatedAt?: string | null; documentRevisions?: number; clientMessage?: string | null;
@@ -113,10 +114,11 @@ export interface Draft { preset: Record<string, any>; situation: Situation }
 export interface Progress {
   startedAt: string; day: number; windowDays: number; inWindow: boolean; milestones: number[];
   confidence: { caseId: number; title: string; date: string; before: number; after: number | null }[]; averageChange: number | null;
-  timeline: { caseId: number; date: string; title: string; situation: string; category: string; chosen: string | null; status: string; statusLabel: string; outcome: string | null; outcomeLabel: string | null }[];
+  timeline: { caseId: number; date: string; title: string; situation: string; category: string; chosen: string | null; status: string; statusLabel: string; outcome: string | null; outcomeLabel: string | null; guess: { hits: number; parts: number; overall: number } | null }[];
   counts: { situations: number; decisions: number; followups: number; documents: number; exported: number };
   practiced: { category: string; situations: { title: string; count: number }[] }[];
   outcomes: Record<string, number>; outcomesTotal: number;
+  skills: { key: string; label: string; cases: number; guesses: number; enough: boolean; hitRate: number | null; ticks: number[] }[]; minForTrend: number;
   firsts: { situation: string | null; decision: string | null; debrief: string | null };
   inactiveDays: number | null; inactiveHint: boolean; tryNext: { id: string; title: string; summary: string } | null;
   emailReminders: boolean; logMailer: boolean;

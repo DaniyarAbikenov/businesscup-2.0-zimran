@@ -85,11 +85,22 @@ export default function ProgressPage() {
           <Panel title={t('Confidence')} lead={p.averageChange === null ? t('Rate your confidence after a decision (the reflection step) to see how it changes.') : t('Average change: {v0}{averageChange}. Open circle: before, filled: after.', { v0: p.averageChange > 0 ? '+' : '', averageChange: p.averageChange })}>
             {p.confidence.length > 0 ? <ConfidenceChart items={p.confidence} /> : <p className="muted">{t('No decisions yet.')}</p>}
           </Panel>
+          <Panel title={t('Your intuition vs the numbers')} lead={t('Before the numbers appear you can guess. This shows how often your guess agreed with the calculator on your own numbers. It does not measure how good your decisions are in the real world.')}>
+            {p.skills.filter((s) => s.cases > 0 || s.guesses > 0).length === 0 && <p className="muted">{t('Make a guess before the numbers in any scenario to see your skills here.')}</p>}
+            {p.skills.filter((s) => s.cases > 0 || s.guesses > 0).map((s) => (
+              <div key={s.key} className="skillrow">
+                <div><b>{s.label}</b><div className="small muted">{tn(s.cases, '{n} case practised', '{n} cases practised')} · {tn(s.guesses, '{n} guess', '{n} guesses')}</div></div>
+                {s.enough
+                  ? <div><span className="ticks" role="img" aria-label={s.ticks.map((x) => Math.round(x * 100) + '%').join(', ')}>{s.ticks.map((x, i) => <i key={i} style={{ height: 6 + Math.round(x * 18) + 'px', opacity: 0.35 + 0.65 * x }} />)}</span> <b>{s.hitRate}%</b> <span className="small muted">{t('agreement with the numbers')}</span></div>
+                  : <div className="small muted">{t('Not enough guesses yet. Make {n} to see a trend.', { n: p.minForTrend })}</div>}
+              </div>
+            ))}
+          </Panel>
           <Panel title={t('Decisions')}>
             <ul className="timeline">{p.timeline.map((tl) => (
               <li key={tl.caseId}><time dateTime={tl.date}>{fmtDate(tl.date)}</time>
                 <span><Link to={`/case/${tl.caseId}`}>{tl.title}</Link><span className="small muted"> · {tl.situation}{tl.chosen ? ` · ${tl.chosen}` : ''}</span><br />
-                  <span className={'small ' + (tl.status === 'due' ? 'late' : 'muted')}>{tl.outcomeLabel ? t('{statusLabel}: {outcomeLabel} (as you reported)', { statusLabel: tl.statusLabel, outcomeLabel: tl.outcomeLabel }) : tl.statusLabel}</span></span></li>
+                  <span className={'small ' + (tl.status === 'due' ? 'late' : 'muted')}>{tl.outcomeLabel ? t('{statusLabel}: {outcomeLabel} (as you reported)', { statusLabel: tl.statusLabel, outcomeLabel: tl.outcomeLabel }) : tl.statusLabel}{tl.guess ? ' · ' + t('Guess: {hits} of {parts} right', { hits: tl.guess.hits, parts: tl.guess.parts }) : ''}</span></span></li>
             ))}</ul>
           </Panel>
           {p.outcomesTotal > 0 && (

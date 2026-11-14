@@ -1,4 +1,5 @@
 import { locale, t, tn } from '../i18n';
+import { skillLabel } from '../components/skills';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useSession } from '../App';
@@ -31,6 +32,22 @@ function WhyLabel({ o }: { o: Option }) {
         {next !== null && biggest ? ' ' + t('To get one level lower, remove at least {n} points, for example the biggest one: {text}', { n: o.riskScore - next, text: biggest.text }) : ''}
         {next === null ? ' ' + t('It is already the lowest label; it becomes medium with {n} more points.', { n: 2 - o.riskScore }) : ''}</p>
     </details>
+  );
+}
+
+/** "Your guess vs the numbers": the score and the sentences come from the server. */
+function GuessStrip({ c }: { c: Case }) {
+  const p = c.prediction;
+  if (!p) return null;
+  return (
+    <div className="banner" role="note" style={{ marginBottom: 16 }}>
+      <strong>{t('Your guess vs the numbers')}</strong>
+      <ul className="plain">{p.items.map((x, i) => (
+        <li key={i}>{x.hit ? '✓' : '·'} {x.label}: <b>{t('you said {guess}', { guess: x.guess })}</b>, {t('the numbers say {actual}', { actual: x.actual })}{x.gap ? ` (${x.gap})` : ''}</li>
+      ))}</ul>
+      <p style={{ margin: '4px 0 0' }}>{p.sentence}</p>
+      {p.missed && <p className="small muted" style={{ margin: '4px 0 0' }}>{t('What was not counted:')} {p.missed}</p>}
+    </div>
   );
 }
 
@@ -272,7 +289,8 @@ function Draft({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: Ca
   return (
     <>
       <Stepper current={2} />
-      <PageHeader eyebrow={t('Compare')} title={c.title} lead={summary(c, sit)} />
+      <PageHeader eyebrow={skillLabel(sit.skill) ? t('Compare') + ' · ' + t('Trains: {skill}', { skill: skillLabel(sit.skill) }) : t('Compare')} title={c.title} lead={summary(c, sit)} />
+      <GuessStrip c={c} />
       <div className="banner ok" role="note"><p className="bestline">{bestLine(c, sit)}</p><p className="howread" style={{ margin: 0 }}>{HOW_READ[sit.engine]} {t('The decision is yours.')}</p>
         <p className="howread" style={{ margin: '8px 0 0' }}>{t('This is a calculation on your numbers, not a forecast. Real outcomes depend on people and circumstances not listed here.')}</p></div>
       <Panel title={t('Your {n} options', { n: c.result.options.length })} lead={sit.engine === 'decision'
@@ -356,6 +374,7 @@ function Decided({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: 
   return (
     <>
       <Stepper current={4} />
+      <GuessStrip c={c} />
       <PageHeader eyebrow={t('Decision saved. Next: use your message, then come back to record how it went.')} title={c.title} />
       <div className="banner ok" role="status">
         {sit.options[c.chosenOption!].label}.{' '}

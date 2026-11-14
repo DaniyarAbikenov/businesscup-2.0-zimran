@@ -48,6 +48,8 @@ class Case(Base):
     result: Mapped[dict] = mapped_column(JSON)
     confidence_before: Mapped[int] = mapped_column(Integer)
     status: Mapped[str] = mapped_column(String(10), default="draft")  # draft | decided
+    prediction: Mapped[dict | None] = mapped_column(JSONB, nullable=True)  # the guess made before the numbers
+    prediction_score: Mapped[dict | None] = mapped_column(JSONB, nullable=True)  # computed by the server from the engine result
     seeded: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")  # demo sample data, not counted for the free limit
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 

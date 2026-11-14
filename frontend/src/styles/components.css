@@ -181,3 +181,8 @@ details.more { border: 1px solid var(--n-400, #ccc); border-radius: var(--r-cont
 details.more > summary { cursor: pointer; font-weight: 600; margin: 0; }
 
 .langsel { background: var(--n-100); color: var(--n-900); border: 1px solid var(--n-400); border-radius: 6px; font: 500 12px var(--font-ui, inherit); padding: 2px 4px; width: auto; }
+
+.skillrow { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 10px 0; border-top: 1px solid var(--n-400, #ccc); }
+.skillrow:first-of-type { border-top: 0; }
+.ticks { display: inline-flex; align-items: flex-end; gap: 3px; height: 26px; margin-right: 8px; vertical-align: middle; }
+.ticks i { display: block; width: 6px; background: var(--accent-700); border-radius: 2px; }

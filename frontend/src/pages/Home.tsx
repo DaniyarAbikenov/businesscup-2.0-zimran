@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useSession } from '../App';
 import { Billing, Journal, Progress, api, fmtDate } from '../api';
 import Describe from '../components/Describe';
+import { skillLabel } from '../components/skills';
 import { ExampleButton, PROMISE, Welcome, guideDone } from '../components/Guide';
 import { notify } from '../components/Toaster';
 import { Button, PageHeader, Panel } from '../components/ui';
@@ -48,7 +49,7 @@ export default function Home() {
         <div className="cards">
           {recommended.map((s) => (
             <div key={s.id} className="card">
-              <div><h3>{s.title}{s.aiMade && <span className="ai-badge">{t('AI-made, not expert-checked')}</span>}</h3><p>{firstSentence(s.summary)}</p></div>
+              <div><h3>{s.title}{s.aiMade && <span className="ai-badge">{t('AI-made, not expert-checked')}</span>}</h3><p>{firstSentence(s.summary)}</p>{skillLabel(s.skill) && <p className="small muted">{t('Trains: {skill}', { skill: skillLabel(s.skill) })}</p>}</div>
               <div className="row"><Link className="btn btn-primary" to={`/new/${s.id}`}>{t('Start')}</Link>{s.storylines && s.storylines.length > 0 && <span className="small muted">{tn(s.storylines.length, '{n} example', '{n} examples')}</span>}</div>
             </div>
           ))}

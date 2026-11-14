@@ -6,7 +6,7 @@ from datetime import date, datetime, timedelta, timezone
 from . import packs, reminders
 from .document import build_document
 from .documents import save_document
-from . import engine
+from . import engine, prediction
 from .engine.change_request import compute
 from .models import Case, Decision, FollowUp, JournalEntry, Profile, Reflection, User
 from .security import hash_password
@@ -57,6 +57,51 @@ def _decide(db, user, c: Case, option: str, rationale: str, followup_days: int, 
                         text=f"Decided: {sit['options'][option]['label']}. {c.inputs['changeTitle']}"))
 
 
+def _guess_for(sit, inputs, result, quality):
+    """A guess of a given quality ("far", "near", "exact") so the demo shows intuition getting closer to the numbers."""
+    e = sit["engine"]
+    if e == "priorities":
+        n = len(inputs["tasks"]); late = next(o for o in result["options"] if o["key"] == "custom")["lateCount"]
+        best = result["lowestRiskKey"]
+        if quality == "exact":
+            return {"lateCount": late, "bestOrder": best}
+        wrong = next(k for k in prediction.ORDERS if k != best)
+        return {"lateCount": late if quality == "near" else (late + 2) % (n + 1) if (late + 2) % (n + 1) != late else (late + 1) % (n + 1), "bestOrder": wrong}
+    if e == "estimate":
+        safe = next(o for o in result["options"] if o["key"] == "safe")["date"]
+        shift = {"exact": 0, "near": 2, "far": -7}[quality]
+        d = date.fromisoformat(safe)
+        step = 1 if shift > 0 else -1
+        for _ in range(abs(shift)):
+            d += timedelta(days=step)
+            while d.weekday() >= 5:
+                d += timedelta(days=step)
+        return {"date": max(d, date.today()).isoformat()}
+    win = result["ranking"][0]["index"]
+    return {"winner": win if quality == "exact" else (win + 1) % len(inputs["options"])}
+
+
+def _guess_history(db, user):
+    """Eight sample cases with a guess each: far off at first, closer later. Marked as sample data like the rest of the demo."""
+    plan = [("competing-priorities", "orders", 14, "far"), ("asked-for-a-deadline", "report", 13, "far"), ("choose-between-options", "tool", 12, "far"),
+            ("competing-priorities", "launch", 9, "near"), ("asked-for-a-deadline", "feature", 8, "near"), ("choose-between-options", "offer", 6, "exact"),
+            ("competing-priorities", "overload", 3, "exact"), ("asked-for-a-deadline", "campaign", 2, "exact")]
+    for sid, story, ago, quality in plan:
+        sit = packs.get_situation(sid)
+        pub = packs.public_situation(sit)
+        defaults = {q["id"]: q["default"] for q in pub["questions"] if "default" in q}
+        values, errors = validate_answers(pub["questions"], {**defaults, **next(s for s in pub["storylines"] if s["id"] == story)["answers"]})
+        assert not errors, (sid, story, errors)
+        inputs = {**values, "asOf": packs.today()}
+        result = engine.run(sit, inputs)
+        guess = prediction.clean(sit, inputs, _guess_for(sit, inputs, result, quality))
+        c = Case(user_id=user.id, situation_id=sid, inputs=inputs, result=result, confidence_before=2, seeded=True,
+                 created_at=datetime.now(timezone.utc) - timedelta(days=ago), prediction=guess, prediction_score=prediction.score(sit, guess, result, inputs))
+        db.add(c)
+        db.flush()
+        db.add(JournalEntry(user_id=user.id, case_id=c.id, type="case", created_at=c.created_at, text="Started: " + packs.case_title(sid, inputs)))
+
+
 def seed_demo_user(db, r) -> User:
     user = User(email=f"demo-{secrets.token_hex(4)}@{DEMO_DOMAIN}", password_hash=hash_password(secrets.token_hex(16)))
     db.add(user)
@@ -103,6 +148,7 @@ def seed_demo_user(db, r) -> User:
     db.flush()
     db.add(JournalEntry(user_id=user.id, case_id=p.id, type="case", text=f"Started: {inputs['title']}"))
 
+    _guess_history(db, user)
     db.commit()
     reminders.schedule(r, user.id, b.id, b.decision.followup_due.isoformat())
     return user

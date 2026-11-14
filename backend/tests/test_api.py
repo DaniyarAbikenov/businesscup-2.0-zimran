@@ -104,12 +104,12 @@ def test_demo_account_has_every_step(client, monkeypatch):
     assert client.post("/api/auth/demo", json={}).status_code == 201
     assert client.get("/api/me").json()["isDemo"] is True
     j = client.get("/api/journal").json()
-    assert j["stats"]["started"] == 4 and j["stats"]["decided"] == 2 and j["stats"]["followedUp"] == 1
+    assert j["stats"]["started"] == 12 and j["stats"]["decided"] == 2 and j["stats"]["followedUp"] == 1
     assert j["stats"]["confidenceChange"] == 2.0
     assert len(j["followups"]) == 1 and j["followups"][0]["overdue"] is True
     assert client.get("/api/reminders").json()["due"] == 1
     drafts = {c["title"]: c["id"] for c in j["cases"] if c["status"] == "draft"}
-    assert set(drafts) == {"Add dark mode to the dashboard", "Three urgent asks in my first month"}
+    assert {"Add dark mode to the dashboard", "Three urgent asks in my first month"} <= set(drafts)  # plus eight sample cases with guesses
     cr = drafts["Add dark mode to the dashboard"]
     assert client.post(f"/api/cases/{cr}/decision", json={"option": "defer"}).status_code == 200
     prio = client.get(f"/api/cases/{drafts['Three urgent asks in my first month']}").json()["case"]

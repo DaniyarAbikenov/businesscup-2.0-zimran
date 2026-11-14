@@ -29,6 +29,8 @@ function NewCase() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [ack, setAck] = useState(false);
+  const [guessing, setGuessing] = useState<null | { engine: string; preview: any }>(null);
+  const [guess, setGuess] = useState<Record<string, any>>({});
   const exampleId = (loc.state as { example?: string } | null)?.example;
   const ran = useRef(false);
   useEffect(() => {
@@ -50,6 +52,18 @@ function NewCase() {
     if (s) notify(t('Storyline loaded: {title}. Change anything you like.', { title: s.title }));
   };
 
+  async function create(prediction: Record<string, any> | null) {
+    setBusy(true); setError('');
+    try {
+      const r = await api('POST', '/cases', { situationId: sit!.id, privacyAck: ack, confidenceBefore: Number(conf), inputs: answers, ...(prediction ? { prediction } : {}) });
+      nav(`/case/${r.case.id}`);
+    } catch (x: any) {
+      if (x.status === 402) { nav('/pricing?from=limit'); return; }
+      setError(x.message);
+      if (x.fields && Object.keys(x.fields).some((k) => !k.startsWith('prediction'))) setGuessing(null);
+    } finally { setBusy(false); }
+  }
+
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (!ack) { setError(t('Confirm that you did not enter confidential information.')); return; }
@@ -57,8 +71,10 @@ function NewCase() {
     setError('');
     setFields({});
     try {
-      const r = await api('POST', '/cases', { situationId: sit!.id, privacyAck: ack, confidenceBefore: Number(conf), inputs: answers });
-      nav(`/case/${r.case.id}`);
+      // for scenarios with a guess step, check the numbers first, then ask for a guess before showing any result
+      const chk = await api('POST', '/cases/check', { situationId: sit!.id, inputs: answers });
+      if (chk.preview) { setGuessing({ engine: chk.engine, preview: chk.preview }); setGuess({}); window.scrollTo(0, 0); return; }
+      await create(null);
     } catch (x: any) {
       if (x.status === 402) { nav('/pricing?from=limit'); return; }
       setError(x.message);
@@ -68,6 +84,16 @@ function NewCase() {
     } finally {
       setBusy(false);
     }
+  }
+
+  if (guessing) {
+    return (
+      <div className="narrow">
+        <Stepper current={1} />
+        <PageHeader eyebrow={t('Your guess first')} title={t('What do you think the numbers will say?')} lead={t('Ten seconds. It trains your intuition: afterwards you see your guess next to the calculation. You can skip it.')} />
+        <GuessStep sit={sit} g={guessing} value={guess} onChange={setGuess} busy={busy} error={error} onGo={() => create(guess)} onSkip={() => create(null)} onBack={() => setGuessing(null)} />
+      </div>
+    );
   }
 
   return (
@@ -118,5 +144,51 @@ function IntakeNote({ intake, labels, titles, text }: { intake: Intake; labels: 
       {intake.noMatch && <p className="small"><strong>{t('Nothing in the catalog fits well?')}</strong> <Link to="/my/new" state={{ text }}>{t('Create a new scenario from this text')}</Link></p>}
       {intake.alternatives.length > 0 && <p className="small">{t('Wrong scenario?')} {intake.alternatives.map((id, i) => <span key={id}>{i > 0 && ', '}<Link to={`/new/${id}`}>{titles[id] ?? id}</Link></span>)}</p>}
     </div>
+  );
+}
+
+/** The guess before the numbers: big buttons, always skippable. Nothing is computed here; the server scores it. */
+function GuessStep({ sit, g, value, onChange, busy, error, onGo, onSkip, onBack }: { sit: { id: string; options: Record<string, { label: string }> }; g: { engine: string; preview: any }; value: Record<string, any>; onChange: React.Dispatch<React.SetStateAction<Record<string, any>>>; busy: boolean; error: string; onGo: () => void; onSkip: () => void; onBack: () => void }) {
+  const set = (k: string, v: any) => onChange((prev) => ({ ...prev, [k]: v }));
+  const choice = (on: boolean, label: string, onClick: () => void) => <button type="button" className={'story' + (on ? ' on' : '')} aria-pressed={on} onClick={onClick}><b>{label}</b></button>;
+  let ready = false;
+  let body: JSX.Element;
+  if (g.engine === 'priorities') {
+    ready = value.lateCount !== undefined && !!value.bestOrder;
+    body = (<>
+      <Panel title={t('If you work in the order you listed, how many tasks finish late?')}>
+        <div className="stories">{Array.from({ length: g.preview.tasks + 1 }, (_, n) => choice(value.lateCount === n, String(n), () => set('lateCount', n)))}</div>
+      </Panel>
+      <Panel title={t('Which order will carry the lowest risk?')}>
+        <div className="stories">{g.preview.orders.map((o: { key: string; label: string }) => choice(value.bestOrder === o.key, o.label, () => set('bestOrder', o.key)))}</div>
+      </Panel>
+    </>);
+  } else if (g.engine === 'estimate') {
+    ready = !!value.date;
+    body = (
+      <Panel title={t('By which date could you safely commit?')}>
+        <Field id="guessdate" label={t('Date')} help={t('The date you would give without worrying about missing it.')}>
+          {(a) => <input className="input" {...a} type="date" min={g.preview.start} value={value.date ?? ''} onChange={(e) => set('date', e.target.value)} />}
+        </Field>
+      </Panel>
+    );
+  } else {
+    ready = value.winner !== undefined;
+    body = (
+      <Panel title={t('Which option do you think wins?')}>
+        <div className="stories">{g.preview.options.map((name: string, i: number) => choice(value.winner === i, name, () => set('winner', i)))}</div>
+      </Panel>
+    );
+  }
+  return (
+    <>
+      {body}
+      {error && <div className="banner bad" role="alert">{error}</div>}
+      <div className="row" style={{ marginTop: 16 }}>
+        <Button onClick={onGo} busy={busy} disabled={!ready}>{t('Save my guess and show the numbers')}</Button>
+        <Button variant="secondary" onClick={onSkip} busy={busy}>{t('Skip, show me the numbers')}</Button>
+        <Button variant="quiet" onClick={onBack}>{t('Back to the form')}</Button>
+      </div>
+    </>
   );
 }

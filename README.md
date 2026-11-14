@@ -51,6 +51,15 @@ docker compose run --rm -e DATABASE_URL=postgresql+psycopg://roleshift:roleshift
 
 The tests use real Postgres and Redis. They cover the impact calculation, input validation, auth and sessions, login throttling, the full flow through the API, and that one user cannot read another user's case.
 
+## Skills: predict, reveal, grow
+
+For first-time team leads the product is practice for one skill: deciding without fear of a costly mistake. In the three calculators that suit it (priorities, estimate, decision) the person can **guess before the numbers appear** (a few big buttons, always skippable), then the server **scores the guess** against the engine on the same inputs, and the case page shows **"Your guess vs the numbers"** with one friendly sentence and what was not counted.
+
+- **What is guessed and scored** (`app/prediction.py`): priorities, how many tasks finish late in your own order (exact hit) and which order carries the lowest risk (hit); estimate, the date you could safely commit to (error in working days against the safe date: within 1 day is a hit, within 3 is half, more is a miss); decision, which option scores highest (hit). The overall score is 0 to 1. Guesses are validated (types and ranges), stored on the case (`cases.prediction`, `cases.prediction_score`, migration 0009) and never scored in the browser. Change requests have no guess step.
+- **Progress, "Your intuition vs the numbers":** per skill (prioritising, estimating, choosing; each scenario carries a `skill` in the pack and shows "Trains: ...") the number of cases, the number of guesses, and the agreement rate with a small bar chart of the last 10. With fewer than 3 guesses it says "Not enough guesses yet" and shows no percentage or trend. The timeline shows "Guess: 1 of 2 right" next to the outcome.
+- **What it measures, and what it does not:** agreement with the calculator on your own numbers. It does not measure the quality of decisions in the real world, and the calculator itself is a rule of thumb on what you typed.
+- The demo account has eight sample cases with guesses (far off first, closer later), labelled as sample data like the rest of the demo.
+
 ## How it works (for users) and vocabulary
 
 The promise: "Facing a decision in a new role? Try your options with your own numbers before you commit, and get a ready message to send." Four steps: describe or pick a scenario, compare options with your numbers, decide and get a ready message, come back and record how it went. The UI says **scenario** (a kind of moment at work), **example** (a scenario with made-up numbers filled in), **option**, **follow-up**; internal words (engine, storyline, preset) stay in code and this README.

@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session, object_session
 
-from .. import billing, challenge, llm, packs, presets, reminders
+from .. import billing, challenge, llm, packs, prediction, presets, reminders
 from ..cache import get_redis
 from ..db import get_db
 from ..deps import current_user, own_case
@@ -39,6 +39,7 @@ def case_dict(c: Case) -> dict:
         "reflection": {"learned": rf.learned, "different": rf.different, "confidenceAfter": rf.confidence_after} if rf else None,
         "followup": {"outcome": fu.outcome, "notes": fu.notes} if fu else None,
         "createdAt": c.created_at.isoformat(),
+        "prediction": prediction.reveal(sit_of(c), c.prediction, c.prediction_score, c.result, c.inputs),
     }
     if d:
         cr, cm = get_doc(c, "change_request"), get_doc(c, "client_message")
@@ -81,12 +82,36 @@ def create_case(body: dict, user=Depends(current_user), db: Session = Depends(ge
     if not conf:
         raise ApiError(400, "Rate your confidence from 1 to 5")
     inputs, result = calc(sit, body.get("inputs"))
-    c = Case(user_id=user.id, situation_id=sit["id"], inputs=inputs, result=result, confidence_before=conf)
+    guess = prediction.clean(sit, inputs, body.get("prediction"))
+    c = Case(user_id=user.id, situation_id=sit["id"], inputs=inputs, result=result, confidence_before=conf,
+             prediction=guess, prediction_score=prediction.score(sit, guess, result, inputs))
     db.add(c)
     db.flush()
     log(db, user.id, c.id, "case", tr("Started: {title}", title=packs.case_title(sit['id'], inputs)))
     db.commit()
     return {"case": case_dict(c)}
+
+
+@router.post("/cases/check")
+def check_inputs(body: dict, user=Depends(current_user), db: Session = Depends(get_db)):
+    """Validates the form without creating anything, so the "your guess" step only appears for numbers that will work."""
+    sit = presets.resolve(db, user.id, body.get("situationId"))
+    if not sit:
+        raise ApiError(400, "Unknown situation")
+    inputs, _ = calc(sit, body.get("inputs"))
+    return {"ok": True, "engine": sit["engine"], "preview": prediction_preview(sit, inputs)}
+
+
+def prediction_preview(sit: dict, inputs: dict) -> dict | None:
+    """What the guess screen needs to show (the person's own options), nothing computed."""
+    e = sit["engine"]
+    if e == "priorities":
+        return {"tasks": len(inputs["tasks"]), "orders": [{"key": k, "label": sit["options"][k]["label"]} for k in prediction.ORDERS]}
+    if e == "estimate":
+        return {"start": inputs["startDate"]}
+    if e == "decision":
+        return {"options": [o["name"] for o in inputs["options"]]}
+    return None
 
 
 @router.get("/cases/{case_id}")
