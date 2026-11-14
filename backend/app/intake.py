@@ -20,6 +20,10 @@ KEYWORDS = {
         "my manager", "boss", "asked me", "tasks", "workload", "no time", "urgent", "this week", "by friday",
         "which first", "juggl", "swamped", "behind",
     ],
+    "asked-for-a-deadline": [
+        "how long", "when can you", "estimate", "timeline", "eta", "by when", "name a date", "commit to a date", "give a date",
+        "how many days", "how many hours", "when will it be done", "when it will be ready", "launch date", "quote a date",
+    ],
     "client-change-request": [
         "client", "customer", "change request", "scope", "requirement", "new feature", "release", "launch date",
         "budget", "contract", "stakeholder wants", "add a feature", "late change", "sprint", "invoice", "penalty",

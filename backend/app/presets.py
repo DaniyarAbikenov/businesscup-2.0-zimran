@@ -20,12 +20,14 @@ from . import intake, packs
 from .errors import ApiError
 from .models import CustomSituation
 
-TEMPLATES = {"change_request": "client-change-request", "priorities": "competing-priorities"}
+TEMPLATES = {"change_request": "client-change-request", "priorities": "competing-priorities", "estimate": "asked-for-a-deadline"}
 ENGINE_HELP = {
     "change_request": "Someone asks for extra work late in a project. The person decides: accept it, defer it or decline it. "
                       "The engine calculates effort, new date, cost and risk from team size, rate, budget, buffer and effort.",
     "priorities": "Two to five tasks from different people compete for the person's limited free hours. The engine compares four "
                   "orders of work (earliest deadline, most senior requester, biggest consequence, the person's own) and shows what ends up late.",
+    "estimate": "Someone asks the person for a date or a duration for one task (any job: report, feature, campaign, review). The engine takes a "
+                "three-point estimate and the real free hours, and compares promising the best-case date, the likely date, a safe date or a range with a re-check.",
 }
 CAPS = {"title": 120, "summary": 400, "label": 120, "help": 300, "option": 80, "step": 300, "pitfall": 300, "prompt": 200,
         "storyTitle": 80, "story": 500}

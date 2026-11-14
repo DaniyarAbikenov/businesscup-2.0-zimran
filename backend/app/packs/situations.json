@@ -663,6 +663,289 @@
           }
         }
       ]
+    },
+    {
+      "id": "asked-for-a-deadline",
+      "engine": "estimate",
+      "category": "Estimates and promises",
+      "title": "Someone asks: how long will it take, and by when?",
+      "summary": "A manager, client or colleague wants a date from you. Give your three-point estimate and your real free hours, compare four things you could say, and send a reply that is honest about what could move the date.",
+      "applies_to": [
+        "*"
+      ],
+      "titleField": "title",
+      "documentName": "Estimate reply",
+      "groups": [
+        {
+          "id": "task",
+          "title": "The task"
+        },
+        {
+          "id": "estimate",
+          "title": "Your estimate (hours of work)",
+          "columns": 2
+        },
+        {
+          "id": "time",
+          "title": "Your time",
+          "columns": 2
+        },
+        {
+          "id": "ask",
+          "title": "Who is asking",
+          "columns": 2
+        }
+      ],
+      "questions": [
+        {
+          "id": "title",
+          "group": "task",
+          "type": "text",
+          "label": "What are you being asked to do?",
+          "required": true,
+          "max": 120,
+          "placeholder": "Quarterly churn report for the VP"
+        },
+        {
+          "id": "context",
+          "group": "task",
+          "type": "textarea",
+          "label": "Background (optional)",
+          "help": "What is included, what you depend on, what is unclear. It goes into your reply.",
+          "max": 800
+        },
+        {
+          "id": "optimisticHours",
+          "group": "estimate",
+          "type": "number",
+          "label": "Best case (hours)",
+          "help": "Everything goes well, no surprises.",
+          "required": true,
+          "min": 0.5,
+          "max": 2000,
+          "step": 0.5
+        },
+        {
+          "id": "likelyHours",
+          "group": "estimate",
+          "type": "number",
+          "label": "Most likely (hours)",
+          "help": "What you would bet on.",
+          "required": true,
+          "min": 0.5,
+          "max": 2000,
+          "step": 0.5
+        },
+        {
+          "id": "pessimisticHours",
+          "group": "estimate",
+          "type": "number",
+          "label": "Worst realistic case (hours)",
+          "help": "Things go wrong in the usual ways, not a disaster.",
+          "required": true,
+          "min": 0.5,
+          "max": 4000,
+          "step": 0.5
+        },
+        {
+          "id": "hoursPerWeek",
+          "group": "time",
+          "type": "number",
+          "label": "Free hours per week for this task",
+          "help": "After meetings and other work that will not stop.",
+          "required": true,
+          "min": 1,
+          "max": 80,
+          "step": 1,
+          "default": 15
+        },
+        {
+          "id": "interruptionsPct",
+          "group": "time",
+          "type": "number",
+          "label": "Lost to interruptions and context switches (%)",
+          "help": "Be honest: most people lose 15 to 30 %.",
+          "required": true,
+          "min": 0,
+          "max": 80,
+          "step": 5,
+          "default": 20
+        },
+        {
+          "id": "startDate",
+          "group": "time",
+          "type": "date",
+          "label": "When can you start?",
+          "required": true,
+          "defaultDaysFromNow": 0
+        },
+        {
+          "id": "requester",
+          "group": "ask",
+          "type": "select",
+          "label": "Who is asking?",
+          "required": true,
+          "default": "manager",
+          "options": [
+            {
+              "value": "manager",
+              "label": "My manager"
+            },
+            {
+              "value": "client",
+              "label": "A client or customer"
+            },
+            {
+              "value": "peer",
+              "label": "A colleague or another team"
+            }
+          ]
+        },
+        {
+          "id": "costOfLate",
+          "group": "ask",
+          "type": "select",
+          "label": "What happens if you are late?",
+          "required": true,
+          "default": "medium",
+          "options": [
+            {
+              "value": "low",
+              "label": "A small inconvenience"
+            },
+            {
+              "value": "medium",
+              "label": "It hurts trust or costs something"
+            },
+            {
+              "value": "high",
+              "label": "Serious: contract, launch, money"
+            }
+          ]
+        },
+        {
+          "id": "askedDeadline",
+          "group": "ask",
+          "type": "date",
+          "label": "The date they asked for (optional)",
+          "help": "Leave empty if they only asked how long it takes.",
+          "required": false
+        }
+      ],
+      "options": {
+        "optimistic": {
+          "label": "Promise the best-case date",
+          "nextSteps": [
+            "Tell them it is the best case and what must go right for it to hold.",
+            "Warn them early, the day you see it slipping.",
+            "Do not promise it in writing as a commitment.",
+            "Protect the time in your calendar from day one."
+          ]
+        },
+        "likely": {
+          "label": "Promise the most likely date",
+          "nextSteps": [
+            "Say plainly that it is your most likely date, not a guarantee.",
+            "Name the one or two things that could move it.",
+            "Agree when you will update them if it moves.",
+            "Block the hours in your calendar now."
+          ]
+        },
+        "safe": {
+          "label": "Promise a safe date (with buffer)",
+          "nextSteps": [
+            "Explain the date in one sentence: what it includes and the buffer you added.",
+            "If they asked for an earlier date, offer to deliver a smaller first version by then.",
+            "Do not hand over the buffer silently; tell them what it covers.",
+            "Deliver early if you can, it builds trust."
+          ]
+        },
+        "range": {
+          "label": "Give a range and re-check on a set day",
+          "nextSteps": [
+            "Say the range and the day you will re-check, in the same message.",
+            "On the re-check day, tell them where you are, even if nothing changed.",
+            "If the range is too wide for them, ask what part could be cut or who could help.",
+            "Write the re-check date in your calendar."
+          ]
+        }
+      },
+      "pitfalls": [
+        "Giving the best-case date because it is the one they want to hear.",
+        "Saying a date in the meeting before you have done a quick estimate.",
+        "Forgetting meetings, reviews and interruptions: the free hours are not 40 a week.",
+        "Telling them about the delay on the day it was due.",
+        "Giving one date with no assumptions, so nobody knows what would move it."
+      ],
+      "reflectionPrompts": [
+        {
+          "id": "learned",
+          "label": "What did the best-case, likely and safe dates show you about your estimate?"
+        },
+        {
+          "id": "different",
+          "label": "What will you do differently the next time someone asks for a date?"
+        }
+      ],
+      "storylines": [
+        {
+          "id": "report",
+          "title": "An analyst asked for a report",
+          "story": "Your manager asks for a churn report for the VP by next Friday. You think 18 hours, but the data may need cleaning, and you have about 16 free hours a week.",
+          "answers": {
+            "title": "Churn report for the VP",
+            "context": "Needs data from two systems; one export has been unreliable.",
+            "optimisticHours": 10,
+            "likelyHours": 18,
+            "pessimisticHours": 36,
+            "hoursPerWeek": 16,
+            "interruptionsPct": 25,
+            "requester": "manager",
+            "costOfLate": "medium",
+            "askedDeadline": {
+              "daysFromNow": 7
+            }
+          }
+        },
+        {
+          "id": "feature",
+          "title": "A developer asked for a feature estimate",
+          "story": "A client wants a CSV import in their account. Your honest range is wide because their files are messy, and you share the sprint with support.",
+          "answers": {
+            "title": "CSV import for a client account",
+            "context": "Client files have mixed encodings and optional columns.",
+            "optimisticHours": 12,
+            "likelyHours": 24,
+            "pessimisticHours": 60,
+            "hoursPerWeek": 24,
+            "interruptionsPct": 30,
+            "requester": "client",
+            "costOfLate": "high",
+            "askedDeadline": {
+              "daysFromNow": 10
+            }
+          }
+        },
+        {
+          "id": "campaign",
+          "title": "A marketer asked for a launch date",
+          "story": "Your manager wants the spring campaign live in about a week and a half. It needs copy, design review and a legal check you do not control.",
+          "answers": {
+            "title": "Spring campaign launch",
+            "context": "Legal review has no fixed turnaround.",
+            "optimisticHours": 20,
+            "likelyHours": 30,
+            "pessimisticHours": 50,
+            "hoursPerWeek": 20,
+            "interruptionsPct": 20,
+            "requester": "manager",
+            "costOfLate": "medium",
+            "askedDeadline": {
+              "daysFromNow": 10
+            }
+          }
+        }
+      ]
     }
   ]
 }

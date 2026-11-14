@@ -107,7 +107,7 @@ def test_full_flow_draft_save_case_decide_document(client, make_client, monkeypa
     signup(client, "flow@example.com")
     calls = ai_on(monkeypatch)
     d = draft(client).json()
-    assert [s["engine"] for s in calls[0][1]] == ["change_request", "priorities"]  # the AI only sees the supported engines
+    assert [s["engine"] for s in calls[0][1]] == ["change_request", "priorities", "estimate"]  # the AI only sees the supported engines
     assert d["situation"]["aiMade"] is True and d["situation"]["title"] == "Two bosses, one week"
     assert d["situation"]["storylines"][0]["answers"]["tasks"][0]["deadline"] > "2000"  # dates resolved for the browser
     assert "my-two-bosses-one-week" not in [s["id"] for s in client.get("/api/packs").json()["situations"]]  # a draft is not saved
@@ -180,7 +180,7 @@ def test_llm_request_shape(monkeypatch):
     b = sent["body"]
     assert b["model"] == config.LLM_MODEL and b["fallbacks"] == "default" and "server-side-fallback" in sent["beta"]
     props = b["output_config"]["format"]["schema"]["properties"]
-    assert props["engine"]["enum"] == ["change_request", "priorities"] and {"labels", "options", "storyline", "pitfalls", "reflectionPrompts"} <= set(props)
+    assert props["engine"]["enum"] == ["change_request", "priorities", "estimate"] and {"labels", "options", "storyline", "pitfalls", "reflectionPrompts"} <= set(props)
     content = b["messages"][0]["content"]
     assert "<description>" in content and "client-change-request" not in content and '"engine": "priorities"' in content
     reply.update(stop_reason="refusal", text="")
@@ -189,3 +189,18 @@ def test_llm_request_shape(monkeypatch):
         assert False, "refusal must raise"
     except llm.LlmError as e:
         assert str(e) == "refusal"
+
+
+def test_ai_preset_on_the_estimate_engine():
+    p = presets.normalize(preset(engine="estimate", title="Quote a date for a report", summary="Someone wants a date.",
+                                 labels=[{"id": "optimisticHours", "label": "Best case (hours)", "help": ""}, {"id": "tasks", "label": "not a question here", "help": ""}],
+                                 options=[{"key": "safe", "label": "Safe date", "nextSteps": ["Explain the buffer."]}, {"key": "deadline", "label": "x", "nextSteps": []}],
+                                 reflectionPrompts=[],
+                                 storyline={"title": "A report", "story": "Example.", "fields": [
+                                     {"id": "title", "value": "Report"}, {"id": "optimisticHours", "value": "8"}, {"id": "likelyHours", "value": "16"},
+                                     {"id": "pessimisticHours", "value": "30"}, {"id": "askedDeadline", "value": "+7"}, {"id": "requester", "value": "ceo"}], "tasks": []}))
+    assert [x["id"] for x in p["labels"]] == ["optimisticHours"] and [o["key"] for o in p["options"]] == ["safe"]
+    sit = presets.build(p, "quote-a-date")
+    assert sit["engine"] == "estimate" and set(sit["options"]) == {"optimistic", "likely", "safe", "range"}
+    a = sit["storylines"][0]["answers"]
+    assert a["askedDeadline"] == {"daysFromNow": 7} and a["likelyHours"] == 16 and "requester" not in a

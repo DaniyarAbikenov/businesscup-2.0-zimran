@@ -47,7 +47,7 @@ export interface Question {
 }
 export interface Storyline { id: string; title: string; story: string; answers: Record<string, any> }
 export interface Situation {
-  id: string; engine: 'change_request' | 'priorities'; aiMade?: boolean; category?: string; title: string; summary: string; applies_to: string[]; questions: Question[];
+  id: string; engine: 'change_request' | 'priorities' | 'estimate'; aiMade?: boolean; category?: string; title: string; summary: string; applies_to: string[]; questions: Question[];
   titleField?: string; documentName?: string; storylines?: Storyline[];
   groups?: { id: string; title: string; columns?: number; collapsed?: boolean }[];
   options: Record<string, { label: string; nextSteps: string[] }>;
@@ -63,7 +63,7 @@ export interface Profile { roleId: string; industry: string; tenure: string; fea
 export interface Me { user: { id: number; email: string }; profile: Profile | null; llmEnabled: boolean; isDemo: boolean }
 export interface ScheduledTask { index: number; name: string; finish: string; deadline: string; lateDays: number; requester: string; impact: string }
 export interface Option {
-  key: string; sameAs?: string[]; schedule?: ScheduledTask[]; lateCount?: number; totalLateDays?: number; riskLevel: 'low' | 'medium' | 'high'; riskScore: number;
+  key: string; date?: string; dateFrom?: string | null; recheckDate?: string | null; workdays?: number; hours?: number; probability?: number; lateDays?: number; sameAs?: string[]; schedule?: ScheduledTask[]; lateCount?: number; totalLateDays?: number; riskLevel: 'low' | 'medium' | 'high'; riskScore: number;
   newReleaseDate: string; slipWorkdays: number; extraCost: number; budgetAfter: number; laterCost?: number;
   costBreakdown?: { labor: number; extendedRun: number; delayPenalty: number; clientCovers: number };
   risks: { severity: number; text: string }[];
