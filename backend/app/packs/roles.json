@@ -1,48 +1,191 @@
 {
   "roles": [
     {
+      "id": "specialist-new-company",
+      "label": "New specialist at a new company",
+      "terms": {
+        "milestone": "deadline",
+        "work": "team",
+        "unit": "person-day"
+      },
+      "duties": [
+        "Learning how things work here",
+        "Delivering my own work",
+        "Earning trust",
+        "Asking for what I need"
+      ]
+    },
+    {
+      "id": "promoted-to-lead",
+      "label": "Promoted from specialist to team lead",
+      "terms": {
+        "milestone": "deadline",
+        "work": "team",
+        "unit": "person-day"
+      },
+      "duties": [
+        "Priorities for the team",
+        "Delegating",
+        "Feedback and 1:1s",
+        "Representing the team"
+      ]
+    },
+    {
+      "id": "head-of-function",
+      "label": "Manager of managers / head of a function",
+      "terms": {
+        "milestone": "deadline",
+        "work": "team",
+        "unit": "person-day"
+      },
+      "duties": [
+        "Direction and priorities",
+        "Decisions with incomplete information",
+        "Budget and headcount",
+        "Working with other leaders"
+      ]
+    },
+    {
+      "id": "career-switch",
+      "label": "Changed to a new field or industry",
+      "terms": {
+        "milestone": "deadline",
+        "work": "team",
+        "unit": "person-day"
+      },
+      "duties": [
+        "Learning a new domain",
+        "Proving myself again",
+        "Finding who decides what",
+        "Setting realistic expectations"
+      ]
+    },
+    {
       "id": "it-pm",
-      "label": "IT Project Manager",
-      "terms": { "milestone": "release", "work": "engineering", "unit": "person-day" },
-      "duties": ["Schedule and release planning", "Change control", "Risk management", "Stakeholder communication", "Budget tracking"]
+      "label": "Project / delivery manager (IT)",
+      "terms": {
+        "milestone": "release",
+        "work": "engineering",
+        "unit": "person-day"
+      },
+      "duties": [
+        "Schedule and release planning",
+        "Change control",
+        "Risk management",
+        "Stakeholder communication",
+        "Budget tracking"
+      ]
     },
     {
       "id": "animation-pm",
-      "label": "Animation / CGI Production Manager",
-      "terms": { "milestone": "delivery", "work": "production", "unit": "artist-day" },
-      "duties": ["Shot and render scheduling", "Client approvals and revisions", "Vendor budgets", "Risk management", "Studio communication"]
+      "label": "Project / delivery manager (animation, CGI)",
+      "terms": {
+        "milestone": "delivery",
+        "work": "production",
+        "unit": "artist-day"
+      },
+      "duties": [
+        "Shot and render scheduling",
+        "Client approvals and revisions",
+        "Vendor budgets",
+        "Risk management",
+        "Studio communication"
+      ]
     },
     {
       "id": "construction-pm",
-      "label": "Construction Project Manager",
-      "terms": { "milestone": "handover", "work": "site work", "unit": "crew-day" },
-      "duties": ["Site schedule", "Change orders", "Subcontractor budgets", "Permits and compliance", "Owner communication"]
+      "label": "Project / delivery manager (construction)",
+      "terms": {
+        "milestone": "handover",
+        "work": "site work",
+        "unit": "crew-day"
+      },
+      "duties": [
+        "Site schedule",
+        "Change orders",
+        "Subcontractor budgets",
+        "Permits and compliance",
+        "Owner communication"
+      ]
     },
     {
       "id": "eng-lead",
-      "label": "Engineering / Team Lead",
-      "terms": { "milestone": "release", "work": "engineering", "unit": "person-day" },
-      "duties": ["Scope negotiation", "Estimation", "Delivery commitments", "Team capacity", "Stakeholder updates"]
+      "label": "Engineering / team lead",
+      "terms": {
+        "milestone": "release",
+        "work": "engineering",
+        "unit": "person-day"
+      },
+      "duties": [
+        "Scope negotiation",
+        "Estimation",
+        "Delivery commitments",
+        "Team capacity",
+        "Stakeholder updates"
+      ]
     },
     {
       "id": "other",
-      "label": "Other first-time lead or manager",
-      "terms": { "milestone": "deadline", "work": "team", "unit": "person-day" },
-      "duties": ["Priorities and scope", "Deadlines", "Budget", "Communicating with stakeholders"]
+      "label": "Other new position",
+      "terms": {
+        "milestone": "deadline",
+        "work": "team",
+        "unit": "person-day"
+      },
+      "duties": [
+        "Priorities and scope",
+        "Deadlines",
+        "Budget",
+        "Communicating with stakeholders"
+      ]
     }
   ],
   "tenures": [
-    { "id": "not-started", "label": "Not started yet" },
-    { "id": "lt-1m", "label": "Less than 1 month" },
-    { "id": "1-3m", "label": "1 to 3 months" },
-    { "id": "3-6m", "label": "3 to 6 months" }
+    {
+      "id": "not-started",
+      "label": "Not started yet"
+    },
+    {
+      "id": "lt-1m",
+      "label": "Less than 1 month"
+    },
+    {
+      "id": "1-3m",
+      "label": "1 to 3 months"
+    },
+    {
+      "id": "3-6m",
+      "label": "3 to 6 months"
+    }
   ],
   "fears": [
-    { "id": "wrong-call", "label": "Making a wrong call that costs the team" },
-    { "id": "promise-dates", "label": "Promising dates I cannot keep" },
-    { "id": "pushback", "label": "Pushing back on a client or executive" },
-    { "id": "looking-lost", "label": "Looking like I do not know what I am doing" },
-    { "id": "scope", "label": "Scope growing out of control" },
-    { "id": "conflict", "label": "Handling conflict inside the team" }
+    {
+      "id": "wrong-call",
+      "label": "Making a wrong call that costs others"
+    },
+    {
+      "id": "promise-dates",
+      "label": "Promising what I cannot deliver (deadlines, results)"
+    },
+    {
+      "id": "pushback",
+      "label": "Saying no to someone senior"
+    },
+    {
+      "id": "looking-lost",
+      "label": "Looking like I do not know what I am doing"
+    },
+    {
+      "id": "not-understanding",
+      "label": "Not understanding how things work here"
+    },
+    {
+      "id": "too-many-demands",
+      "label": "Too many demands at once"
+    },
+    {
+      "id": "conflict",
+      "label": "Conflict with people I now lead or work with"
+    }
   ]
 }

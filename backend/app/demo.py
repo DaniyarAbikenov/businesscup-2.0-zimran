@@ -64,7 +64,7 @@ def seed_demo_user(db, r) -> User:
     role = packs.get_role("it-pm")
     db.add(Profile(user_id=user.id, role_id="it-pm", industry="Fintech", tenure="1-3m",
                    fears=["wrong-call", "pushback"], fear_note=""))
-    db.add(JournalEntry(user_id=user.id, type="onboarding", text="Set up profile as IT Project Manager in Fintech.",
+    db.add(JournalEntry(user_id=user.id, type="onboarding", text="Set up profile as Project / delivery manager (IT) in Fintech.",
                         created_at=datetime.now(timezone.utc) - timedelta(days=8)))
 
     # 1. A finished case: decision, document, reflection and a reported outcome.

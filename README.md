@@ -1,6 +1,6 @@
 # RoleShift
 
-A decision workspace for people in their first 90 days of a new role. The MVP ships one complete flow:
+A decision workspace for people in their first 90 days of a new position (promotion, new company, new field, new team). The MVP ships one complete flow:
 
 sign up / sign in -> onboarding (role, context, worries) -> situation "Client changes requirements 2 weeks before release" -> clarifying questions and your project numbers -> **deterministic** impact of Accept / Defer / Decline (new date, cost, risk) -> Change Request document (copy / download) -> debrief and reflection -> progress journal with a "what happened?" follow-up.
 
@@ -73,6 +73,7 @@ users 1--* journal   timeline events, optionally linked to a case
 
 ## How it works
 
+- **Roles and the catalog:** the onboarding offers broad positions (new specialist at a new company, promoted to team lead, head of a function, career switch, four project/delivery manager variants, other). Each situation lists `applies_to` role ids or `"*"`; the Home catalog shows only the matching ones, so `competing-priorities` is for everyone and `client-change-request` is for the delivery roles and "other". "Describe your situation" and AI-made situations are not limited by `applies_to`: any situation can be opened from the text. Old role ids stay valid.
 - **Content packs:** roles, worries and situations are JSON in `backend/app/packs/`. The form, validation, option labels, next steps and pitfalls all come from the pack, so new roles and situations are data. The math for a situation type lives in `backend/app/engine/`.
 - **Situations and engines:** each situation in `packs/situations.json` names an engine (`app/engine/__init__.py` registry), its questions (including repeatable rows such as a task list), form groups, option labels, next steps, pitfalls, the document name, and **storylines** (ready examples with filled-in answers, dates given as `{"daysFromNow": n}`). Two engines today: `change_request` (accept / defer / decline a late client change) and `priorities` (2-5 competing tasks, compares four orders of work: earliest deadline, most senior requester, biggest consequence, your own order). A new situation on an existing engine is JSON only.
 - **Calculation** (`engine/change_request.py`): effort plus overhead, shared across the team (Amdahl-style parallel share), minus schedule buffer gives the slip in working days (weekends skipped). Cost is change work plus team time during the slip plus penalties minus the client share. No LLM involved.
@@ -99,7 +100,7 @@ users 1--* journal   timeline events, optionally linked to a case
 
 - This compose file is a development stack. For production build the frontend (`npm run build`) and serve `dist/` from a web server or the backend, and run uvicorn without `--reload`.
 - AI reading was tested against a fake API in tests and a local stand-in; it has not been run against the real API in this repo.
-- Two expert-written situations (client change request, competing priorities). Users can make more with AI, but those are presets on the same two engines and are not expert-checked. A situation with cases cannot be deleted.
+- Still two engines. Two expert-written situations (client change request, competing priorities). Users can make more with AI, but those are presets on the same two engines and are not expert-checked. A situation with cases cannot be deleted.
 - Follow-up reminders appear in the app only (no email or push).
 - Outcomes are self-reported and cannot be verified. Risk labels are transparent rules of thumb, not predictions.
 - No password reset or email verification.

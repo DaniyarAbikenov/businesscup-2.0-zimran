@@ -35,17 +35,17 @@ export default function Onboarding() {
 
   return (
     <div className="narrow">
-      <PageHeader eyebrow="Step 1 of 1" title="Tell us about your new role" lead="One minute. It tunes the wording and examples to your job." />
+      <PageHeader eyebrow="Step 1 of 1" title="Tell us about your new position" lead="Promoted, moved to a new team or company, or changed fields? One minute. It tunes the examples and the situations we show you." />
       <PrivacyBanner />
       <Panel>
         <form onSubmit={submit}>
-          <Field id="role" label="Your new role">{(a) => (
+          <Field id="role" label="Your new position">{(a) => (
             <select className="input" {...a} value={roleId} onChange={(e) => setRoleId(e.target.value)}>
               {pack.roles.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
             </select>)}
           </Field>
           <Field id="industry" label="Industry (optional)">{(a) => <input className="input" {...a} maxLength={80} placeholder="Fintech, healthcare, games" value={industry} onChange={(e) => setIndustry(e.target.value)} />}</Field>
-          <Field id="tenure" label="How long have you been in this role?">{(a) => (
+          <Field id="tenure" label="How long have you been in this position?">{(a) => (
             <select className="input" {...a} value={tenure} onChange={(e) => setTenure(e.target.value)}>
               {pack.tenures.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
             </select>)}

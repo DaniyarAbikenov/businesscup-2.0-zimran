@@ -68,7 +68,7 @@ export default function Home() {
           ))}</ul>
         </Panel>
       )}
-      <p style={{ marginTop: 24 }}><Link to="/onboarding">Edit my role and concerns</Link></p>
+      <p style={{ marginTop: 24 }}><Link to="/onboarding">Edit my position and concerns</Link></p>
     </>
   );
 }

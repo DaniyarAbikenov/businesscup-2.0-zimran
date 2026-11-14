@@ -6,7 +6,11 @@
       "title": "The client changes requirements 2 weeks before release",
       "summary": "A client asks for a change late in the project. Enter your real numbers, compare accepting, deferring and declining, then produce a Change Request you can send.",
       "applies_to": [
-        "*"
+        "it-pm",
+        "animation-pm",
+        "construction-pm",
+        "eng-lead",
+        "other"
       ],
       "questions": [
         {
