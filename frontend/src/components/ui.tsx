@@ -82,7 +82,7 @@ export function Field({ id, label, help, why, error, children }: FieldProps) {
 /** Renders one question from the scenario pack. A "list" question renders repeatable rows. */
 export function QuestionField({ q, value, error, errors, onChange, answers }: { q: Question; value: any; error?: string; errors?: Record<string, string>; onChange: (v: any) => void; answers?: Record<string, any> }) {
   if (q.type === 'list') return <ListField q={q} rows={value ?? []} error={error} errors={errors ?? {}} onChange={onChange} answers={answers ?? {}} />;
-  const label = q.label + (q.required || q.labelFrom ? '' : ' (optional)');
+  const label = q.label + (q.required || q.labelFrom ? '' : ' (' + t('optional') + ')');
   return (
     <Field id={'q_' + q.id} label={label} help={q.help} why={q.why} error={error}>
       {(a) =>
@@ -106,7 +106,7 @@ export function QuestionField({ q, value, error, errors, onChange, answers }: { 
             inputMode={q.type === 'number' ? 'decimal' : undefined} min={q.min} max={q.type === 'number' ? q.max : undefined}
             step={q.type === 'number' ? q.step ?? 'any' : undefined} maxLength={q.type === 'text' ? q.max : undefined}
             placeholder={q.placeholder} value={value} onChange={(e) => onChange(e.target.value)} />
-          {q.type === 'date' && <DateChips onPick={onChange} />}
+          {q.type === 'date' && <DateChips onPick={onChange} compact={q.id.includes('.')} />}
           </>
         )
       }
@@ -129,8 +129,8 @@ export function chipDates(now = new Date()): { label: string; value: string }[] 
     { label: t('In 1 week'), value: plus(7) }, { label: t('In 2 weeks'), value: plus(14) },
   ];
 }
-function DateChips({ onPick }: { onPick: (v: string) => void }) {
-  return <div className="chips">{chipDates().map((c) => <button key={c.label} type="button" className="chip" onClick={() => onPick(c.value)}>{c.label}</button>)}</div>;
+function DateChips({ onPick, compact }: { onPick: (v: string) => void; compact?: boolean }) {
+  return <div className="chips">{chipDates().filter((_, i) => !compact || [1, 2, 3].includes(i)).map((c) => <button key={c.label} type="button" className="chip" onClick={() => onPick(c.value)}>{c.label}</button>)}</div>;
 }
 
 /** A short ordered list of options (low / medium / high) as a slider: the live word shows the chosen option; the stored value stays the option's key. */

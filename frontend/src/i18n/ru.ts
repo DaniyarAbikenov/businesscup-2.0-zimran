@@ -539,6 +539,7 @@ const ru: Record<string, string> = {
  "not set": "не задано",
  "Today": "Сегодня",
  "This Friday": "В пятницу",
- "In 1 week": "Через неделю"
+ "In 1 week": "Через неделю",
+ "optional": "необязательно"
 };
 export default ru;

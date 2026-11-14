@@ -536,6 +536,7 @@ const kk: Record<string, string> = {
  "not set": "көрсетілмеген",
  "Today": "Бүгін",
  "This Friday": "Жұма күні",
- "In 1 week": "1 аптадан кейін"
+ "In 1 week": "1 аптадан кейін",
+ "optional": "міндетті емес"
 };
 export default kk;
