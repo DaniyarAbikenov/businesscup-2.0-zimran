@@ -48,6 +48,9 @@ def _schedule(tasks: list, order: list, as_of: str, per_day: float) -> list:
 
 def check(i: dict) -> dict:
     """Rules that span several fields. Returns {field: message}."""
+    for n, t in enumerate(i["tasks"]):
+        if (t.get("minEffortHours") or 0) > t["effortHours"]:
+            return {f"tasks.{n}.minEffortHours": tr("Must not be more than the hours of the task")}
     if i["committedHours"] + i.get("hiddenHours", 0) >= i["hoursPerWeek"]:
         return {"committedHours": tr('Must be less than your working hours, or there is no time for these tasks')}
     return {}

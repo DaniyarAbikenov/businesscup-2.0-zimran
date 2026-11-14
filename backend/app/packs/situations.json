@@ -335,6 +335,12 @@
           "title": "Did I forget anything?",
           "collapsed": true,
           "columns": 1
+        },
+        {
+          "id": "money",
+          "title": "Money and quality (optional)",
+          "collapsed": true,
+          "columns": 2
         }
       ],
       "questions": [
@@ -448,6 +454,27 @@
               "type": "text",
               "label": "Note (optional)",
               "max": 200
+            },
+            {
+              "id": "costPerLateDay",
+              "type": "number",
+              "label": "Cost per working day late (optional)",
+              "help": "Money lost or damage per day, any currency.",
+              "required": false,
+              "min": 0,
+              "max": 1000000000,
+              "step": 1,
+              "default": 0
+            },
+            {
+              "id": "minEffortHours",
+              "type": "number",
+              "label": "Hours of the minimum acceptable version (optional)",
+              "help": "Leave empty if it cannot be cut.",
+              "required": false,
+              "min": 0,
+              "max": 400,
+              "step": 0.5
             }
           ]
         },
@@ -497,6 +524,30 @@
           "help": "Verbal promises, recurring work, work you cover for others, things you depend on, holidays.",
           "required": false,
           "max": 500
+        },
+        {
+          "id": "extraHourCost",
+          "group": "money",
+          "type": "number",
+          "label": "Cost of one extra hour (overtime, contractor)",
+          "help": "Any currency. Leave empty if you cannot add hours.",
+          "why": "Time is only one of three things you can trade. With a price per hour we show what paying to fix lateness costs.",
+          "required": false,
+          "min": 0,
+          "max": 100000,
+          "step": 1,
+          "default": 0
+        },
+        {
+          "id": "extraHoursPerWeek",
+          "group": "money",
+          "type": "number",
+          "label": "Extra hours per week you could add by paying",
+          "required": false,
+          "min": 0,
+          "max": 40,
+          "step": 1,
+          "default": 0
         }
       ],
       "options": {
@@ -779,6 +830,12 @@
           "title": "Did I forget anything?",
           "collapsed": true,
           "columns": 1
+        },
+        {
+          "id": "money",
+          "title": "Money and quality (optional)",
+          "collapsed": true,
+          "columns": 2
         }
       ],
       "questions": [
@@ -940,6 +997,41 @@
           "help": "Verbal promises, recurring work, work you cover for others, things you depend on, holidays.",
           "required": false,
           "max": 500
+        },
+        {
+          "id": "hourlyCost",
+          "group": "money",
+          "type": "number",
+          "label": "Cost of one extra hour (optional)",
+          "help": "Any currency.",
+          "why": "Time is only one of three things you can trade. With a price per hour we show what speeding up costs.",
+          "required": false,
+          "min": 0,
+          "max": 100000,
+          "step": 1,
+          "default": 0
+        },
+        {
+          "id": "extraHoursPerWeek",
+          "group": "money",
+          "type": "number",
+          "label": "Extra hours per week you could add by paying",
+          "required": false,
+          "min": 0,
+          "max": 40,
+          "step": 1,
+          "default": 0
+        },
+        {
+          "id": "goodEnoughPct",
+          "group": "money",
+          "type": "number",
+          "label": "Share of the hours a good-enough version needs (%)",
+          "help": "For example 70. Leave empty if there is no smaller version.",
+          "required": false,
+          "min": 10,
+          "max": 100,
+          "step": 5
         }
       ],
       "options": {

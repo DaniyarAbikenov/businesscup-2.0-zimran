@@ -336,5 +336,19 @@
  "Handling late changes": "Кеш өзгерістермен жұмыс істеу",
  "Invalid": "Жарамсыз",
  "Must be between 0 and 100": "0-ден 100-ге дейін болуы керек",
- "Unknown tour": "Белгісіз тур"
+ "Unknown tour": "Белгісіз тур",
+ "Best order, no changes": "Ең жақсы реттілік, өзгеріссіз",
+ "The lowest-risk order as it is.": "Тәуекелі ең төмен реттілік сол күйінде.",
+ "Cut scope on the late tasks": "Кешігетін тапсырмалардың көлемін қысқарту",
+ "Tasks that would be late are delivered in their minimum version.": "Кешігетін тапсырмалар ең аз нұсқада тапсырылады.",
+ "Pay for extra hours": "Қосымша сағаттарға ақы төлеу",
+ "{n} extra hours a week.": "Аптасына {n} қосымша сағат.",
+ "Ask to move a deadline": "Мерзімді ауыстыруды сұрау",
+ "Deadlines to move: {list}.": "Ауыстырылатын мерзімдер: {list}.",
+ "Safe date as it is": "Сенімді күн сол күйінде",
+ "The safe date from your estimate.": "Бағалауыңыз бойынша сенімді күн.",
+ "Deliver the good-enough version": "«Жеткілікті жақсы» нұсқаны тапсыру",
+ "{pct}% of the hours: agree what is left out.": "Сағаттың {pct}%: нені қалдыратыныңызды келісіңіз.",
+ "Pay to speed up": "Жеделдету үшін төлеу",
+ "Must not be more than the hours of the task": "Тапсырманың өз сағатынан артық болмауы керек"
 }

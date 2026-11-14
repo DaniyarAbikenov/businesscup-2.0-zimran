@@ -336,5 +336,19 @@
  "Handling late changes": "Работа с поздними изменениями",
  "Invalid": "Недопустимо",
  "Must be between 0 and 100": "Должно быть от 0 до 100",
- "Unknown tour": "Неизвестная подсказка"
+ "Unknown tour": "Неизвестная подсказка",
+ "Best order, no changes": "Лучший порядок без изменений",
+ "The lowest-risk order as it is.": "Порядок с наименьшим риском как есть.",
+ "Cut scope on the late tasks": "Урезать объём у опаздывающих задач",
+ "Tasks that would be late are delivered in their minimum version.": "Задачи, которые опоздали бы, сдаются в минимальной версии.",
+ "Pay for extra hours": "Оплатить дополнительные часы",
+ "{n} extra hours a week.": "{n} доп. ч в неделю.",
+ "Ask to move a deadline": "Попросить перенести срок",
+ "Deadlines to move: {list}.": "Сроки к переносу: {list}.",
+ "Safe date as it is": "Надёжная дата как есть",
+ "The safe date from your estimate.": "Надёжная дата по вашей оценке.",
+ "Deliver the good-enough version": "Сдать версию «достаточно хорошо»",
+ "{pct}% of the hours: agree what is left out.": "{pct}% часов: согласуйте, что останется за рамками.",
+ "Pay to speed up": "Заплатить, чтобы ускорить",
+ "Must not be more than the hours of the task": "Не больше часов самой задачи"
 }
