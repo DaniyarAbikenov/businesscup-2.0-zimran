@@ -10,7 +10,7 @@ x-backend-env: &backend-env
   REDIS_URL: redis://redis:6379/0
   COOKIE_SECURE: ${COOKIE_SECURE:-false}
   ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-  LLM_MODEL: ${LLM_MODEL:-claude-haiku-5-5}
+  LLM_MODEL: ${LLM_MODEL:-claude-opus-5-5}
   DEMO_MODE: ${DEMO_MODE:-true}
   FREE_CASES: ${FREE_CASES:-3}
   PASS_PRICE_CENTS: ${PASS_PRICE_CENTS:-2900}

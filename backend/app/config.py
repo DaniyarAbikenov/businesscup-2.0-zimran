@@ -26,7 +26,7 @@ DATABASE_URL = _database_url()
 REDIS_URL = env("REDIS_URL", "redis://localhost:6379/0")
 COOKIE_SECURE = env("COOKIE_SECURE", "false") == "true"
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY")
-LLM_MODEL = env("LLM_MODEL", "claude-haiku-5-5")
+LLM_MODEL = env("LLM_MODEL", "claude-opus-5-5")
 DEMO_MODE = env("DEMO_MODE", "true") == "true"
 SESSION_DAYS = 14
 

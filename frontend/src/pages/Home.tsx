@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSession } from '../App';
 import { Billing, Journal, api, fmtDate } from '../api';
+import Describe from '../components/Describe';
 import { PageHeader, Panel, PrivacyBanner } from '../components/ui';
 
 export default function Home() {
@@ -30,6 +31,7 @@ export default function Home() {
           <ul className="plain">{j.followups.map((f) => <li key={f.caseId}><Link to={`/case/${f.caseId}`}>{f.title}</Link> <span className="muted">{f.overdue ? '(due now)' : `(due ${fmtDate(f.due)})`}</span></li>)}</ul>
         </Panel>
       )}
+      <Describe />
       <Panel title="Situations" lead="Rehearse a decision before it happens for real. Each one compares your options with your own numbers.">
         {b && <p className="small muted plan-line">{b.plan === 'pass'
           ? <>Pass active until {fmtDate(b.pass!.expiresAt.slice(0, 10))}.</>

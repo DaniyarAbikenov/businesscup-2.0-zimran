@@ -1,17 +1,27 @@
 import { FormEvent, useState } from 'react';
-import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useSession } from '../App';
-import { Storyline, api } from '../api';
+import { Intake, Storyline, api } from '../api';
 import { notify } from '../components/Toaster';
 import { Button, Field, PageHeader, Panel, PrivacyBanner, QuestionGroups, initialAnswers } from '../components/ui';
 
-export default function NewCase() {
+/** Keyed by situation so moving between situations starts a fresh form. */
+export default function NewCasePage() {
+  const { situationId } = useParams();
+  return <NewCase key={situationId} />;
+}
+
+function NewCase() {
   const { pack } = useSession();
   const { situationId } = useParams();
   const sit = pack.situations.find((s) => s.id === situationId);
   const nav = useNavigate();
-  const [answers, setAnswers] = useState(() => (sit ? initialAnswers(sit.questions) : {}));
+  const loc = useLocation();
+  const intake = (loc.state as { intake?: Intake } | null)?.intake;
+  const fromText = intake && intake.situationId === situationId ? intake : null;
+  const [answers, setAnswers] = useState(() => (sit ? initialAnswers(sit.questions, fromText?.answers) : {}));
   const [story, setStory] = useState<Storyline | null>(null);
+  const [showIntake, setShowIntake] = useState(!!fromText);
   const [conf, setConf] = useState('3');
   const [fields, setFields] = useState<Record<string, string>>({});
   const [error, setError] = useState('');
@@ -20,7 +30,7 @@ export default function NewCase() {
   if (!sit) return <Navigate to="/" replace />;
 
   const pick = (s: Storyline | null) => {
-    setStory(s); setFields({}); setError('');
+    setStory(s); setFields({}); setError(''); setShowIntake(false);
     setAnswers(initialAnswers(sit.questions, s?.answers));
     if (s) notify(`Storyline loaded: ${s.title}. Change anything you like.`);
   };
@@ -49,6 +59,8 @@ export default function NewCase() {
     <div className="narrow">
       <PageHeader eyebrow={`Step 1 of 3 · Clarify${sit.category ? ' · ' + sit.category : ''}`} title={sit.title} lead={sit.summary} />
       <PrivacyBanner />
+      {showIntake && fromText && <IntakeNote intake={fromText} labels={Object.fromEntries(sit.questions.map((q) => [q.id, q.label]))}
+        titles={Object.fromEntries(pack.situations.map((s) => [s.id, s.title]))} />}
       {sit.storylines && sit.storylines.length > 0 && (
         <Panel title="Start from a storyline" lead="A realistic example with the numbers filled in. Use it to try the situation, or start blank with your own.">
           <div className="stories">
@@ -75,6 +87,18 @@ export default function NewCase() {
           <div className="row" style={{ marginTop: 24 }}><Button type="submit" busy={busy}>Compare my options</Button></div>
         </Panel>
       </form>
+    </div>
+  );
+}
+
+function IntakeNote({ intake, labels, titles }: { intake: Intake; labels: Record<string, string>; titles: Record<string, string> }) {
+  return (
+    <div className="banner ok intake-note" role="note">
+      <strong>{intake.source === 'ai' ? 'Filled in from your description by AI. Check every value.' : 'Matched from your description by keywords.'}</strong>
+      {intake.filled.length > 0 && <p>Filled in: {intake.filled.map((id) => labels[id] ?? id).join(', ')}.</p>}
+      {intake.missing.length > 0 && <p>Still needs your input: {intake.missing.join(', ')}.</p>}
+      {intake.notes.length > 0 && <ul>{intake.notes.map((n, i) => <li key={i}>{n}</li>)}</ul>}
+      {intake.alternatives.length > 0 && <p className="small">Wrong situation? {intake.alternatives.map((id, i) => <span key={id}>{i > 0 && ', '}<Link to={`/new/${id}`}>{titles[id] ?? id}</Link></span>)}</p>}
     </div>
   );
 }

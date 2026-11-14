@@ -100,3 +100,8 @@ export interface Pricing {
 }
 export interface Billing { plan: 'free' | 'pass'; used: number; limit: number | null; remaining: number | null; pass: { expiresAt: string; provider: string } | null }
 export const price = (cents: number) => '$' + (cents / 100).toFixed(cents % 100 ? 2 : 0);
+
+export interface Intake {
+  situationId: string; answers: Record<string, any>; filled: string[]; missing: string[]; notes: string[];
+  source: 'ai' | 'keywords'; alternatives: string[];
+}

@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import date, datetime, timezone
 
 from fastapi import APIRouter, Depends
@@ -167,8 +168,8 @@ def hint(c: Case = Depends(own_case), db: Session = Depends(get_db), r=Depends(g
     if text is None:
         try:
             text = llm.client_message_hint(*args)
-        except Exception as e:  # network, quota, bad key: the document is unaffected
-            print("LLM error:", type(e).__name__)
+        except llm.LlmError as e:  # network, quota, bad key: the document is unaffected
+            logging.getLogger("roleshift.llm").warning("hint failed case=%s reason=%s", c.id, e)
             raise ApiError(502, "AI suggestion is unavailable right now. Your document is not affected.")
         r.set(key, text, ex=86400)
     save_document(db, c, "client_message", text, source="ai")  # kept in Postgres: the Redis cache expires
