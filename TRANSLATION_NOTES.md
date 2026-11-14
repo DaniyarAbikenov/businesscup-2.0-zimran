@@ -38,3 +38,7 @@ Anything missing falls back to English. Documents and results stay in the langua
 | unit (officer) | подразделение | бөлімше | Neutral, no military detail. |
 
 How to add or fix a language: see the "Languages" section of the README.
+
+## Time, money and quality (Kazakh review spots)
+- "Ways to fix it and what each costs", "Pay for extra hours", "Cut scope", "goodwill" (сеніммен) and the quality-risk sentences were machine-written: a Kazakh speaker should check the wording.
+- The default decision criteria "Time / Cost / Quality" are translated as Уақыт / Құны / Сапа.

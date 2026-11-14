@@ -1228,7 +1228,7 @@
           "itemLabel": "Criterion",
           "minRows": 2,
           "maxRows": 6,
-          "help": "What matters for this decision. Weight 5 is critical, 1 is nice to have. Decide the weights before you score the options.",
+          "help": "What matters for this decision. Weight 5 is critical, 1 is nice to have. Decide the weights before you score the options. We start you with Time, Cost and Quality: change or replace them.",
           "fields": [
             {
               "id": "name",
@@ -1248,6 +1248,20 @@
               "step": 1,
               "default": 3,
               "why": "Weights say what matters most. Set them before you score the options, so the scores do not bend them."
+            }
+          ],
+          "defaultRows": [
+            {
+              "name": "Time",
+              "weight": 3
+            },
+            {
+              "name": "Cost",
+              "weight": 3
+            },
+            {
+              "name": "Quality",
+              "weight": 3
             }
           ]
         },

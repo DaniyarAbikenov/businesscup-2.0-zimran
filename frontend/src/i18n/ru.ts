@@ -533,6 +533,8 @@ const ru: Record<string, string> = {
  "Which is cheaper in total money?": "Что дешевле в сумме по деньгам?",
  "Optional. Cut scope on the late tasks, or pay for extra hours.": "Необязательно. Урезать объём у опаздывающих задач или оплатить дополнительные часы.",
  "Cut scope": "Урезать объём",
- "Pay for extra hours": "Оплатить доп. часы"
+ "Pay for extra hours": "Оплатить доп. часы",
+ "Time, money, quality": "Время, деньги, качество",
+ "Every way to fix lateness costs something. This table shows what each way costs in time, money and quality.": "Любой способ убрать опоздание чем-то стоит. Таблица показывает цену каждого способа во времени, деньгах и качестве."
 };
 export default ru;

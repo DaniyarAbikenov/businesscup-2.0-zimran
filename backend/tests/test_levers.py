@@ -89,3 +89,9 @@ def test_cheapest_guess_and_money_stress_tests():
     out = challenge(SIT, i, r, {o["key"]: o["key"] for o in r["options"]})
     whats = [x["what"] for x in out]
     assert "an extra hour costs 20% more" in whats and "the cut goes 10 points deeper" in whats
+
+
+def test_decision_form_starts_with_time_cost_quality():
+    s = packs.public_situation(packs.get_situation("choose-between-options"))
+    q = next(x for x in s["questions"] if x["id"] == "criteria")
+    assert [r["name"] for r in q["defaultRows"]] == ["Time", "Cost", "Quality"] and all(r["weight"] == 3 for r in q["defaultRows"])

@@ -530,6 +530,8 @@ const kk: Record<string, string> = {
  "Which is cheaper in total money?": "Ақша бойынша жалпы қайсысы арзан?",
  "Optional. Cut scope on the late tasks, or pay for extra hours.": "Міндетті емес. Кешігетін тапсырмалардың көлемін қысқарту немесе қосымша сағатқа төлеу.",
  "Cut scope": "Көлемді қысқарту",
- "Pay for extra hours": "Қосымша сағатқа төлеу"
+ "Pay for extra hours": "Қосымша сағатқа төлеу",
+ "Time, money, quality": "Уақыт, ақша, сапа",
+ "Every way to fix lateness costs something. This table shows what each way costs in time, money and quality.": "Кешігуді түзетудің әр жолының бағасы бар. Кесте әр жолдың уақыт, ақша және сапа бойынша бағасын көрсетеді."
 };
 export default kk;

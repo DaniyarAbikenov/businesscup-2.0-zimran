@@ -154,7 +154,7 @@ const asStrings = (fields: Question[], row: Record<string, any>) => Object.fromE
 
 export const initialAnswers = (qs: Question[], from?: Record<string, any>): Record<string, any> =>
   Object.fromEntries(qs.map((q) => [q.id, q.type === 'list'
-    ? (from?.[q.id] ?? Array.from({ length: q.minRows ?? 1 }, () => ({}))).map((r: any) => asStrings(q.fields!, r))
+    ? (from?.[q.id] ?? q.defaultRows ?? Array.from({ length: q.minRows ?? 1 }, () => ({}))).map((r: any) => asStrings(q.fields!, r))
     : String(from?.[q.id] ?? q.default ?? '')]));
 
 /** All questions of a scenario, laid out by the pack's groups. */

@@ -42,6 +42,8 @@ def _question(q: dict, ov: dict) -> dict:
     for k in ("label", "help", "why", "placeholder", "itemLabel"):
         if ov.get(k):
             q[k] = ov[k]
+    if q.get("defaultRows") and ov.get("defaultRows"):
+        q["defaultRows"] = [{**r, "name": ov["defaultRows"].get(r["name"], r["name"])} for r in q["defaultRows"]]
     if q.get("labelFrom") and ov.get("labelTemplate"):
         q["labelFrom"] = {**q["labelFrom"], "template": ov["labelTemplate"]}
     if q.get("options") and ov.get("options"):
