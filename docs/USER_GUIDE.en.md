@@ -26,6 +26,8 @@ Each scenario is 2 to 4 steps plus a **Review**, with a progress bar and **Next*
 
 **Task and option cards.** Tasks and options are cards you add, reorder, collapse and remove. Choices inside a card are buttons, and ratings (for example 1 to 5 on a criterion) are sliders with a word (Poor ... Excellent).
 
+![A task card: hours, due date, who asked](img/02e-form-tasks.jpg)
+
 ![Option cards with sliders](img/02d-form-options.jpg)
 
 **The side panel "Where this stands"** updates while you type. It shows the numbers that follow from what you entered and what is still missing. For scenarios with a guess step it keeps the answer hidden so your guess stays honest; "Show the live result instead" reveals it. Nothing is saved.
