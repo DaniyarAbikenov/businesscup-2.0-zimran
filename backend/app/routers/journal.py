@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .. import packs, reminders
+from .. import packs, presets, reminders
 from ..cache import get_redis
 from ..db import get_db
 from ..deps import current_user
@@ -48,5 +48,6 @@ def library(user=Depends(current_user), db: Session = Depends(get_db)):
     docs = db.scalars(select(Document).where(Document.user_id == user.id).order_by(Document.updated_at.desc())).all()
     cases = {c.id: c for c in db.scalars(select(Case).where(Case.user_id == user.id))}
     titles = {i: packs.case_title(c.situation_id, c.inputs) for i, c in cases.items()}
-    return {"documents": [{"id": d.id, "caseId": d.case_id, "kind": d.kind, "label": doc_label(cases[d.case_id].situation_id, d.kind), "caseTitle": titles.get(d.case_id, ""),
+    sits = {sid: presets.resolve(db, user.id, sid) for sid in {c.situation_id for c in cases.values()}}
+    return {"documents": [{"id": d.id, "caseId": d.case_id, "kind": d.kind, "label": doc_label(sits.get(cases[d.case_id].situation_id), d.kind), "caseTitle": titles.get(d.case_id, ""),
                            "body": d.body, "revisions": len(d.revisions), "createdAt": d.created_at.isoformat(), "updatedAt": d.updated_at.isoformat()} for d in docs]}

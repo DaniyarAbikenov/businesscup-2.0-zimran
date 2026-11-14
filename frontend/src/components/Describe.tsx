@@ -24,7 +24,7 @@ export default function Describe() {
     try {
       const r = await api<Intake>('POST', '/intake', { text, useAi, privacyAck: ack });
       log.info('intake.done', r.source, { situation: r.situationId, filled: r.filled.length });
-      nav(`/new/${r.situationId}`, { state: { intake: r } });
+      nav(`/new/${r.situationId}`, { state: { intake: r, text } });
     } catch (x: any) {
       setError(x.message);
     } finally {

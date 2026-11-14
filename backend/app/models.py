@@ -1,5 +1,6 @@
 from datetime import date, datetime, timezone
 
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import JSON, Boolean, CheckConstraint, Date, DateTime, ForeignKey, Integer, SmallInteger, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -143,3 +144,21 @@ class Purchase(Base):
     provider: Mapped[str] = mapped_column(String(10))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class CustomSituation(Base):
+    """A situation a user made from their own description: a validated preset on an existing engine.
+    Only the owner can see or use it. Cases refer to it by id "my-<slug>"."""
+    __tablename__ = "custom_situations"
+    __table_args__ = (
+        UniqueConstraint("user_id", "slug", name="uq_custom_situations_user_slug"),
+        CheckConstraint("slug ~ '^[a-z0-9][a-z0-9-]{0,39}$'", name="ck_custom_situations_slug"),
+        CheckConstraint("source IN ('ai')", name="ck_custom_situations_source"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    slug: Mapped[str] = mapped_column(String(40))
+    engine: Mapped[str] = mapped_column(String(30))
+    preset: Mapped[dict] = mapped_column(JSONB)
+    source: Mapped[str] = mapped_column(String(10), default="ai", server_default="ai")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)

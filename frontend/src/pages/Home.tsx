@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import { useSession } from '../App';
 import { Billing, Journal, api, fmtDate } from '../api';
 import Describe from '../components/Describe';
-import { PageHeader, Panel, PrivacyBanner } from '../components/ui';
+import { CreateSituation } from './MySituations';
+import { notify } from '../components/Toaster';
+import { Button, PageHeader, Panel, PrivacyBanner } from '../components/ui';
 
 export default function Home() {
-  const { me, pack } = useSession();
+  const { me, pack, refresh } = useSession();
   const [j, setJ] = useState<Journal | null>(null);
   const [error, setError] = useState('');
   const [b, setB] = useState<Billing | null>(null);
@@ -32,6 +34,9 @@ export default function Home() {
         </Panel>
       )}
       <Describe />
+      <Panel title="Can't find your case? Create a situation" lead="Describe a case that is not in the catalog. AI turns it into a situation that uses one of our calculators, and you review it before saving.">
+        <CreateSituation compact />
+      </Panel>
       <Panel title="Situations" lead="Rehearse a decision before it happens for real. Each one compares your options with your own numbers.">
         {b && <p className="small muted plan-line">{b.plan === 'pass'
           ? <>Pass active until {fmtDate(b.pass!.expiresAt.slice(0, 10))}.</>
@@ -41,10 +46,14 @@ export default function Home() {
             <div className="caption">{cat}</div>
             {sits.filter((s) => (s.category ?? 'Other') === cat).map((s) => (
               <div key={s.id} className="stack catalog-item">
-                <h3>{s.title}</h3>
+                <h3>{s.title}{s.aiMade && <span className="ai-badge">AI-made, not expert-checked</span>}</h3>
                 <p className="muted" style={{ maxWidth: '62ch' }}>{s.summary}</p>
                 <div className="row">
                   <Link className="btn btn-primary" to={`/new/${s.id}`}>Start this situation</Link>
+                  {s.aiMade && <Button variant="quiet" type="button" onClick={async () => {
+                    if (!window.confirm(`Delete "${s.title}" from your situations?`)) return;
+                    try { await api('DELETE', `/situations/${s.id.slice(3)}`, {}); notify('Situation deleted.'); await refresh(); } catch (x: any) { notify(x.message, 'bad'); }
+                  }}>Delete</Button>}
                   {s.storylines && s.storylines.length > 0 && <span className="small muted">{s.storylines.length} storylines to try</span>}
                 </div>
               </div>

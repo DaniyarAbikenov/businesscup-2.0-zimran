@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .. import config, llm
+from .. import config, llm, presets
 from ..demo import is_demo_email, seed_demo_user
 from ..cache import get_redis
 from ..db import get_db
@@ -117,5 +117,5 @@ def me(user=Depends(current_user), db: Session = Depends(get_db)):
 
 
 @router.get("/packs")
-def packs(user=Depends(current_user)):
-    return public_pack()
+def packs(user=Depends(current_user), db: Session = Depends(get_db)):
+    return public_pack(presets.for_user(db, user.id))

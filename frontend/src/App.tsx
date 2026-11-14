@@ -10,6 +10,7 @@ import Home from './pages/Home';
 import JournalPage from './pages/Journal';
 import NewCase from './pages/NewCase';
 import Onboarding from './pages/Onboarding';
+import { CreateSituationPage, PreviewSituationPage } from './pages/MySituations';
 
 interface Session { me: Me; pack: Pack; refresh: () => Promise<void> }
 const Ctx = createContext<Session>(null as unknown as Session);
@@ -45,6 +46,8 @@ export default function App() {
             <>
               <Route path="/" element={<Home />} />
               <Route path="/new/:situationId" element={<NewCase />} />
+              <Route path="/my/new" element={<CreateSituationPage />} />
+              <Route path="/my/preview" element={<PreviewSituationPage />} />
               <Route path="/case/:id" element={<CasePage />} />
               <Route path="/journal" element={<JournalPage />} />
               <Route path="/documents" element={<DocumentsPage />} />

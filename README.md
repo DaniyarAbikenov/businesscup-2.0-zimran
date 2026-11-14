@@ -41,12 +41,15 @@ docker compose up migrate
 
 ## Tests
 
+Create the test database once, then run the tests (use `python -m pytest`, plain `pytest` does not find the `app` package):
+
 ```bash
+docker compose exec db createdb -U roleshift roleshift_test
 docker compose run --rm -e DATABASE_URL=postgresql+psycopg://roleshift:roleshift@db:5432/roleshift_test \
-  -e REDIS_URL=redis://redis:6379/1 backend sh -c "pytest -q"
+  -e REDIS_URL=redis://redis:6379/1 backend sh -c "python -m pytest -q"
 ```
 
-The tests use real Postgres and Redis (create the `roleshift_test` database once: `docker compose exec db createdb -U roleshift roleshift_test`). They cover the impact calculation, input validation, auth and sessions, login throttling, the full flow through the API, and that one user cannot read another user's case.
+The tests use real Postgres and Redis. They cover the impact calculation, input validation, auth and sessions, login throttling, the full flow through the API, and that one user cannot read another user's case.
 
 ## Design system
 
@@ -66,7 +69,7 @@ users 1--* journal   timeline events, optionally linked to a case
 - `cases` keeps two JSON snapshots: `inputs` (what the user entered) and `result` (what the engine calculated), so an old case never changes when the formulas change. `cases.status` is `draft` until a decision exists.
 - Constraints live in the database: allowed options and outcomes, confidence 1 to 5, one decision, reflection and follow-up per case, cascade delete from user to everything.
 - Roles and situations are content packs (JSON), not tables.
-- Migrations: `0001` initial schema, `0002` moves decision, reflection and follow-up out of `cases` and keeps existing data (and reverses it on downgrade), `0003` adds documents and revisions and backfills one Change Request per existing decision, `0004` lets decision option keys come from packs (the database checks the key format, the API checks the key against the situation), `0005` adds `purchases` and `cases.seeded` (demo sample data). `backend/tests/test_migrations.py` runs both directions with data on a scratch database.
+- Migrations: `0001` initial schema, `0002` moves decision, reflection and follow-up out of `cases` and keeps existing data (and reverses it on downgrade), `0003` adds documents and revisions and backfills one Change Request per existing decision, `0004` lets decision option keys come from packs (the database checks the key format, the API checks the key against the situation), `0005` adds `purchases` and `cases.seeded` (demo sample data), `0006` adds `custom_situations`. `backend/tests/test_migrations.py` runs both directions with data on a scratch database.
 
 ## How it works
 
@@ -74,6 +77,7 @@ users 1--* journal   timeline events, optionally linked to a case
 - **Situations and engines:** each situation in `packs/situations.json` names an engine (`app/engine/__init__.py` registry), its questions (including repeatable rows such as a task list), form groups, option labels, next steps, pitfalls, the document name, and **storylines** (ready examples with filled-in answers, dates given as `{"daysFromNow": n}`). Two engines today: `change_request` (accept / defer / decline a late client change) and `priorities` (2-5 competing tasks, compares four orders of work: earliest deadline, most senior requester, biggest consequence, your own order). A new situation on an existing engine is JSON only.
 - **Calculation** (`engine/change_request.py`): effort plus overhead, shared across the team (Amdahl-style parallel share), minus schedule buffer gives the slip in working days (weekends skipped). Cost is change work plus team time during the slip plus penalties minus the client share. No LLM involved.
 - **Redis:** `sess:*` sessions with TTL, `login:*` throttle counters, `followups:<user>` sorted set that drives the "follow-ups due" badge (rebuilt from Postgres at startup), `hint:*` cache of the AI draft.
+- **Create your own situation** (`POST /api/situations/draft`, `POST /api/situations`, `app/presets.py`): for a case that is not in the catalog, the user describes it and the AI (needs `ANTHROPIC_API_KEY`) writes a PRESET on an existing engine. The engine fixes the questions and option keys; the AI may only reword question labels and help, rename the options and write their next steps, write pitfalls and reflection prompts, and propose one example storyline (dates as "+N days"). Code validates all of it: unknown question ids and option keys are dropped, every string is capped, storyline values go through the same per-field validation as the forms, and a missing title or summary is a 422. The user sees a preview ("AI-made, not expert-checked", nothing saved yet), then saves it; saving validates again on the server. Saved situations live in `custom_situations` (max 20 per user, only the owner can see or use them, shown under "My situations" with a delete button) and cases refer to them as `my-<slug>`. Numbers still come only from the engines. 10 AI drafts per user per day; the text is never logged, only its length. The intake returns `noMatch: true` when no keyword matched, and the form then offers "Create a new situation from this text".
 - **Describe your situation** (`POST /api/intake`, `app/intake.py`): the user writes what is going on in their own words; the app picks the situation and pre-fills the form. Without AI it matches keywords and copies the text into the title and background. With AI the model proposes the situation and the values the person stated; every value then goes through the same validation as the form, one field at a time, and anything invalid is dropped and listed for the user to check. Nothing is saved until the user creates the case. The text itself is never logged (only its length). AI readings are limited to 20 per user per day; over the limit, or if the AI fails, it falls back to keywords.
 - **AI (optional):** set `ANTHROPIC_API_KEY` to enable AI reading of descriptions and "Draft a message to the client". Uses the official `anthropic` SDK, model `LLM_MODEL` (default `claude-opus-5-5`) with server-side fallbacks enabled (another model answers if the primary one is overloaded). Without a key those AI options are hidden and nothing else changes. Text is sent to Anthropic only after the user ticks the confidentiality confirmation. AI never computes numbers.
 - **Security:** scrypt password hashes, random session tokens (stored hashed) in HttpOnly SameSite cookies, JSON-only writes, per-user ownership checks, login throttling, server-side validation. Set `COOKIE_SECURE=true` behind HTTPS.
@@ -95,7 +99,7 @@ users 1--* journal   timeline events, optionally linked to a case
 
 - This compose file is a development stack. For production build the frontend (`npm run build`) and serve `dist/` from a web server or the backend, and run uvicorn without `--reload`.
 - AI reading was tested against a fake API in tests and a local stand-in; it has not been run against the real API in this repo.
-- Two situations so far (client change request, competing priorities). More are planned on the same engines, plus AI-assisted creation of new situations.
+- Two expert-written situations (client change request, competing priorities). Users can make more with AI, but those are presets on the same two engines and are not expert-checked. A situation with cases cannot be deleted.
 - Follow-up reminders appear in the app only (no email or push).
 - Outcomes are self-reported and cannot be verified. Risk labels are transparent rules of thumb, not predictions.
 - No password reset or email verification.

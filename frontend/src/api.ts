@@ -47,11 +47,11 @@ export interface Question {
 }
 export interface Storyline { id: string; title: string; story: string; answers: Record<string, any> }
 export interface Situation {
-  id: string; engine: 'change_request' | 'priorities'; category?: string; title: string; summary: string; applies_to: string[]; questions: Question[];
+  id: string; engine: 'change_request' | 'priorities'; aiMade?: boolean; category?: string; title: string; summary: string; applies_to: string[]; questions: Question[];
   titleField?: string; documentName?: string; storylines?: Storyline[];
   groups?: { id: string; title: string; columns?: number; collapsed?: boolean }[];
   options: Record<string, { label: string; nextSteps: string[] }>;
-  reflectionPrompts: { id: string; label: string }[];
+  reflectionPrompts: { id: string; label: string }[]; pitfalls: string[];
 }
 export interface Pack {
   roles: { id: string; label: string; terms: Record<string, string> }[];
@@ -103,5 +103,6 @@ export const price = (cents: number) => '$' + (cents / 100).toFixed(cents % 100 
 
 export interface Intake {
   situationId: string; answers: Record<string, any>; filled: string[]; missing: string[]; notes: string[];
-  source: 'ai' | 'keywords'; alternatives: string[];
+  source: 'ai' | 'keywords'; alternatives: string[]; noMatch?: boolean;
 }
+export interface Draft { preset: Record<string, any>; situation: Situation }

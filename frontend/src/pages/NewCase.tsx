@@ -18,6 +18,7 @@ function NewCase() {
   const nav = useNavigate();
   const loc = useLocation();
   const intake = (loc.state as { intake?: Intake } | null)?.intake;
+  const introText = (loc.state as { text?: string } | null)?.text;
   const fromText = intake && intake.situationId === situationId ? intake : null;
   const [answers, setAnswers] = useState(() => (sit ? initialAnswers(sit.questions, fromText?.answers) : {}));
   const [story, setStory] = useState<Storyline | null>(null);
@@ -59,7 +60,7 @@ function NewCase() {
     <div className="narrow">
       <PageHeader eyebrow={`Step 1 of 3 · Clarify${sit.category ? ' · ' + sit.category : ''}`} title={sit.title} lead={sit.summary} />
       <PrivacyBanner />
-      {showIntake && fromText && <IntakeNote intake={fromText} labels={Object.fromEntries(sit.questions.map((q) => [q.id, q.label]))}
+      {showIntake && fromText && <IntakeNote intake={fromText} text={introText} labels={Object.fromEntries(sit.questions.map((q) => [q.id, q.label]))}
         titles={Object.fromEntries(pack.situations.map((s) => [s.id, s.title]))} />}
       {sit.storylines && sit.storylines.length > 0 && (
         <Panel title="Start from a storyline" lead="A realistic example with the numbers filled in. Use it to try the situation, or start blank with your own.">
@@ -91,13 +92,14 @@ function NewCase() {
   );
 }
 
-function IntakeNote({ intake, labels, titles }: { intake: Intake; labels: Record<string, string>; titles: Record<string, string> }) {
+function IntakeNote({ intake, labels, titles, text }: { intake: Intake; labels: Record<string, string>; titles: Record<string, string>; text?: string }) {
   return (
     <div className="banner ok intake-note" role="note">
       <strong>{intake.source === 'ai' ? 'Filled in from your description by AI. Check every value.' : 'Matched from your description by keywords.'}</strong>
       {intake.filled.length > 0 && <p>Filled in: {intake.filled.map((id) => labels[id] ?? id).join(', ')}.</p>}
       {intake.missing.length > 0 && <p>Still needs your input: {intake.missing.join(', ')}.</p>}
       {intake.notes.length > 0 && <ul>{intake.notes.map((n, i) => <li key={i}>{n}</li>)}</ul>}
+      {intake.noMatch && <p className="small"><strong>Nothing in the catalog fits well?</strong> <Link to="/my/new" state={{ text }}>Create a new situation from this text</Link></p>}
       {intake.alternatives.length > 0 && <p className="small">Wrong situation? {intake.alternatives.map((id, i) => <span key={id}>{i > 0 && ', '}<Link to={`/new/${id}`}>{titles[id] ?? id}</Link></span>)}</p>}
     </div>
   );

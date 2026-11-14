@@ -4,9 +4,9 @@ from datetime import date, datetime, timezone
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, object_session
 
-from .. import billing, llm, packs, reminders
+from .. import billing, llm, packs, presets, reminders
 from ..cache import get_redis
 from ..db import get_db
 from ..deps import current_user, own_case
@@ -21,6 +21,10 @@ from ..validate import validate_answers
 router = APIRouter(prefix="/api")
 
 OUTCOMES = {"worked": "It worked", "partly": "Partly worked", "not_yet": "Not resolved yet", "not_applied": "I did not use it at work"}
+
+
+def sit_of(c: Case) -> dict:
+    return presets.resolve(object_session(c), c.user_id, c.situation_id)
 
 
 def case_dict(c: Case) -> dict:
@@ -41,7 +45,7 @@ def case_dict(c: Case) -> dict:
         out["documentUpdatedAt"] = cr.updated_at.isoformat() if cr else None
         out["documentRevisions"] = len(cr.revisions) if cr else 0
         out["clientMessage"] = cm.body if cm else None
-        out["debrief"] = build_debrief(c.result, d.option, c.inputs, c.situation_id)
+        out["debrief"] = build_debrief(c.result, d.option, c.inputs, c.situation_id, sit_of(c))
     return out
 
 
@@ -65,7 +69,7 @@ def log(db, uid, case_id, type_, text):
 
 @router.post("/cases", status_code=201)
 def create_case(body: dict, user=Depends(current_user), db: Session = Depends(get_db)):
-    sit = packs.get_situation(body.get("situationId"))
+    sit = presets.resolve(db, user.id, body.get("situationId"))
     if not sit:
         raise ApiError(400, "Unknown situation")
     if not billing.can_start_case(db, user.id):
@@ -93,7 +97,7 @@ def get_case(c: Case = Depends(own_case)):
 def recalc(body: dict, c: Case = Depends(own_case), db: Session = Depends(get_db)):
     if c.status != "draft":
         raise ApiError(409, "This case already has a decision")
-    c.inputs, c.result = calc(packs.get_situation(c.situation_id), body.get("inputs"))
+    c.inputs, c.result = calc(sit_of(c), body.get("inputs"))
     db.commit()
     return {"case": case_dict(c)}
 
@@ -102,7 +106,7 @@ def recalc(body: dict, c: Case = Depends(own_case), db: Session = Depends(get_db
 def decide(body: dict, c: Case = Depends(own_case), user=Depends(current_user), db: Session = Depends(get_db), r=Depends(get_redis)):
     if c.status != "draft":
         raise ApiError(409, "This case already has a decision")
-    sit = packs.get_situation(c.situation_id)
+    sit = sit_of(c)
     option = str(body.get("option") or "")
     if option not in sit["options"]:
         raise ApiError(400, "Choose an option")
@@ -113,7 +117,7 @@ def decide(body: dict, c: Case = Depends(own_case), user=Depends(current_user), 
     due = date.fromisoformat(packs.add_days(packs.today(), days))
     c.decision = Decision(
         option=option, rationale=rationale, followup_due=due, decided_at=datetime.now(timezone.utc),
-        document=build_document(c.inputs, c.result, option, rationale, profile and packs.get_role(profile.role_id), user.email, packs.today(), sit["id"]),
+        document=build_document(c.inputs, c.result, option, rationale, profile and packs.get_role(profile.role_id), user.email, packs.today(), sit["id"], sit),
     )
     c.status = "decided"
     save_document(db, c, "change_request", c.decision.document, source="generated")
@@ -158,7 +162,7 @@ def hint(c: Case = Depends(own_case), db: Session = Depends(get_db), r=Depends(g
         raise ApiError(404, "AI suggestions are not configured")
     if c.status != "decided":
         raise ApiError(409, "Make a decision first")
-    sit = packs.get_situation(c.situation_id)
+    sit = sit_of(c)
     if sit["engine"] != "change_request":
         raise ApiError(409, "AI drafts are available for client change requests only")
     opt = next(o for o in c.result["options"] if o["key"] == c.decision.option)

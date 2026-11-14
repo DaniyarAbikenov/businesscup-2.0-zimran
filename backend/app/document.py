@@ -9,8 +9,8 @@ def usd(n) -> str:
     return ("-$" if n < 0 else "$") + fmt(abs(n))
 
 
-def build_document(inputs, result, option_key, rationale, role, user_email, date, situation_id="client-change-request") -> str:
-    sit = get_situation(situation_id)
+def build_document(inputs, result, option_key, rationale, role, user_email, date, situation_id="client-change-request", sit=None) -> str:
+    sit = sit or get_situation(situation_id)
     if sit["engine"] == "priorities":
         return _priorities_document(sit, inputs, result, option_key, rationale, user_email, date)
     opt = next(o for o in result["options"] if o["key"] == option_key)
@@ -47,8 +47,8 @@ def build_document(inputs, result, option_key, rationale, role, user_email, date
     return "\n".join(L)
 
 
-def build_debrief(result, option_key, inputs, situation_id="client-change-request") -> dict:
-    sit = get_situation(situation_id)
+def build_debrief(result, option_key, inputs, situation_id="client-change-request", sit=None) -> dict:
+    sit = sit or get_situation(situation_id)
     if sit["engine"] == "priorities":
         return _priorities_debrief(sit, result, option_key)
     opt = next(o for o in result["options"] if o["key"] == option_key)

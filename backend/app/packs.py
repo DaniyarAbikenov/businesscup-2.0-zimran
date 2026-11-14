@@ -33,7 +33,8 @@ def next_weekday(iso: str) -> str:
 
 def case_title(situation_id: str, inputs: dict) -> str:
     sit = get_situation(situation_id) or {}
-    return str(inputs.get(sit.get("titleField", "changeTitle"), "")) or (sit.get("title") or "Untitled")
+    field = sit.get("titleField") or ("title" if "title" in inputs else "changeTitle")  # a user's own situation reuses its engine's field
+    return str(inputs.get(field, "")) or (sit.get("title") or "Untitled")
 
 
 def _resolve(v):
@@ -47,17 +48,20 @@ def _resolve(v):
     return v
 
 
-def public_pack() -> dict:
+def public_situation(s: dict) -> dict:
+    """What the browser gets: relative default dates and storyline dates turned into real dates."""
+    qs = []
+    for q in s["questions"]:
+        if "defaultDaysFromNow" in q:
+            q = {**q, "default": next_weekday(add_days(today(), q["defaultDaysFromNow"]))}
+        qs.append(q)
+    return {**s, "questions": qs, "storylines": _resolve(s.get("storylines", []))}
+
+
+def public_pack(extra: list | None = None) -> dict:
+    """The shared pack plus the signed-in user's own situations (`extra`, already built)."""
     out = dict(roles_pack)
-    sits = []
-    for s in situations:
-        qs = []
-        for q in s["questions"]:
-            if "defaultDaysFromNow" in q:
-                q = {**q, "default": next_weekday(add_days(today(), q["defaultDaysFromNow"]))}
-            qs.append(q)
-        sits.append({**s, "questions": qs, "storylines": _resolve(s.get("storylines", []))})
-    out["situations"] = sits
+    out["situations"] = [public_situation(s) for s in [*situations, *(extra or [])]]
     return out
 
 

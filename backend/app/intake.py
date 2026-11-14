@@ -126,13 +126,15 @@ def carry_text(sit: dict, text: str, answers: dict, filled: list):
         filled.append(area["id"])
 
 
-def result(sit: dict, answers: dict, filled: list, notes: list, source: str, ranked: list) -> dict:
+def result(sit: dict, answers: dict, filled: list, notes: list, source: str, ranked: list, text: str = "") -> dict:
     missing = [q.get("label", q["id"]) for q in sit["questions"]
                if q["id"] not in filled and (q.get("required") or q["type"] == "list") and "default" not in q
                and "defaultDaysFromNow" not in q]
     return {"situationId": sit["id"], "answers": answers, "filled": filled, "missing": missing,
             "notes": notes[:MAX_NOTES], "source": source,
-            "alternatives": [sid for sid, _ in ranked if sid != sit["id"]]}
+            "alternatives": [sid for sid, _ in ranked if sid != sit["id"]],
+            # no keyword of any situation matched: the UI offers "Create a new situation from this text"
+            "noMatch": rule_match(text)[0][1] == 0 if text else False}
 
 
 def from_keywords(text: str, note: str | None = None) -> dict:
@@ -145,7 +147,7 @@ def from_keywords(text: str, note: str | None = None) -> dict:
     if score == 0:
         notes.append("We could not tell which situation this is. Check that this one fits, or pick another.")
     notes.append("Your text was copied into the form. Enter the numbers yourself.")
-    return result(sit, answers, filled, notes, "keywords", ranked)
+    return result(sit, answers, filled, notes, "keywords", ranked, text)
 
 
 def from_ai(text: str, proposal: dict) -> dict:
@@ -160,4 +162,4 @@ def from_ai(text: str, proposal: dict) -> dict:
     if rejected:
         notes.insert(0, "Some values could not be used and were left empty: " + ", ".join(dict.fromkeys(rejected)) + ".")
     ranked = [(sid, 0)] + [(s["id"], 0) for s in packs.situations if s["id"] != sid]
-    return result(sit, answers, filled, notes, "ai", ranked)
+    return result(sit, answers, filled, notes, "ai", ranked, text)
