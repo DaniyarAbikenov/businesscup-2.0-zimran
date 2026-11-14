@@ -12,6 +12,10 @@ x-backend-env: &backend-env
   ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
   LLM_MODEL: ${LLM_MODEL:-claude-haiku-5-5}
   DEMO_MODE: ${DEMO_MODE:-true}
+  FREE_CASES: ${FREE_CASES:-3}
+  PASS_PRICE_CENTS: ${PASS_PRICE_CENTS:-2900}
+  PASS_DAYS: ${PASS_DAYS:-90}
+  TEST_CHECKOUT: ${TEST_CHECKOUT:-true}
 
 services:
   db:

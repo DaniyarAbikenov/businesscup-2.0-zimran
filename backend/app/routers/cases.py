@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .. import llm, packs, reminders
+from .. import billing, llm, packs, reminders
 from ..cache import get_redis
 from ..db import get_db
 from ..deps import current_user, own_case
@@ -67,6 +67,8 @@ def create_case(body: dict, user=Depends(current_user), db: Session = Depends(ge
     sit = packs.get_situation(body.get("situationId"))
     if not sit:
         raise ApiError(400, "Unknown situation")
+    if not billing.can_start_case(db, user.id):
+        raise ApiError(402, "You have used your free situations. Get the pass to start more. Your saved cases stay available.")
     if body.get("privacyAck") is not True:
         raise ApiError(400, "Confirm that you did not enter confidential employer or client information")
     conf = confidence(body.get("confidenceBefore"))

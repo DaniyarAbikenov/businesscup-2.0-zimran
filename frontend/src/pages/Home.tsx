@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSession } from '../App';
-import { Journal, api, fmtDate } from '../api';
+import { Billing, Journal, api, fmtDate } from '../api';
 import { PageHeader, Panel, PrivacyBanner } from '../components/ui';
 
 export default function Home() {
   const { me, pack } = useSession();
   const [j, setJ] = useState<Journal | null>(null);
   const [error, setError] = useState('');
-  useEffect(() => { api<Journal>('GET', '/journal').then(setJ).catch((e) => setError(e.message)); }, []);
+  const [b, setB] = useState<Billing | null>(null);
+  useEffect(() => {
+    api<Journal>('GET', '/journal').then(setJ).catch((e) => setError(e.message));
+    api<Billing>('GET', '/billing').then(setB).catch(() => {});
+  }, []);
   const profile = me.profile!;
   const role = pack.roles.find((r) => r.id === profile.roleId)!;
   const fears = pack.fears.filter((f) => profile.fears.includes(f.id)).map((f) => f.label.toLowerCase());
@@ -27,6 +31,9 @@ export default function Home() {
         </Panel>
       )}
       <Panel title="Situations" lead="Rehearse a decision before it happens for real. Each one compares your options with your own numbers.">
+        {b && <p className="small muted plan-line">{b.plan === 'pass'
+          ? <>Pass active until {fmtDate(b.pass!.expiresAt.slice(0, 10))}.</>
+          : <>Free plan: {b.remaining} of {b.limit} situations left. <Link to="/pricing">See pricing</Link></>}</p>}
         {Array.from(new Set(sits.map((s) => s.category ?? 'Other'))).map((cat) => (
           <div key={cat} className="catalog-group">
             <div className="caption">{cat}</div>

@@ -12,7 +12,7 @@ from . import reminders
 from .cache import get_redis
 from .db import SessionLocal
 from .errors import ApiError
-from .routers import auth, cases, journal, profile, telemetry
+from .routers import auth, billing, cases, journal, profile, telemetry
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 log = logging.getLogger("roleshift")
@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="RoleShift API", docs_url="/api/docs", openapi_url="/api/openapi.json", lifespan=lifespan)
-for module in (auth, profile, cases, journal, telemetry):
+for module in (auth, profile, cases, journal, telemetry, billing):
     app.include_router(module.router)
 
 

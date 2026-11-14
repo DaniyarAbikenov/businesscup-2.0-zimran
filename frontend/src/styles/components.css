@@ -121,3 +121,14 @@ textarea.input.doc { font: 13px/20px var(--font-mono); min-height: 420px; white-
 .ledger .late { color: var(--risk-high, #8a2a1f); font-weight: 600; }
 .ledger .muted-tag { color: var(--n-800); font-weight: 500; }
 .panel .panel { border: 0; padding: 0; box-shadow: none; background: transparent; margin-top: var(--s-4); }
+
+/* pricing */
+.plans { display: grid; gap: var(--s-4); grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.plans .panel { margin: 0; }
+.plan-price { font-family: var(--font-display); font-size: 32px; margin: 0 0 var(--s-3); font-variant-numeric: tabular-nums; }
+.summary { width: 100%; border-collapse: collapse; }
+.summary td, .summary th { padding: var(--s-2) 0; border-bottom: 1px solid var(--n-400); text-align: left; font-weight: 400; }
+.summary th { font-weight: 600; }
+.summary .num { text-align: right; font-variant-numeric: tabular-nums; }
+.plan-price .small { display: block; font-family: var(--font-ui); font-size: 13px; margin-top: 2px; }
+.plans + .small { margin-top: var(--s-3); }

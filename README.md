@@ -66,7 +66,7 @@ users 1--* journal   timeline events, optionally linked to a case
 - `cases` keeps two JSON snapshots: `inputs` (what the user entered) and `result` (what the engine calculated), so an old case never changes when the formulas change. `cases.status` is `draft` until a decision exists.
 - Constraints live in the database: allowed options and outcomes, confidence 1 to 5, one decision, reflection and follow-up per case, cascade delete from user to everything.
 - Roles and situations are content packs (JSON), not tables.
-- Migrations: `0001` initial schema, `0002` moves decision, reflection and follow-up out of `cases` and keeps existing data (and reverses it on downgrade), `0003` adds documents and revisions and backfills one Change Request per existing decision, `0004` lets decision option keys come from packs (the database checks the key format, the API checks the key against the situation). `backend/tests/test_migrations.py` runs both directions with data on a scratch database.
+- Migrations: `0001` initial schema, `0002` moves decision, reflection and follow-up out of `cases` and keeps existing data (and reverses it on downgrade), `0003` adds documents and revisions and backfills one Change Request per existing decision, `0004` lets decision option keys come from packs (the database checks the key format, the API checks the key against the situation), `0005` adds `purchases` and `cases.seeded` (demo sample data). `backend/tests/test_migrations.py` runs both directions with data on a scratch database.
 
 ## How it works
 
@@ -77,6 +77,12 @@ users 1--* journal   timeline events, optionally linked to a case
 - **AI (optional):** set `ANTHROPIC_API_KEY` to enable "Draft a message to the client". Without a key the button is hidden and nothing else changes. When used, the change title, decision, date, cost and your reasoning are sent to the API.
 - **Security:** scrypt password hashes, random session tokens (stored hashed) in HttpOnly SameSite cookies, JSON-only writes, per-user ownership checks, login throttling, server-side validation. Set `COOKIE_SECURE=true` behind HTTPS.
 - **Privacy:** the UI warns users not to enter confidential employer or client data, and a case cannot be started without ticking a confirmation (also enforced by the API). Users can delete their account and all data (`DELETE /api/account`, page "Account and data"). Copying or downloading the Change Request is recorded as an export event in the journal.
+
+## Pricing
+
+- Free: `FREE_CASES` (default 3) situations of your own. Demo sample cases do not count.
+- First 90 Days Pass: `PASS_PRICE_CENTS` (default 2900 = $29), one-time, `PASS_DAYS` (default 90). Buying again extends the pass.
+- Checkout is a built-in **test checkout** (`TEST_CHECKOUT=true`): no payment provider, no card details, the purchase is stored with provider `test`. The pricing page (`/pricing`) works without signing in, and starting a situation over the limit leads to it.
 
 ## Logs
 

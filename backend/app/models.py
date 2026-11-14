@@ -1,6 +1,6 @@
 from datetime import date, datetime, timezone
 
-from sqlalchemy import JSON, CheckConstraint, Date, DateTime, ForeignKey, Integer, SmallInteger, String, Text, UniqueConstraint
+from sqlalchemy import JSON, Boolean, CheckConstraint, Date, DateTime, ForeignKey, Integer, SmallInteger, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
@@ -44,6 +44,7 @@ class Case(Base):
     result: Mapped[dict] = mapped_column(JSON)
     confidence_before: Mapped[int] = mapped_column(Integer)
     status: Mapped[str] = mapped_column(String(10), default="draft")  # draft | decided
+    seeded: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")  # demo sample data, not counted for the free limit
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
     decision: Mapped["Decision | None"] = relationship(uselist=False, cascade="all, delete-orphan", lazy="selectin")
@@ -125,3 +126,20 @@ class DocumentRevision(Base):
     body: Mapped[str] = mapped_column(Text)
     source: Mapped[str] = mapped_column(String(10), default="user")  # generated | ai | user
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class Purchase(Base):
+    """A paid (or test-paid) pass. Active while expires_at is in the future."""
+    __tablename__ = "purchases"
+    __table_args__ = (
+        CheckConstraint("provider IN ('test','stripe')", name="ck_purchases_provider"),
+        CheckConstraint("amount_cents >= 0", name="ck_purchases_amount"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    plan: Mapped[str] = mapped_column(String(30))
+    amount_cents: Mapped[int] = mapped_column(Integer)
+    currency: Mapped[str] = mapped_column(String(3), default="usd")
+    provider: Mapped[str] = mapped_column(String(10))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

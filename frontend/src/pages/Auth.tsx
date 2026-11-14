@@ -56,7 +56,7 @@ export default function Auth({ mode, onDone }: { mode: 'login' | 'register'; onD
         {error && <div className="field error" role="alert">{error}</div>}
         <div className="row" style={{ marginTop: 24 }}>
           <Button type="submit" busy={busy}>{reg ? 'Create account' : 'Sign in'}</Button>
-          <Link to={reg ? '/login' : '/register'}>{reg ? 'I already have an account' : 'Create an account'}</Link>
+          <Link to={reg ? '/login' : '/register'}>{reg ? 'I already have an account' : 'Create an account'}</Link>{' · '}<Link to="/pricing">Pricing</Link>
         </div>
       </form>
     </main>

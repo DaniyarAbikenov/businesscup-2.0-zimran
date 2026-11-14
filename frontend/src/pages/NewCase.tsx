@@ -35,6 +35,7 @@ export default function NewCase() {
       const r = await api('POST', '/cases', { situationId: sit!.id, privacyAck: ack, confidenceBefore: Number(conf), inputs: answers });
       nav(`/case/${r.case.id}`);
     } catch (x: any) {
+      if (x.status === 402) { nav('/pricing?from=limit'); return; }
       setError(x.message);
       setFields(x.fields ?? {});
       const first = Object.keys(x.fields ?? {})[0];

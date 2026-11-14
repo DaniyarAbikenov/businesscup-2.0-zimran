@@ -4,6 +4,7 @@ import { Me, Pack, api } from './api';
 import Auth from './pages/Auth';
 import CasePage from './pages/Case';
 import AccountPage from './pages/Account';
+import PricingPage, { CheckoutPage } from './pages/Pricing';
 import DocumentsPage from './pages/Documents';
 import Home from './pages/Home';
 import JournalPage from './pages/Journal';
@@ -28,7 +29,7 @@ export default function App() {
   useEffect(() => { refresh(); }, [refresh]);
 
   if (state.loading) return <main className="page"><p className="muted">Loading</p></main>;
-  if (!state.me || !state.pack) return <Routes><Route path="/register" element={<Auth mode="register" onDone={refresh} />} /><Route path="*" element={<Auth mode="login" onDone={refresh} />} /></Routes>;
+  if (!state.me || !state.pack) return <Routes><Route path="/pricing" element={<main className="page"><PricingPage signedIn={false} /></main>} /><Route path="/register" element={<Auth mode="register" onDone={refresh} />} /><Route path="*" element={<Auth mode="login" onDone={refresh} />} /></Routes>;
   const session = { me: state.me, pack: state.pack, refresh };
   const needsProfile = !state.me.profile;
 
@@ -48,13 +49,15 @@ export default function App() {
               <Route path="/journal" element={<JournalPage />} />
               <Route path="/documents" element={<DocumentsPage />} />
               <Route path="/account" element={<AccountPage />} />
+              <Route path="/pricing" element={<PricingPage signedIn />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/login" element={<Navigate to="/" replace />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </>
           )}
         </Routes>
       </main>
-      <footer className="footer">Practice with realistic numbers. Do not enter confidential employer or client data. <Link to="/account">Account and data</Link></footer>
+      <footer className="footer">Practice with realistic numbers. Do not enter confidential employer or client data. <Link to="/account">Account and data</Link> · <Link to="/pricing">Pricing</Link></footer>
     </Ctx.Provider>
   );
 }

@@ -92,3 +92,11 @@ export interface SavedDoc {
   id: number; caseId: number; kind: 'change_request' | 'client_message'; label: string; caseTitle: string; body: string;
   revisions: number; createdAt: string; updatedAt: string;
 }
+
+export interface Pricing {
+  free: { name: string; priceCents: number; cases: number; features: string[] };
+  pass: { id: string; name: string; priceCents: number; days: number; billing: string; features: string[] };
+  testCheckout: boolean;
+}
+export interface Billing { plan: 'free' | 'pass'; used: number; limit: number | null; remaining: number | null; pass: { expiresAt: string; provider: string } | null }
+export const price = (cents: number) => '$' + (cents / 100).toFixed(cents % 100 ? 2 : 0);

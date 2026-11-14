@@ -35,7 +35,7 @@ def _answers(**over) -> dict:
 def _case(db, user, ago_days: int, confidence: int, **answers) -> Case:
     inputs = _answers(**answers)
     c = Case(user_id=user.id, situation_id="client-change-request", inputs=inputs, result=compute(inputs),
-             confidence_before=confidence, created_at=datetime.now(timezone.utc) - timedelta(days=ago_days))
+             confidence_before=confidence, seeded=True, created_at=datetime.now(timezone.utc) - timedelta(days=ago_days))
     db.add(c)
     db.flush()
     db.add(JournalEntry(user_id=user.id, case_id=c.id, type="case", text=f"Started: {inputs['changeTitle']}",
@@ -98,7 +98,7 @@ def seed_demo_user(db, r) -> User:
     values, errors = validate_answers(sit["questions"], story)
     assert not errors, errors
     inputs = {**values, "asOf": packs.today()}
-    p = Case(user_id=user.id, situation_id=sit["id"], inputs=inputs, result=engine.run(sit, inputs), confidence_before=2)
+    p = Case(user_id=user.id, situation_id=sit["id"], inputs=inputs, result=engine.run(sit, inputs), confidence_before=2, seeded=True)
     db.add(p)
     db.flush()
     db.add(JournalEntry(user_id=user.id, case_id=p.id, type="case", text=f"Started: {inputs['title']}"))
