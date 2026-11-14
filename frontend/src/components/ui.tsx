@@ -82,7 +82,7 @@ export function Field({ id, label, help, why, error, children }: FieldProps) {
 /** Renders one question from the scenario pack. A "list" question renders repeatable rows. */
 export function QuestionField({ q, value, error, errors, onChange, answers }: { q: Question; value: any; error?: string; errors?: Record<string, string>; onChange: (v: any) => void; answers?: Record<string, any> }) {
   if (q.type === 'list') return <ListField q={q} rows={value ?? []} error={error} errors={errors ?? {}} onChange={onChange} answers={answers ?? {}} />;
-  const label = q.label + (q.required || q.labelFrom ? '' : ' (' + t('optional') + ')');
+  const label = q.label + (q.required || q.labelFrom || /\(optional\)/i.test(q.label) ? '' : ' (' + t('optional') + ')');
   return (
     <Field id={'q_' + q.id} label={label} help={q.help} why={q.why} error={error}>
       {(a) =>
