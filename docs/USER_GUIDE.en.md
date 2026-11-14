@@ -13,9 +13,9 @@ Press **"Try the demo"** on the sign-in page: a demo account with examples opens
 Home shows three "first week" exercises: a client change request, several urgent asks, "when will it be done?". **"Start here: a worked example"** shows a result in seconds. Not sure which fits? Describe it in your own words under "Describe your scenario".
 
 ## 3. Enter your numbers
-Start from a storyline or an empty form. Percentages, hours and ratings are set with a **slider** (type an exact number next to it if you prefer), and a word under the slider shows what you picked ("It hurts trust or costs something"). Short choices are buttons, and date fields have quick buttons: Today, Tomorrow, This Friday, In 1 week, In 2 weeks. Do not enter confidential employer or client information: use rounded or made-up numbers. The **"Money and quality (optional)"** group can stay empty; then the calculation covers time only.
+Start from a storyline or an empty form. Percentages, hours and ratings are set with a **slider** (type an exact number next to it if you prefer), and a word under the slider shows what you picked ("It hurts trust or costs something"). Task and option rows collapse into one-line cards (press Edit to change one). Short choices are buttons, and date fields have quick buttons: Today, Tomorrow, This Friday, In 1 week, In 2 weeks. Do not enter confidential employer or client information: use rounded or made-up numbers. The **"Money and quality (optional)"** group can stay empty; then the calculation covers time only.
 
-![Form](img/02-form.jpg)
+![Form: collapsible task cards and sliders](img/02-form.jpg)
 
 ## 4. Guess, then see the numbers
 Before the result you can guess (how many tasks finish late, which order is best, which date you could promise). You can skip. The server then scores the guess against the numbers, and **Progress** collects your accuracy. This is agreement with the calculator on your numbers, not a judgement of real-life decisions.
@@ -37,10 +37,8 @@ Choose when to be asked "how did it go". Optionally an email arrives with "worke
 
 ![Progress](img/05-progress.jpg)
 
-## On your phone
-Everything works on a narrow screen (checked at 390 px width, no horizontal scroll). The menu wraps to a second line and tables scroll sideways.
-
-<img src="img/m1-home.jpg" width="200"> <img src="img/m2-form.jpg" width="200"> <img src="img/m3-case.jpg" width="200">
+## Device
+The service is designed for a computer: use a browser on a laptop or desktop. Pages open on a phone, but the forms are long and not optimised for it, so please test on a computer.
 
 ## For testers
 - **Sign in:** the "Try the demo" button (a separate temporary account on every press; the data is sample data and can be deleted at any time; there is no shared demo account). For your own position, register and pick it at sign-up (later: Account -> Edit my position).
