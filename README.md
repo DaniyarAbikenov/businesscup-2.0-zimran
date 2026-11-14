@@ -52,6 +52,21 @@ The tests use real Postgres and Redis (create the `roleshift_test` database once
 
 `design/DESIGN.md` defines the visual language ("Ledger"): warm paper neutrals, one ink-teal accent, Fraunces plus Inter, tabular numerals, hairline rules, a comparison table instead of identical cards. Tokens live in `frontend/src/styles/tokens.css`. Read the file before changing UI, and update it when you change the rules.
 
+## Data model
+
+```
+users 1--1 profiles
+users 1--* cases 1--0..1 decisions        option (accept | defer | decline), rationale, document, follow-up due date
+                 1--0..1 reflections      learned, different, confidence_after (1-5)
+                 1--0..1 followups        outcome (worked | partly | not_yet | not_applied), notes (self-reported)
+users 1--* journal   timeline events, optionally linked to a case
+```
+
+- `cases` keeps two JSON snapshots: `inputs` (what the user entered) and `result` (what the engine calculated), so an old case never changes when the formulas change. `cases.status` is `draft` until a decision exists.
+- Constraints live in the database: allowed options and outcomes, confidence 1 to 5, one decision, reflection and follow-up per case, cascade delete from user to everything.
+- Roles and situations are content packs (JSON), not tables.
+- Migrations: `0001` initial schema, `0002` moves decision, reflection and follow-up out of `cases` and keeps existing data (and reverses it on downgrade). `backend/tests/test_migrations.py` runs both directions with data on a scratch database.
+
 ## How it works
 
 - **Content packs:** roles, worries and situations are JSON in `backend/app/packs/`. The form, validation, option labels, next steps and pitfalls all come from the pack, so new roles and situations are data. The math for a situation type lives in `backend/app/engine/`.

@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
@@ -12,7 +12,7 @@ from ..deps import current_user, own_case
 from ..document import build_debrief, build_document
 from ..engine.change_request import compute
 from ..errors import ApiError
-from ..models import Case, JournalEntry, Profile
+from ..models import Case, Decision, FollowUp, JournalEntry, Profile, Reflection
 from ..security import sha
 from ..validate import validate_answers
 
@@ -22,16 +22,19 @@ OUTCOMES = {"worked": "It worked", "partly": "Partly worked", "not_yet": "Not re
 
 
 def case_dict(c: Case) -> dict:
+    d, rf, fu = c.decision, c.reflection, c.followup
     out = {
         "id": c.id, "situationId": c.situation_id, "inputs": c.inputs, "result": c.result,
-        "confidenceBefore": c.confidence_before, "status": c.status, "chosenOption": c.chosen_option,
-        "rationale": c.rationale, "document": c.document,
-        "decidedAt": c.decided_at.isoformat() if c.decided_at else None,
-        "followupDue": c.followup_due, "reflection": c.reflection, "followup": c.followup,
+        "confidenceBefore": c.confidence_before, "status": c.status,
+        "chosenOption": d.option if d else None, "rationale": d.rationale if d else None,
+        "document": d.document if d else None, "decidedAt": d.decided_at.isoformat() if d else None,
+        "followupDue": d.followup_due.isoformat() if d else None,
+        "reflection": {"learned": rf.learned, "different": rf.different, "confidenceAfter": rf.confidence_after} if rf else None,
+        "followup": {"outcome": fu.outcome, "notes": fu.notes} if fu else None,
         "createdAt": c.created_at.isoformat(),
     }
-    if c.status == "decided":
-        out["debrief"] = build_debrief(c.result, c.chosen_option, c.inputs)
+    if d:
+        out["debrief"] = build_debrief(c.result, d.option, c.inputs)
     return out
 
 
@@ -94,13 +97,15 @@ def decide(body: dict, c: Case = Depends(own_case), user=Depends(current_user), 
     days = body.get("followupDays")
     days = days if isinstance(days, int) and not isinstance(days, bool) and 1 <= days <= 30 else 3
     profile = db.get(Profile, user.id)
-    c.document = build_document(c.inputs, c.result, option, rationale, profile and packs.get_role(profile.role_id), user.email, packs.today())
-    c.status, c.chosen_option, c.rationale = "decided", option, rationale
-    c.decided_at = datetime.now(timezone.utc)
-    c.followup_due = packs.add_days(packs.today(), days)
+    due = date.fromisoformat(packs.add_days(packs.today(), days))
+    c.decision = Decision(
+        option=option, rationale=rationale, followup_due=due, decided_at=datetime.now(timezone.utc),
+        document=build_document(c.inputs, c.result, option, rationale, profile and packs.get_role(profile.role_id), user.email, packs.today()),
+    )
+    c.status = "decided"
     log(db, user.id, c.id, "decision", f"Decided: {sit['options'][option]['label']}. {c.inputs['changeTitle']}")
     db.commit()
-    reminders.schedule(r, user.id, c.id, c.followup_due)
+    reminders.schedule(r, user.id, c.id, due.isoformat())
     return {"case": case_dict(c)}
 
 
@@ -112,7 +117,7 @@ def reflect(body: dict, c: Case = Depends(own_case), user=Depends(current_user),
     if not after:
         raise ApiError(400, "Rate your confidence from 1 to 5")
     refl = {"learned": str(body.get("learned") or "").strip()[:600], "different": str(body.get("different") or "").strip()[:600], "confidenceAfter": after}
-    c.reflection = refl
+    c.reflection = Reflection(learned=refl["learned"], different=refl["different"], confidence_after=after)
     log(db, user.id, c.id, "reflection", f"Reflection: confidence {c.confidence_before} -> {after}." + (f" {refl['learned']}" if refl["learned"] else ""))
     db.commit()
     return {"case": case_dict(c)}
@@ -126,7 +131,7 @@ def followup(body: dict, c: Case = Depends(own_case), user=Depends(current_user)
     if outcome not in OUTCOMES:
         raise ApiError(400, "Choose what happened")
     notes = str(body.get("notes") or "").strip()[:800]
-    c.followup = {"outcome": outcome, "notes": notes, "at": datetime.now(timezone.utc).isoformat()}
+    c.followup = FollowUp(outcome=outcome, notes=notes)
     log(db, user.id, c.id, "followup", f"Follow-up (as you reported): {OUTCOMES[outcome]}." + (f" {notes}" if notes else ""))
     db.commit()
     reminders.clear(r, user.id, c.id)
@@ -140,8 +145,8 @@ def hint(c: Case = Depends(own_case), r=Depends(get_redis)):
     if c.status != "decided":
         raise ApiError(409, "Make a decision first")
     sit = packs.get_situation(c.situation_id)
-    opt = next(o for o in c.result["options"] if o["key"] == c.chosen_option)
-    args = (c.inputs["changeTitle"], sit["options"][c.chosen_option]["label"], opt["newReleaseDate"], opt["extraCost"], c.rationale)
+    opt = next(o for o in c.result["options"] if o["key"] == c.decision.option)
+    args = (c.inputs["changeTitle"], sit["options"][c.decision.option]["label"], opt["newReleaseDate"], opt["extraCost"], c.rationale)
     key = "hint:" + sha(json.dumps(args))
     text = r.get(key)
     if text is None:

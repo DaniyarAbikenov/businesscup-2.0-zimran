@@ -1,12 +1,12 @@
 """Demo account: a throwaway user pre-loaded with every step of the flow, so a reviewer can see
 the whole product in one click without signing up."""
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from . import packs, reminders
 from .document import build_document
 from .engine.change_request import compute
-from .models import Case, JournalEntry, Profile, User
+from .models import Case, Decision, FollowUp, JournalEntry, Profile, Reflection, User
 from .security import hash_password
 from .validate import validate_answers
 
@@ -43,11 +43,14 @@ def _case(db, user, ago_days: int, confidence: int, **answers) -> Case:
 
 def _decide(db, user, c: Case, option: str, rationale: str, followup_days: int, role, ago_days: int):
     sit = packs.get_situation(c.situation_id)
-    c.document = build_document(c.inputs, c.result, option, rationale, role, user.email, packs.today())
-    c.status, c.chosen_option, c.rationale = "decided", option, rationale
-    c.decided_at = datetime.now(timezone.utc) - timedelta(days=ago_days)
-    c.followup_due = packs.add_days(packs.today(), followup_days)
-    db.add(JournalEntry(user_id=user.id, case_id=c.id, type="decision", created_at=c.decided_at,
+    decided_at = datetime.now(timezone.utc) - timedelta(days=ago_days)
+    c.decision = Decision(
+        option=option, rationale=rationale, decided_at=decided_at,
+        followup_due=date.fromisoformat(packs.add_days(packs.today(), followup_days)),
+        document=build_document(c.inputs, c.result, option, rationale, role, user.email, packs.today()),
+    )
+    c.status = "decided"
+    db.add(JournalEntry(user_id=user.id, case_id=c.id, type="decision", created_at=decided_at,
                         text=f"Decided: {sit['options'][option]['label']}. {c.inputs['changeTitle']}"))
 
 
@@ -66,12 +69,12 @@ def seed_demo_user(db, r) -> User:
               changeDescription="Client wants a CSV export of the monthly report. Acceptance: all columns, UTF-8.",
               changeEffortDays=4, bufferDays=5, clientCoversPct=100)
     _decide(db, user, a, "accept", "Small effort, fits the buffer, and the client pays for it.", 3, role, 7)
-    a.reflection = {"learned": "Getting an estimate from the team before answering made the call easy.",
-                    "different": "Ask about acceptance criteria in the first conversation.", "confidenceAfter": 4}
-    a.followup = {"outcome": "worked", "notes": "Client signed the Change Request the same day.", "at": datetime.now(timezone.utc).isoformat()}
-    db.add(JournalEntry(user_id=user.id, case_id=a.id, type="reflection", text="Reflection: confidence 2 -> 4. " + a.reflection["learned"],
+    a.reflection = Reflection(learned="Getting an estimate from the team before answering made the call easy.",
+                              different="Ask about acceptance criteria in the first conversation.", confidence_after=4)
+    a.followup = FollowUp(outcome="worked", notes="Client signed the Change Request the same day.")
+    db.add(JournalEntry(user_id=user.id, case_id=a.id, type="reflection", text="Reflection: confidence 2 -> 4. " + a.reflection.learned,
                         created_at=datetime.now(timezone.utc) - timedelta(days=6)))
-    db.add(JournalEntry(user_id=user.id, case_id=a.id, type="followup", text="Follow-up (as you reported): It worked. " + a.followup["notes"],
+    db.add(JournalEntry(user_id=user.id, case_id=a.id, type="followup", text="Follow-up (as you reported): It worked. " + a.followup.notes,
                         created_at=datetime.now(timezone.utc) - timedelta(days=4)))
 
     # 2. Decided, waiting for reflection and a follow-up that is due today.
@@ -84,5 +87,5 @@ def seed_demo_user(db, r) -> User:
     _case(db, user, 0, 3, changeTitle="Add dark mode to the dashboard", priority="nice", changeEffortDays=8)
 
     db.commit()
-    reminders.schedule(r, user.id, b.id, b.followup_due)
+    reminders.schedule(r, user.id, b.id, b.decision.followup_due.isoformat())
     return user

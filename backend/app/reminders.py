@@ -27,7 +27,7 @@ def due_count(r, uid: int) -> int:
 
 
 def rebuild(db, r):
-    rows = db.scalars(select(Case).where(Case.status == "decided", Case.followup.is_(None))).all()
+    rows = db.scalars(select(Case).where(Case.status == "decided")).all()
     for c in rows:
-        if c.followup_due:
-            schedule(r, c.user_id, c.id, c.followup_due)
+        if c.decision and not c.followup:
+            schedule(r, c.user_id, c.id, c.decision.followup_due.isoformat())
