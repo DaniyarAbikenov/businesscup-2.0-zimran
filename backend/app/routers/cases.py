@@ -106,7 +106,8 @@ def prediction_preview(sit: dict, inputs: dict) -> dict | None:
     """What the guess screen needs to show (the person's own options), nothing computed."""
     e = sit["engine"]
     if e == "priorities":
-        return {"tasks": len(inputs["tasks"]), "orders": [{"key": k, "label": sit["options"][k]["label"]} for k in prediction.ORDERS]}
+        cost = bool(inputs.get("extraHourCost") and inputs.get("extraHoursPerWeek") and any(t.get("minEffortHours") for t in inputs["tasks"]))
+        return {"cheapestAsk": cost, "tasks": len(inputs["tasks"]), "orders": [{"key": k, "label": sit["options"][k]["label"]} for k in prediction.ORDERS]}
     if e == "estimate":
         return {"start": inputs["startDate"]}
     if e == "decision":

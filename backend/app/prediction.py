@@ -36,6 +36,8 @@ def clean(sit: dict, inputs: dict, raw) -> dict | None:
             errs["prediction.bestOrder"] = "Choose one of the options"
         else:
             out["bestOrder"] = raw["bestOrder"]
+        if raw.get("cheapest") in ("scope", "pay"):  # optional: asked only when money and scope data were entered
+            out["cheapest"] = raw["cheapest"]
     elif e == "estimate":
         d = raw.get("date")
         try:
@@ -74,7 +76,12 @@ def score(sit: dict, guess: dict | None, result: dict, inputs: dict) -> dict | N
         late = opts["custom"]["lateCount"]
         parts = [{"key": "lateCount", "guess": guess["lateCount"], "actual": late, "error": guess["lateCount"] - late, "hit": guess["lateCount"] == late},
                  {"key": "bestOrder", "guess": guess["bestOrder"], "actual": result["lowestRiskKey"], "hit": guess["bestOrder"] == result["lowestRiskKey"]}]
-        overall = sum(p["hit"] for p in parts) / 2
+        ls = {l["key"]: l for l in result.get("levers") or []}
+        if guess.get("cheapest") and "scope" in ls and "pay" in ls and ls["pay"]["money"]["total"] is not None:
+            m = {k: ls[k]["money"]["total"] for k in ("scope", "pay")}
+            cheap = min(m, key=m.get) if m["scope"] != m["pay"] else guess["cheapest"]  # a tie counts for either
+            parts.append({"key": "cheapest", "guess": guess["cheapest"], "actual": cheap, "hit": guess["cheapest"] == cheap})
+        overall = sum(p["hit"] for p in parts) / len(parts)
     elif e == "estimate":
         safe = opts["safe"]["date"]
         err = workdays_between(safe, guess["date"])  # positive: later (more cautious) than the safe date
@@ -99,6 +106,9 @@ def reveal(sit: dict, guess: dict | None, sc: dict | None, result: dict, inputs:
             items.append({"label": tr("Tasks that finish late if you keep your order"), "guess": str(p["guess"]), "actual": str(p["actual"]), "hit": p["hit"]})
         elif p["key"] == "bestOrder":
             items.append({"label": tr("Order with the lowest risk"), "guess": lab(p["guess"]), "actual": lab(p["actual"]), "hit": p["hit"]})
+        elif p["key"] == "cheapest":
+            name = lambda k: tr("Cut scope on the late tasks") if k == "scope" else tr("Pay for extra hours")
+            items.append({"label": tr("Cheaper way to fix lateness in total money"), "guess": name(p["guess"]), "actual": name(p["actual"]), "hit": p["hit"]})
         elif p["key"] == "safeDate":
             gap = tr("{n} working days later", n=p["error"]) if p["error"] > 1 else tr("{n} working days earlier", n=-p["error"]) if p["error"] < -1 else tr("within a day")
             items.append({"label": tr("Date you could safely commit to"), "guess": fmt_iso(p["guess"]), "actual": fmt_iso(p["actual"]), "hit": p["hit"], "gap": gap})

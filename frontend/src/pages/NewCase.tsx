@@ -165,6 +165,9 @@ function GuessStep({ sit, g, value, onChange, busy, error, onGo, onSkip, onBack 
       <Panel title={t('Which order will carry the lowest risk?')}>
         <div className="stories">{g.preview.orders.map((o: { key: string; label: string }) => choice(value.bestOrder === o.key, o.label, () => set('bestOrder', o.key)))}</div>
       </Panel>
+      {g.preview.cheapestAsk && <Panel title={t('Which is cheaper in total money?')} lead={t('Optional. Cut scope on the late tasks, or pay for extra hours.')}>
+        <div className="stories">{choice(value.cheapest === 'scope', t('Cut scope'), () => set('cheapest', 'scope'))}{choice(value.cheapest === 'pay', t('Pay for extra hours'), () => set('cheapest', 'pay'))}</div>
+      </Panel>}
     </>);
   } else if (g.engine === 'estimate') {
     ready = !!value.date;

@@ -69,3 +69,23 @@ def test_document_shows_the_three_axes_only_with_money_data():
     i = {**BASE, "tasks": tasks, "extraHourCost": 30, "extraHoursPerWeek": 10}
     doc = build_document(i, engine.run(SIT, i), "deadline", "why", None, "a@b.c", "2026-11-16", "competing-priorities", SIT)
     assert "## Ways to fix it and what each costs" in doc and "Cut scope on the late tasks" in doc and "quality risk medium" in doc
+
+
+def test_cheapest_guess_and_money_stress_tests():
+    from app import prediction
+    from app.challenge import run as challenge
+    tasks = [{**t} for t in BASE["tasks"]]; tasks[0].update(costPerLateDay=100, minEffortHours=8)
+    i = {**BASE, "tasks": tasks, "extraHourCost": 30, "extraHoursPerWeek": 10}
+    r = engine.run(SIT, i)
+    # scope has no extra cost but late days remain (money = late cost); pay costs hours x 30 plus what is still late: the cheaper is the smaller total
+    m = {k: lv(r, k)["money"]["total"] for k in ("scope", "pay")}
+    cheap = min(m, key=m.get)
+    g = prediction.clean(SIT, i, {"lateCount": 1, "bestOrder": "deadline", "cheapest": cheap})
+    sc = prediction.score(SIT, g, r, i)
+    assert [p["key"] for p in sc["parts"]] == ["lateCount", "bestOrder", "cheapest"] and sc["parts"][2]["hit"]
+    other = "pay" if cheap == "scope" else "scope"
+    assert not prediction.score(SIT, {**g, "cheapest": other}, r, i)["parts"][2]["hit"] or m["scope"] == m["pay"]
+    assert len(prediction.score(SIT, prediction.clean(SIT, BASE, {"lateCount": 1, "bestOrder": "deadline"}), engine.run(SIT, BASE), BASE)["parts"]) == 2
+    out = challenge(SIT, i, r, {o["key"]: o["key"] for o in r["options"]})
+    whats = [x["what"] for x in out]
+    assert "an extra hour costs 20% more" in whats and "the cut goes 10 points deeper" in whats

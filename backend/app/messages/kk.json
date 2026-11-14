@@ -354,5 +354,11 @@
  "## Ways to fix it and what each costs": "## Қалай түзетуге болады және бағасы қандай",
  "{n} late, {d} working days in total": "кешігеді: {n}, барлығы {d} жұмыс күні",
  "{date} ({days} working days)": "{date} ({days} жұмыс күні)",
- "- {label}: time {t}; money {m}; quality risk {q}.": "- {label}: уақыт — {t}; ақша — {m}; сапаға тәуекел — {q}."
+ "- {label}: time {t}; money {m}; quality risk {q}.": "- {label}: уақыт — {t}; ақша — {m}; сапаға тәуекел — {q}.",
+ "Cheaper way to fix lateness in total money": "Кешігуді түзетудің ақшалай арзаны",
+ "an extra hour costs 20% more": "қосымша сағат 20%-ға қымбат",
+ "the cut goes 10 points deeper": "қысқарту 10 пайыздық тармаққа терең",
+ "If {what}, \"{label}\" costs {after} instead of {before}.": "Егер {what}, «{label}» {before} орнына {after} тұрады.",
+ "If {what}, the quality risk of \"{label}\" goes from {before} to {after} ({pct}% cut).": "Егер {what}, «{label}» сапа тәуекелі «{before}» дәрежесінен «{after}» дәрежесіне өседі ({pct}% қысқартылған).",
+ "If {what}, the quality risk of \"{label}\" stays {level} ({pct}% cut).": "Егер {what}, «{label}» сапа тәуекелі өзгермейді: {level} ({pct}% қысқартылған)."
 }

@@ -529,6 +529,10 @@ const ru: Record<string, string> = {
  "Quality": "Качество",
  "You pay with": "Вы платите",
  "{n} working day": "{n} рабочий день | {n} рабочих дня | {n} рабочих дней",
- "{n} working days": "{n} рабочих дней"
+ "{n} working days": "{n} рабочих дней",
+ "Which is cheaper in total money?": "Что дешевле в сумме по деньгам?",
+ "Optional. Cut scope on the late tasks, or pay for extra hours.": "Необязательно. Урезать объём у опаздывающих задач или оплатить дополнительные часы.",
+ "Cut scope": "Урезать объём",
+ "Pay for extra hours": "Оплатить доп. часы"
 };
 export default ru;

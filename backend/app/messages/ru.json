@@ -354,5 +354,11 @@
  "## Ways to fix it and what each costs": "## Как это исправить и чего это стоит",
  "{n} late, {d} working days in total": "опоздают: {n}, суммарно {d} раб. дн.",
  "{date} ({days} working days)": "{date} ({days} раб. дн.)",
- "- {label}: time {t}; money {m}; quality risk {q}.": "- {label}: время — {t}; деньги — {m}; риск для качества — {q}."
+ "- {label}: time {t}; money {m}; quality risk {q}.": "- {label}: время — {t}; деньги — {m}; риск для качества — {q}.",
+ "Cheaper way to fix lateness in total money": "Что дешевле для устранения опоздания в деньгах",
+ "an extra hour costs 20% more": "дополнительный час стоит на 20% дороже",
+ "the cut goes 10 points deeper": "урезание глубже на 10 процентных пунктов",
+ "If {what}, \"{label}\" costs {after} instead of {before}.": "Если {what}, «{label}» стоит {after} вместо {before}.",
+ "If {what}, the quality risk of \"{label}\" goes from {before} to {after} ({pct}% cut).": "Если {what}, риск для качества у «{label}» растёт с «{before}» до «{after}» (урезано {pct}%).",
+ "If {what}, the quality risk of \"{label}\" stays {level} ({pct}% cut).": "Если {what}, риск для качества у «{label}» остаётся: {level} (урезано {pct}%)."
 }

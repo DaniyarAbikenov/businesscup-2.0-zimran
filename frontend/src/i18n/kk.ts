@@ -526,6 +526,10 @@ const kk: Record<string, string> = {
  "Quality": "Сапа",
  "You pay with": "Төлейтініңіз",
  "{n} working day": "{n} жұмыс күні",
- "{n} working days": "{n} жұмыс күні"
+ "{n} working days": "{n} жұмыс күні",
+ "Which is cheaper in total money?": "Ақша бойынша жалпы қайсысы арзан?",
+ "Optional. Cut scope on the late tasks, or pay for extra hours.": "Міндетті емес. Кешігетін тапсырмалардың көлемін қысқарту немесе қосымша сағатқа төлеу.",
+ "Cut scope": "Көлемді қысқарту",
+ "Pay for extra hours": "Қосымша сағатқа төлеу"
 };
 export default kk;

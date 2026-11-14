@@ -4,6 +4,7 @@ lowest-risk option stays the same and how far the risk moves."""
 import copy
 
 from . import engine
+from .levers import quality_risk
 from .msg import tr
 
 LEVEL = {"low": 0, "medium": 1, "high": 2}
@@ -74,4 +75,33 @@ def run(sit: dict, inputs: dict, result: dict, labels: dict) -> list[dict]:
         else:
             text = tr('If {what}, the best option changes: "{new}" would score lower risk than "{label}". Your conclusion does not hold.', what=what, new=labels[new_best], label=labels[base_best])
         out.append({"what": what, "holds": holds and not worse, "sameBest": holds, "newBest": new_best, "riskBefore": base["riskLevel"], "riskAfter": after["riskLevel"], "text": text})
+    out += _lever_tests(sit, inputs, result)
+    return out
+
+
+def _lever_tests(sit: dict, inputs: dict, result: dict) -> list[dict]:
+    """Money and quality stress tests, only when the person entered optional money or scope data: the paid way costs 20% more, and the cut goes 10 points deeper."""
+    ls = {l["key"]: l for l in result.get("levers") or []}
+    out = []
+    pay = ls.get("pay")
+    if pay and pay["money"]["total"]:
+        before = pay["money"]["total"]
+        v = copy.deepcopy(inputs)
+        for k in ("extraHourCost", "hourlyCost"):
+            if v.get(k):
+                v[k] = v[k] * 1.2
+        try:
+            alt = next(l for l in engine.run(sit, v)["levers"] if l["key"] == "pay")["money"]["total"]
+        except Exception:
+            alt = round(before * 1.2)
+        what = tr("an extra hour costs 20% more")
+        out.append({"what": what, "holds": True, "text": tr('If {what}, "{label}" costs {after} instead of {before}.', what=what, label=pay["label"], after=alt, before=before)})
+    cut = ls.get("scope") or ls.get("goodEnough")
+    if cut and cut["quality"]["cutShare"]:
+        share = cut["quality"]["cutShare"]; deeper = round(min(1.0, share + 0.10), 3)
+        before, after = quality_risk(share), quality_risk(deeper)
+        what = tr("the cut goes 10 points deeper")
+        out.append({"what": what, "holds": before == after,
+                    "text": tr('If {what}, the quality risk of "{label}" goes from {before} to {after} ({pct}% cut).', what=what, label=cut["label"], before=lvl(before), after=lvl(after), pct=round(deeper * 100))
+                    if before != after else tr('If {what}, the quality risk of "{label}" stays {level} ({pct}% cut).', what=what, label=cut["label"], level=lvl(after), pct=round(deeper * 100))})
     return out
