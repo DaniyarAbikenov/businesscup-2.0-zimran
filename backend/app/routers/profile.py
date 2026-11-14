@@ -6,6 +6,7 @@ from ..db import get_db
 from ..deps import current_user
 from ..errors import ApiError
 from ..msg import tr
+from ..cache import get_redis
 from ..models import JournalEntry, Profile
 from .auth import profile_dict
 
@@ -28,6 +29,7 @@ def put_profile(body: dict, user=Depends(current_user), db: Session = Depends(ge
     db.add(p)
     db.add(JournalEntry(user_id=user.id, type="onboarding", text=tr("Set up profile as {role}", role=role['label']) + (tr(" in {industry}", industry=industry) if industry else "") + "."))
     db.commit()
+    get_redis().set(f"role:{user.id}", p.role_id, ex=86400)
     return {"profile": profile_dict(p)}
 
 

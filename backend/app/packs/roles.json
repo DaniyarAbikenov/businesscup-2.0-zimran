@@ -18,7 +18,8 @@
         "asked-for-a-deadline",
         "competing-priorities",
         "choose-between-options"
-      ]
+      ],
+      "describeExample": "My manager wants the quarterly report by Friday, a colleague needs a data pull for a client demo on Wednesday, and the VP asked me for an overview next week. I have about 25 free hours."
     },
     {
       "id": "promoted-to-lead",
@@ -38,7 +39,8 @@
         "competing-priorities",
         "choose-between-options",
         "asked-for-a-deadline"
-      ]
+      ],
+      "describeExample": "My manager wants the quarterly report by Friday, a colleague needs a data pull for a client demo on Wednesday, and the VP asked me for an overview next week. I have about 25 free hours."
     },
     {
       "id": "head-of-function",
@@ -58,7 +60,8 @@
         "choose-between-options",
         "competing-priorities",
         "asked-for-a-deadline"
-      ]
+      ],
+      "describeExample": "My manager wants the quarterly report by Friday, a colleague needs a data pull for a client demo on Wednesday, and the VP asked me for an overview next week. I have about 25 free hours."
     },
     {
       "id": "career-switch",
@@ -78,7 +81,8 @@
         "asked-for-a-deadline",
         "competing-priorities",
         "choose-between-options"
-      ]
+      ],
+      "describeExample": "My manager wants the quarterly report by Friday, a colleague needs a data pull for a client demo on Wednesday, and the VP asked me for an overview next week. I have about 25 free hours."
     },
     {
       "id": "it-pm",
@@ -100,7 +104,8 @@
         "competing-priorities",
         "asked-for-a-deadline",
         "choose-between-options"
-      ]
+      ],
+      "describeExample": "My manager wants the quarterly report by Friday, a colleague needs a data pull for a client demo on Wednesday, and the VP asked me for an overview next week. I have about 25 free hours."
     },
     {
       "id": "animation-pm",
@@ -122,7 +127,8 @@
         "competing-priorities",
         "asked-for-a-deadline",
         "choose-between-options"
-      ]
+      ],
+      "describeExample": "My manager wants the quarterly report by Friday, a colleague needs a data pull for a client demo on Wednesday, and the VP asked me for an overview next week. I have about 25 free hours."
     },
     {
       "id": "construction-pm",
@@ -144,7 +150,8 @@
         "competing-priorities",
         "choose-between-options",
         "asked-for-a-deadline"
-      ]
+      ],
+      "describeExample": "My manager wants the quarterly report by Friday, a colleague needs a data pull for a client demo on Wednesday, and the VP asked me for an overview next week. I have about 25 free hours."
     },
     {
       "id": "eng-lead",
@@ -166,7 +173,8 @@
         "competing-priorities",
         "client-change-request",
         "choose-between-options"
-      ]
+      ],
+      "describeExample": "My manager wants the quarterly report by Friday, a colleague needs a data pull for a client demo on Wednesday, and the VP asked me for an overview next week. I have about 25 free hours."
     },
     {
       "id": "director",
@@ -186,7 +194,110 @@
         "choose-between-options",
         "competing-priorities",
         "asked-for-a-deadline"
-      ]
+      ],
+      "vocab": {
+        "en": [
+          [
+            "my manager's manager",
+            "the owner"
+          ],
+          [
+            "your manager's manager",
+            "the owner"
+          ],
+          [
+            "manager's manager",
+            "owner"
+          ],
+          [
+            "my manager",
+            "the board"
+          ],
+          [
+            "your manager",
+            "the board"
+          ],
+          [
+            "the manager",
+            "the board"
+          ],
+          [
+            "manager",
+            "board"
+          ],
+          [
+            "a colleague or another team",
+            "another department head"
+          ],
+          [
+            "a colleague",
+            "a department head"
+          ],
+          [
+            "colleague",
+            "department head"
+          ],
+          [
+            "your team",
+            "your department heads"
+          ],
+          [
+            "the team",
+            "the department heads"
+          ],
+          [
+            "my team",
+            "my department heads"
+          ]
+        ],
+        "ru": [
+          [
+            "руководителя моего руководителя",
+            "собственника"
+          ],
+          [
+            "руководитель моего руководителя",
+            "собственник"
+          ],
+          [
+            "Руководитель моего руководителя",
+            "Собственник"
+          ],
+          [
+            "моего руководителя",
+            "совета директоров"
+          ],
+          [
+            "Мой руководитель",
+            "Совет директоров"
+          ],
+          [
+            "вашего руководителя",
+            "совета директоров"
+          ],
+          [
+            "руководителя",
+            "совета директоров"
+          ],
+          [
+            "руководитель",
+            "совет директоров"
+          ],
+          [
+            "коллега",
+            "руководитель другого подразделения"
+          ],
+          [
+            "коллегу",
+            "руководителя другого подразделения"
+          ],
+          [
+            "коллеги",
+            "руководителя другого подразделения"
+          ]
+        ]
+      },
+      "describeExample": "Two departments both want the same budget line this quarter. Sales wants three more people, Operations a new warehouse system. I must decide this month and the board will ask why."
     },
     {
       "id": "chief-accountant",
@@ -206,7 +317,114 @@
         "asked-for-a-deadline",
         "competing-priorities",
         "choose-between-options"
-      ]
+      ],
+      "vocab": {
+        "en": [
+          [
+            "my manager's manager",
+            "the owner or the board"
+          ],
+          [
+            "your manager's manager",
+            "the owner or the board"
+          ],
+          [
+            "manager's manager",
+            "owner or board"
+          ],
+          [
+            "my manager",
+            "the director"
+          ],
+          [
+            "your manager",
+            "the director"
+          ],
+          [
+            "the manager",
+            "the director"
+          ],
+          [
+            "manager",
+            "director"
+          ],
+          [
+            "a colleague or another team",
+            "another department"
+          ],
+          [
+            "a colleague",
+            "another department"
+          ],
+          [
+            "your team",
+            "your accounting team"
+          ],
+          [
+            "the team",
+            "the accounting team"
+          ],
+          [
+            "my team",
+            "my accounting team"
+          ],
+          [
+            "Someone outside the organisation (client, resident, partner)",
+            "The auditor, tax authority or another outside party"
+          ],
+          [
+            "someone outside the organisation",
+            "the auditor or tax authority"
+          ],
+          [
+            "people outside the organisation",
+            "the auditor or tax authority"
+          ]
+        ],
+        "ru": [
+          [
+            "руководителя моего руководителя",
+            "собственника или совета директоров"
+          ],
+          [
+            "руководитель моего руководителя",
+            "собственник или совет директоров"
+          ],
+          [
+            "Руководитель моего руководителя",
+            "Собственник или совет директоров"
+          ],
+          [
+            "моего руководителя",
+            "моего директора"
+          ],
+          [
+            "Мой руководитель",
+            "Мой директор"
+          ],
+          [
+            "вашего руководителя",
+            "вашего директора"
+          ],
+          [
+            "руководителя",
+            "директора"
+          ],
+          [
+            "руководителю",
+            "директору"
+          ],
+          [
+            "руководитель",
+            "директор"
+          ],
+          [
+            "Кто-то извне организации (клиент, житель, партнёр)",
+            "Аудитор, налоговая или другая сторона извне"
+          ]
+        ]
+      },
+      "describeExample": "Month-end close is in four days with about 60 hours of work left, and now the tax authority asked for three years of documents for an audit. I have three people and about 30 free hours a week."
     },
     {
       "id": "officer",
@@ -226,7 +444,154 @@
         "competing-priorities",
         "choose-between-options",
         "asked-for-a-deadline"
-      ]
+      ],
+      "vocab": {
+        "en": [
+          [
+            "my manager's manager",
+            "my senior commander"
+          ],
+          [
+            "your manager's manager",
+            "your senior commander"
+          ],
+          [
+            "manager's manager",
+            "senior commander"
+          ],
+          [
+            "my manager",
+            "my commanding officer"
+          ],
+          [
+            "your manager",
+            "your commanding officer"
+          ],
+          [
+            "the manager",
+            "the commanding officer"
+          ],
+          [
+            "manager",
+            "commanding officer"
+          ],
+          [
+            "a colleague or another team",
+            "a fellow officer or another unit"
+          ],
+          [
+            "a colleague",
+            "a fellow officer"
+          ],
+          [
+            "colleague",
+            "fellow officer"
+          ],
+          [
+            "your team",
+            "your unit"
+          ],
+          [
+            "the team",
+            "the unit"
+          ],
+          [
+            "my team",
+            "my unit"
+          ],
+          [
+            "team",
+            "unit"
+          ],
+          [
+            "urgent asks",
+            "urgent orders"
+          ],
+          [
+            "asks",
+            "orders"
+          ],
+          [
+            "requests",
+            "orders"
+          ],
+          [
+            "Who asked",
+            "Who gave the order"
+          ]
+        ],
+        "ru": [
+          [
+            "руководителя моего руководителя",
+            "старшего начальника"
+          ],
+          [
+            "руководитель моего руководителя",
+            "старший начальник"
+          ],
+          [
+            "Руководитель моего руководителя",
+            "Старший начальник"
+          ],
+          [
+            "руководителя вашего руководителя",
+            "старшего начальника"
+          ],
+          [
+            "моего руководителя",
+            "моего командира"
+          ],
+          [
+            "Мой руководитель",
+            "Мой командир"
+          ],
+          [
+            "вашего руководителя",
+            "вашего командира"
+          ],
+          [
+            "руководителя",
+            "командира"
+          ],
+          [
+            "руководителю",
+            "командиру"
+          ],
+          [
+            "руководителем",
+            "командиром"
+          ],
+          [
+            "руководитель",
+            "командир"
+          ],
+          [
+            "коллега",
+            "сослуживец"
+          ],
+          [
+            "коллегу",
+            "сослуживца"
+          ],
+          [
+            "коллеги",
+            "сослуживца"
+          ],
+          [
+            "Кто попросил",
+            "Кто отдал приказ"
+          ],
+          [
+            "срочные просьбы",
+            "срочные приказы"
+          ],
+          [
+            "просьб",
+            "приказов"
+          ]
+        ]
+      },
+      "describeExample": "Three orders from three superiors came in the same week: prepare the inspection, send six people to training, finish the equipment report. I have 20 free hours a week and personnel for only two of them."
     },
     {
       "id": "public-official",
@@ -246,7 +611,158 @@
         "choose-between-options",
         "competing-priorities",
         "asked-for-a-deadline"
-      ]
+      ],
+      "vocab": {
+        "en": [
+          [
+            "my manager's manager",
+            "a higher authority"
+          ],
+          [
+            "your manager's manager",
+            "a higher authority"
+          ],
+          [
+            "manager's manager",
+            "higher authority"
+          ],
+          [
+            "my manager",
+            "the council"
+          ],
+          [
+            "your manager",
+            "the council"
+          ],
+          [
+            "the manager",
+            "the council"
+          ],
+          [
+            "manager",
+            "council"
+          ],
+          [
+            "a colleague or another team",
+            "a department head or another department"
+          ],
+          [
+            "a colleague",
+            "a department head"
+          ],
+          [
+            "colleague",
+            "department head"
+          ],
+          [
+            "your team",
+            "your administration"
+          ],
+          [
+            "the team",
+            "the administration"
+          ],
+          [
+            "my team",
+            "my administration"
+          ],
+          [
+            "team",
+            "administration"
+          ],
+          [
+            "Someone outside the organisation (client, resident, partner)",
+            "Residents or another outside party"
+          ],
+          [
+            "People outside the organisation (clients, residents)",
+            "Residents"
+          ],
+          [
+            "someone outside the organisation",
+            "residents or an outside party"
+          ],
+          [
+            "people outside the organisation",
+            "residents"
+          ],
+          [
+            "asks",
+            "demands"
+          ],
+          [
+            "requests",
+            "demands"
+          ]
+        ],
+        "ru": [
+          [
+            "руководителя моего руководителя",
+            "вышестоящего органа"
+          ],
+          [
+            "руководитель моего руководителя",
+            "вышестоящий орган"
+          ],
+          [
+            "Руководитель моего руководителя",
+            "Вышестоящий орган"
+          ],
+          [
+            "руководителя вашего руководителя",
+            "вышестоящего органа"
+          ],
+          [
+            "моего руководителя",
+            "совета"
+          ],
+          [
+            "Мой руководитель",
+            "Совет"
+          ],
+          [
+            "вашего руководителя",
+            "совета"
+          ],
+          [
+            "руководителя",
+            "совета"
+          ],
+          [
+            "руководителю",
+            "совету"
+          ],
+          [
+            "руководитель",
+            "совет"
+          ],
+          [
+            "коллега",
+            "руководитель отдела"
+          ],
+          [
+            "коллегу",
+            "руководителя отдела"
+          ],
+          [
+            "коллеги",
+            "руководителя отдела"
+          ],
+          [
+            "Кто-то извне организации (клиент, житель, партнёр)",
+            "Жители или другая сторона извне"
+          ],
+          [
+            "Люди извне организации (клиенты, жители)",
+            "Жители"
+          ],
+          [
+            "просьб",
+            "требований"
+          ]
+        ]
+      },
+      "describeExample": "A fixed budget: road repair, a school roof or flood prevention. Residents push for the road, the council for the school, the engineers warn about floods. I must choose before the council meets on Thursday."
     },
     {
       "id": "other",
@@ -266,7 +782,8 @@
         "competing-priorities",
         "asked-for-a-deadline",
         "choose-between-options"
-      ]
+      ],
+      "describeExample": "My manager wants the quarterly report by Friday, a colleague needs a data pull for a client demo on Wednesday, and the VP asked me for an overview next week. I have about 25 free hours."
     }
   ],
   "tenures": [

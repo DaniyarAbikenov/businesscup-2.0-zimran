@@ -1,4 +1,5 @@
 """Builds the Change Request document and the post-decision debrief. All deterministic."""
+from . import msg
 from .msg import tr
 from .engine.change_request import fmt
 from .packs import get_situation
@@ -10,7 +11,11 @@ def usd(n) -> str:
     return ("-$" if n < 0 else "$") + fmt(abs(n))
 
 
-def build_document(inputs, result, option_key, rationale, role, user_email, date, situation_id="client-change-request", sit=None) -> str:
+def build_document(*a, **kw) -> str:
+    return msg.localize_dates(_build_document(*a, **kw))
+
+
+def _build_document(inputs, result, option_key, rationale, role, user_email, date, situation_id="client-change-request", sit=None) -> str:
     sit = sit or get_situation(situation_id)
     if sit["engine"] == "priorities":
         return _priorities_document(sit, inputs, result, option_key, rationale, user_email, date)
@@ -52,7 +57,11 @@ def build_document(inputs, result, option_key, rationale, role, user_email, date
     return "\n".join(L)
 
 
-def build_debrief(result, option_key, inputs, situation_id="client-change-request", sit=None) -> dict:
+def build_debrief(*a, **kw) -> dict:
+    return msg.localize_dates_deep(_build_debrief(*a, **kw))
+
+
+def _build_debrief(result, option_key, inputs, situation_id="client-change-request", sit=None) -> dict:
     sit = sit or get_situation(situation_id)
     if sit["engine"] == "priorities":
         return _priorities_debrief(sit, result, option_key)

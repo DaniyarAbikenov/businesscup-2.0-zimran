@@ -144,3 +144,62 @@ def test_emails_follow_the_profile_language(client):
         assert emails.send_due_followups(db, get_redis()) == 1
     mail = json.loads(get_redis().lrange("outbox", 0, 0)[0])
     assert "Как всё прошло" in mail["subject"] and "Сработало" in mail["body"] and f"/case/{cid}" in mail["body"] and "СЕКРЕТ" not in mail["body"]
+
+
+# ---- position vocabulary, examples per position, dates in the language ----
+def test_position_vocabulary_applies_to_templates_not_to_user_text(client):
+    from app import msg
+    # officer: orders and a commanding officer instead of tasks from a manager; the user's own words are never touched
+    assert msg.vocab("Ask your manager to confirm the order.", "officer", "en") == "Ask your commanding officer to confirm the order."
+    assert msg.vocab("My manager's manager", "officer", "en") == "My senior commander"
+    assert msg.vocab("Мой руководитель", "officer", "ru") == "Мой командир"
+    assert msg.vocab("Ask your manager", None, "en") == "Ask your manager"  # positions without a vocabulary stay as they are
+    signup(client, "vocab@example.com")
+    client.put("/api/profile", json={"roleId": "officer", "industry": "", "tenure": "1-3m", "fears": []})
+    pack = {s["id"]: s for s in client.get("/api/packs").json()["situations"]}
+    prio = pack["competing-priorities"]
+    steps = " ".join(n for o in prio["options"].values() for n in o["nextSteps"])
+    assert "commanding officer" in steps and "manager" not in steps.lower()
+    req = next(f for q in prio["questions"] if q["id"] == "tasks" for f in q["fields"] if f["id"] == "requester")
+    assert [o["label"] for o in req["options"]][:2] == ["My senior commander", "My commanding officer"]
+    ru = {s["id"]: s for s in client.get("/api/packs?lang=ru").json()["situations"]}
+    assert "командир" in " ".join(n for o in ru["competing-priorities"]["options"].values() for n in o["nextSteps"]).lower()
+    # a user-entered title containing the word stays exactly as typed in the document
+    body = {"situationId": "competing-priorities", "privacyAck": True, "confidenceBefore": 3, "inputs": {
+        "title": "My manager asked", "context": "", "hoursPerWeek": 40, "committedHours": 15,
+        "tasks": [{"name": "A", "effortHours": 14, "deadline": "2030-01-23", "requester": "manager", "impact": "reputation", "note": ""},
+                  {"name": "B", "effortHours": 6, "deadline": "2030-01-18", "requester": "peer", "impact": "money", "note": ""}]}}
+    cid = client.post("/api/cases", json=body).json()["case"]["id"]
+    doc = client.post(f"/api/cases/{cid}/decision", json={"option": "deadline", "rationale": "x"}).json()["case"]["document"]
+    assert "My manager asked" in doc and "fellow officer" in doc and "Requested by a colleague" not in doc
+
+
+def test_examples_for_a_position_show_first_and_only_there(client):
+    signup(client, "story@example.com")
+    client.put("/api/profile", json={"roleId": "public-official", "industry": "", "tenure": "1-3m", "fears": []})
+    ids = [st["id"] for st in {s["id"]: s for s in client.get("/api/packs").json()["situations"]}["choose-between-options"]["storylines"]]
+    assert ids[0] == "city" and "budget" not in ids  # the mayor's example first; the director's example is not shown to a mayor
+    client.put("/api/profile", json={"roleId": "specialist-new-company", "industry": "", "tenure": "1-3m", "fears": []})
+    ids = [st["id"] for st in {s["id"]: s for s in client.get("/api/packs").json()["situations"]}["choose-between-options"]["storylines"]]
+    assert "city" not in ids and "budget" not in ids
+    roles = {r["id"]: r for r in client.get("/api/packs").json()["roles"]}
+    assert "council" in roles["public-official"]["describeExample"] and "board" in roles["director"]["describeExample"]
+    ru = {r["id"]: r for r in client.get("/api/packs?lang=ru").json()["roles"]}
+    assert "совета" in ru["public-official"]["describeExample"]
+
+
+def test_dates_follow_the_language(client):
+    from app import msg
+    assert msg.localize_dates("Done by 2026-11-14.", "en") == "Done by Nov 14, 2026."
+    assert msg.localize_dates("Готово к 2026-11-14.", "ru") == "Готово к 14.11.2026."
+    assert msg.localize_dates("2026-11-14", "ru") == "2026-11-14"  # a bare date is data for the interface
+    signup(client, "dates@example.com")
+    client.put("/api/profile", json={"roleId": "chief-accountant", "industry": "", "tenure": "1-3m", "fears": []})
+    pack = {s["id"]: s for s in client.get("/api/packs").json()["situations"]}["asked-for-a-deadline"]
+    answers = {**{q["id"]: q["default"] for q in pack["questions"] if "default" in q}, **pack["storylines"][0]["answers"]}
+    case = lambda lang: client.post("/api/cases", json={"situationId": "asked-for-a-deadline", "privacyAck": True, "confidenceBefore": 3, "inputs": answers}, headers={"x-lang": lang}).json()["case"]
+    ru = case("ru")
+    assert re.search(r"\d{2}\.\d{2}\.\d{4}", ru["result"]["headline"]) and not re.search(r"\d{4}-\d{2}-\d{2}", ru["result"]["headline"])
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", ru["result"]["options"][0]["date"])  # fields for the interface stay ISO
+    done = client.post(f"/api/cases/{ru['id']}/decision", json={"option": "likely", "rationale": "x"}, headers={"x-lang": "ru"}).json()["case"]
+    assert re.search(r"\d{2}\.\d{2}\.\d{4}", done["document"]) and not re.search(r"\d{4}-\d{2}-\d{2}", done["document"].split("Дата: ")[1].split("\n")[0])

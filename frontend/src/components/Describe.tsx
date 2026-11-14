@@ -8,7 +8,8 @@ import { Button, Field, Panel } from './ui';
 
 /** "Describe your scenario": free text -> the matching scenario with the form pre-filled. Nothing is saved here. */
 export default function Describe() {
-  const { me } = useSession();
+  const { me, pack } = useSession();
+  const example = pack.roles.find((r) => r.id === me.profile?.roleId)?.describeExample;
   const nav = useNavigate();
   const [text, setText] = useState('');
   const [useAi, setUseAi] = useState(me.llmEnabled);
@@ -38,7 +39,7 @@ export default function Describe() {
       <form onSubmit={submit} noValidate>
         <Field id="describe" label={t('What is going on?')} help={t('Who asked for what, by when, how much time you have. Leave out names of clients and your employer.')}>
           {(a) => <textarea className="input" rows={5} maxLength={4000} {...a} value={text} onChange={(e) => setText(e.target.value)}
-            placeholder={t('My manager wants the quarterly report by Friday, a colleague needs a data pull for a client demo on Wednesday, and the VP asked me for an overview next week. I have about 25 free hours.')} />}
+            placeholder={example || t('My manager wants the quarterly report by Friday, a colleague needs a data pull for a client demo on Wednesday, and the VP asked me for an overview next week. I have about 25 free hours.')} />}
         </Field>
         <div className="small muted">{text.length} / 4000</div>
         {me.llmEnabled ? (

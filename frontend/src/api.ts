@@ -57,7 +57,7 @@ export interface Situation {
   reflectionPrompts: { id: string; label: string }[]; pitfalls: string[];
 }
 export interface Pack {
-  roles: { id: string; label: string; terms: Record<string, string>; recommended?: string[] }[];
+  roles: { id: string; label: string; terms: Record<string, string>; recommended?: string[]; describeExample?: string }[];
   tenures: { id: string; label: string }[];
   fears: { id: string; label: string; roles?: string[] }[];
   situations: Situation[];

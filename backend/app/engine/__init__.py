@@ -5,7 +5,8 @@ ENGINES = {"change_request": change_request, "priorities": priorities, "estimate
 
 
 def run(sit: dict, inputs: dict) -> dict:
-    return ENGINES[sit["engine"]].compute(inputs)
+    from .. import msg
+    return msg.localize_dates_deep(ENGINES[sit["engine"]].compute(inputs))  # dates inside sentences follow the language
 
 
 def check(sit: dict, inputs: dict) -> dict:

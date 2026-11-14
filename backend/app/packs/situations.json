@@ -734,7 +734,10 @@
                 "note": ""
               }
             ]
-          }
+          },
+          "roles": [
+            "officer"
+          ]
         }
       ]
     },
@@ -1067,7 +1070,10 @@
             "askedDeadline": {
               "daysFromNow": 6
             }
-          }
+          },
+          "roles": [
+            "chief-accountant"
+          ]
         }
       ]
     },
@@ -1608,7 +1614,11 @@
             "reversibility": "costly",
             "whoAffected": "team",
             "confidence": "medium"
-          }
+          },
+          "roles": [
+            "director",
+            "head-of-function"
+          ]
         },
         {
           "id": "city",
@@ -1664,7 +1674,10 @@
             "reversibility": "cannot",
             "whoAffected": "client",
             "confidence": "low"
-          }
+          },
+          "roles": [
+            "public-official"
+          ]
         }
       ]
     }

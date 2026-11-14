@@ -118,4 +118,5 @@ def me(user=Depends(current_user), db: Session = Depends(get_db)):
 
 @router.get("/packs")
 def packs(request: Request, user=Depends(current_user), db: Session = Depends(get_db)):
-    return public_pack(presets.for_user(db, user.id), i18n.resolve(request, db.get(Profile, user.id)))
+    prof = db.get(Profile, user.id)
+    return public_pack(presets.for_user(db, user.id), i18n.resolve(request, prof), prof.role_id if prof else None)

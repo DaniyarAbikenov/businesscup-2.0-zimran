@@ -210,6 +210,6 @@ def resolve(db: Session, user_id: int, sid) -> dict | None:
     """A built-in situation, or one of this user's own. Another user's id never resolves."""
     s = packs.get_situation(sid)
     if s or not isinstance(sid, str) or not sid.startswith("my-"):
-        return i18n.localize_situation(s, msg.current()) if s else s
+        return i18n.vocab_situation(i18n.localize_situation(s, msg.current()), msg.role_var.get(), msg.current()) if s else s
     row = db.scalar(select(CustomSituation).where(CustomSituation.user_id == user_id, CustomSituation.slug == sid[3:]))
     return build(row.preset, row.slug) if row else None

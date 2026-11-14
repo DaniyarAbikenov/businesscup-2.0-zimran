@@ -9,6 +9,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
+from starlette.concurrency import run_in_threadpool
+
 from . import i18n, msg, reminders
 from .cache import get_redis
 from .db import SessionLocal
@@ -36,6 +38,28 @@ for module in (auth, profile, cases, journal, telemetry, billing, intake, situat
     app.include_router(module.router)
 
 
+def role_of(request: Request):
+    """The signed-in user's position, cached in Redis (set again whenever the profile is saved)."""
+    from .deps import COOKIE
+    from .models import Profile
+    from .security import sha
+    token = request.cookies.get(COOKIE)
+    if not token:
+        return None
+    r = get_redis()
+    uid = r.get("sess:" + sha(token))
+    if not uid:
+        return None
+    cached = r.get(f"role:{uid}")
+    if cached is not None:
+        return cached or None
+    with SessionLocal() as db:
+        p = db.get(Profile, int(uid))
+        role = p.role_id if p else ""
+    r.set(f"role:{uid}", role, ex=86400)
+    return role or None
+
+
 @app.exception_handler(ApiError)
 async def api_error(request: Request, e: ApiError):
     body = {"error": msg.tr(e.message)}
@@ -58,6 +82,7 @@ async def api_rules(request: Request, call_next):
     rid = request.headers.get("x-request-id", "")[:40] or uuid.uuid4().hex[:12]
     started = time.perf_counter()
     msg.set_lang(i18n.resolve(request))  # the language of this request: engines, documents and errors read it
+    msg.set_role(await run_in_threadpool(role_of, request))  # the position's vocabulary (a context variable set in a dependency would not reach the endpoint's thread)
     if is_api and request.method not in ("GET", "HEAD", "OPTIONS") and "application/json" not in request.headers.get("content-type", ""):
         resp = JSONResponse({"error": "JSON required"}, status_code=415)
     else:
