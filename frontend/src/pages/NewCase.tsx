@@ -5,7 +5,7 @@ import { useSession } from '../App';
 import { Intake, Storyline, api } from '../api';
 import { notify } from '../components/Toaster';
 import { TourScreen } from '../tour/TourHost';
-import { Button, Field, PageHeader, Panel, PrivacyBanner, QuestionGroups, Stepper, initialAnswers } from '../components/ui';
+import { Button, DateChips, Field, PageHeader, Panel, PrivacyBanner, QuestionGroups, Stepper, initialAnswers } from '../components/ui';
 
 /** Keyed by scenario so moving between scenarios starts a fresh form. */
 export default function NewCasePage() {
@@ -176,6 +176,7 @@ function GuessStep({ sit, g, value, onChange, busy, error, onGo, onSkip, onBack 
         <Field id="guessdate" label={t('Date')} help={t('The date you would give without worrying about missing it.')}>
           {(a) => <input className="input" {...a} type="date" min={g.preview.start} value={value.date ?? ''} onChange={(e) => set('date', e.target.value)} />}
         </Field>
+        <DateChips onPick={(v) => set('date', v)} />
       </Panel>
     );
   } else {

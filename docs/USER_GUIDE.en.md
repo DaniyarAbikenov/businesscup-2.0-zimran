@@ -13,7 +13,7 @@ Press **"Try the demo"** on the sign-in page: a demo account with examples opens
 Home shows three "first week" exercises: a client change request, several urgent asks, "when will it be done?". **"Start here: a worked example"** shows a result in seconds. Not sure which fits? Describe it in your own words under "Describe your scenario".
 
 ## 3. Enter your numbers
-Start from a storyline or an empty form. Do not enter confidential employer or client information: use rounded or made-up numbers. The **"Money and quality (optional)"** group can stay empty; then the calculation covers time only.
+Start from a storyline or an empty form. Percentages, hours and ratings are set with a **slider** (type an exact number next to it if you prefer), and a word under the slider shows what you picked ("It hurts trust or costs something"). Short choices are buttons, and date fields have quick buttons: Today, Tomorrow, This Friday, In 1 week, In 2 weeks. Do not enter confidential employer or client information: use rounded or made-up numbers. The **"Money and quality (optional)"** group can stay empty; then the calculation covers time only.
 
 ![Form](img/02-form.jpg)
 

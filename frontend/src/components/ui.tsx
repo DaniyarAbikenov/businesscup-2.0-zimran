@@ -129,7 +129,7 @@ export function chipDates(now = new Date()): { label: string; value: string }[] 
     { label: t('In 1 week'), value: plus(7) }, { label: t('In 2 weeks'), value: plus(14) },
   ];
 }
-function DateChips({ onPick, compact }: { onPick: (v: string) => void; compact?: boolean }) {
+export function DateChips({ onPick, compact }: { onPick: (v: string) => void; compact?: boolean }) {
   return <div className="chips">{chipDates().filter((_, i) => !compact || [1, 2, 3].includes(i)).map((c) => <button key={c.label} type="button" className="chip" onClick={() => onPick(c.value)}>{c.label}</button>)}</div>;
 }
 
