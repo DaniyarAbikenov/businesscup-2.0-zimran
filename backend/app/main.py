@@ -1,4 +1,6 @@
 import logging
+import time
+import uuid
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -10,8 +12,9 @@ from . import reminders
 from .cache import get_redis
 from .db import SessionLocal
 from .errors import ApiError
-from .routers import auth, cases, journal, profile
+from .routers import auth, cases, journal, profile, telemetry
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 log = logging.getLogger("roleshift")
 
 
@@ -26,7 +29,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="RoleShift API", docs_url="/api/docs", openapi_url="/api/openapi.json", lifespan=lifespan)
-for module in (auth, profile, cases, journal):
+for module in (auth, profile, cases, journal, telemetry):
     app.include_router(module.router)
 
 
@@ -46,12 +49,24 @@ async def invalid(request: Request, e: RequestValidationError):
 @app.middleware("http")
 async def api_rules(request: Request, call_next):
     # Writes must be JSON: blocks plain cross-site form posts. API responses are never cached.
-    if request.url.path.startswith("/api") and request.method not in ("GET", "HEAD", "OPTIONS"):
-        if "application/json" not in request.headers.get("content-type", ""):
-            return JSONResponse({"error": "JSON required"}, status_code=415)
-    resp = await call_next(request)
-    if request.url.path.startswith("/api"):
+    # Every API request gets an id (returned as X-Request-ID, shown by the frontend log) and one log line.
+    path = request.url.path
+    is_api = path.startswith("/api")
+    rid = request.headers.get("x-request-id", "")[:40] or uuid.uuid4().hex[:12]
+    started = time.perf_counter()
+    if is_api and request.method not in ("GET", "HEAD", "OPTIONS") and "application/json" not in request.headers.get("content-type", ""):
+        resp = JSONResponse({"error": "JSON required"}, status_code=415)
+    else:
+        try:
+            resp = await call_next(request)
+        except Exception:
+            log.exception("unhandled error rid=%s %s %s", rid, request.method, path)
+            resp = JSONResponse({"error": "Something went wrong on our side. Try again."}, status_code=500)
+    if is_api:
         resp.headers["Cache-Control"] = "no-store"
+        resp.headers["X-Request-ID"] = rid
+        if path != "/api/client-log":
+            log.info("api rid=%s %s %s -> %s %.0fms", rid, request.method, path, resp.status_code, (time.perf_counter() - started) * 1000)
     return resp
 
 

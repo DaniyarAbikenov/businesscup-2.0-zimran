@@ -116,3 +116,11 @@ def test_demo_can_be_switched_off(client, monkeypatch):
     from app import config
     monkeypatch.setattr(config, "DEMO_MODE", False)
     assert client.post("/api/auth/demo", json={}).status_code == 404
+
+
+def test_client_log_accepts_events_without_login(client):
+    r = client.post("/api/client-log", json={"events": [{"level": "error", "event": "window.error", "message": "boom", "meta": {"line": 3}}]})
+    assert r.status_code == 202 and r.json() == {"accepted": 1}
+    assert r.headers["x-request-id"]
+    assert client.post("/api/client-log", json={"events": [{"event": "x"}] * 21}).status_code == 400  # batch too large
+    assert client.post("/api/client-log", data="x", headers={"content-type": "text/plain"}).status_code == 415

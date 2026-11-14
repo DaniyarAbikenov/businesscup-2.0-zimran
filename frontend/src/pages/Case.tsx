@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useSession } from '../App';
 import { Case, Option, Situation, api, fmtDate, usd } from '../api';
+import { notify } from '../components/Toaster';
 import { Badge, Button, Field, PageHeader, Panel, QuestionField, initialAnswers, useToast } from '../components/ui';
 
 export default function CasePage() {
@@ -67,12 +68,12 @@ function Draft({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: Ca
   async function decide() {
     if (!chosen) return setError('Choose one of the three options first.');
     setBusy(true); setError('');
-    try { onChange((await api('POST', `/cases/${c.id}/decision`, { option: chosen, rationale, followupDays: Number(days) })).case); window.scrollTo(0, 0); }
+    try { onChange((await api('POST', `/cases/${c.id}/decision`, { option: chosen, rationale, followupDays: Number(days) })).case); window.scrollTo(0, 0); notify('Decision saved. Your Change Request is ready.'); }
     catch (x: any) { setError(x.message); } finally { setBusy(false); }
   }
   async function recalc(e: FormEvent) {
     e.preventDefault(); setRecalcErr(''); setFields({}); setChosen(null);
-    try { onChange((await api('PUT', `/cases/${c.id}/inputs`, { inputs: answers })).case); }
+    try { onChange((await api('PUT', `/cases/${c.id}/inputs`, { inputs: answers })).case); notify('Recalculated with your new numbers.'); }
     catch (x: any) { setRecalcErr(x.message); setFields(x.fields ?? {}); }
   }
 
@@ -120,13 +121,14 @@ function Decided({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: 
   const d = c.debrief!;
 
   const copy = async () => {
-    try { await navigator.clipboard.writeText(doc); toast.show('Copied'); } catch { toast.show('Select the text and copy it manually'); }
+    try { await navigator.clipboard.writeText(doc); toast.show('Change Request copied to clipboard'); } catch { toast.show('Select the text and copy it manually'); }
   };
   const download = () => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([doc], { type: 'text/markdown' }));
     a.download = `change-request-${c.id}.md`;
     document.body.append(a); a.click(); a.remove();
+    notify('Downloaded change-request-' + c.id + '.md');
   };
   const getHint = async () => {
     setHintBusy(true); setHintErr('');
@@ -179,7 +181,7 @@ function Reflection({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (
   }
   const submit = async (e: FormEvent) => {
     e.preventDefault(); setError('');
-    try { onChange((await api('POST', `/cases/${c.id}/reflection`, { ...vals, confidenceAfter: Number(conf) })).case); } catch (x: any) { setError(x.message); }
+    try { onChange((await api('POST', `/cases/${c.id}/reflection`, { ...vals, confidenceAfter: Number(conf) })).case); notify('Reflection saved to your journal.'); } catch (x: any) { setError(x.message); }
   };
   return (
     <Panel title="Reflect" lead="One minute. This is what turns a decision into learning.">
@@ -206,7 +208,7 @@ function Followup({ c, onChange }: { c: Case; onChange: (c: Case) => void }) {
   const due = (c.followupDue ?? '') <= new Date().toISOString().slice(0, 10);
   const submit = useCallback(async (e: FormEvent) => {
     e.preventDefault(); setError('');
-    try { onChange((await api('POST', `/cases/${c.id}/followup`, { outcome, notes })).case); } catch (x: any) { setError(x.message); }
+    try { onChange((await api('POST', `/cases/${c.id}/followup`, { outcome, notes })).case); notify('Follow-up saved to your journal.'); } catch (x: any) { setError(x.message); }
   }, [c.id, outcome, notes, onChange]);
   if (c.followup) {
     return (

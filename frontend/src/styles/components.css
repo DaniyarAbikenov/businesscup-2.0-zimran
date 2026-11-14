@@ -88,4 +88,6 @@ ul.plain li, ol.plain li { margin: var(--s-1) 0; }
 textarea.input.doc { font: 13px/20px var(--font-mono); min-height: 420px; white-space: pre; }
 
 /* Toast: the only floating element */
-.toast { position: fixed; bottom: var(--s-5); left: 50%; transform: translateX(-50%); background: var(--n-1000); color: var(--n-100); padding: var(--s-2) var(--s-4); border-radius: var(--r-control); font-size: 14px; box-shadow: var(--shadow-float); }
+.toasts { position: fixed; bottom: var(--s-5); left: 50%; transform: translateX(-50%); display: grid; gap: var(--s-2); z-index: 50; width: max-content; max-width: calc(100vw - 32px); }
+.toast.bad { background: var(--risk-high, #8a2a1f); color: #fff; }
+.toast { background: var(--n-1000); color: var(--n-100); padding: var(--s-2) var(--s-4); border-radius: var(--r-control); font-size: 14px; box-shadow: var(--shadow-float); }

@@ -1,3 +1,6 @@
+import { log } from './log';
+import { notify } from './components/Toaster';
+
 export class ApiError extends Error {
   status: number;
   fields?: Record<string, string>;
@@ -9,13 +12,29 @@ export class ApiError extends Error {
 }
 
 export async function api<T = any>(method: string, path: string, body?: unknown): Promise<T> {
-  const res = await fetch('/api' + path, {
-    method,
-    headers: { 'content-type': 'application/json' },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  const rid = Math.random().toString(16).slice(2, 14);
+  const t0 = performance.now();
+  let res: Response;
+  try {
+    res = await fetch('/api' + path, {
+      method,
+      headers: { 'content-type': 'application/json', 'x-request-id': rid },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  } catch (e) {
+    log.error('api.network', `${method} ${path}`, { rid });
+    notify('Cannot reach the server. Check your connection and try again.', 'bad');
+    throw new ApiError('Cannot reach the server. Check your connection and try again.', 0);
+  }
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new ApiError(data.error || 'Request failed', res.status, data.fields);
+  const meta = { rid, status: res.status, ms: Math.round(performance.now() - t0) };
+  if (!res.ok) {
+    // 401 on /me is the normal signed-out state, not a problem
+    (res.status >= 500 ? log.error : res.status === 401 ? log.debug : log.warn)('api.fail', `${method} ${path}: ${data.error ?? ''}`, meta);
+    if (res.status >= 500) notify(data.error || 'Something went wrong on our side. Try again.', 'bad');
+    throw new ApiError(data.error || 'Request failed', res.status, data.fields);
+  }
+  log.debug('api.ok', `${method} ${path}`, meta);
   return data as T;
 }
 

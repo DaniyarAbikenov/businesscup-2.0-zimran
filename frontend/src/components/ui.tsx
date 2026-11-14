@@ -1,3 +1,4 @@
+import { notify } from './Toaster';
 import { ReactNode, useState } from 'react';
 import { Question } from '../api';
 
@@ -74,8 +75,5 @@ export const initialAnswers = (qs: Question[], from?: Record<string, any>) =>
   Object.fromEntries(qs.map((q) => [q.id, String(from?.[q.id] ?? q.default ?? '')]));
 
 export function useToast() {
-  const [msg, setMsg] = useState('');
-  const show = (m: string) => { setMsg(m); setTimeout(() => setMsg(''), 2500); };
-  const node = msg ? <div className="toast" role="status">{msg}</div> : null;
-  return { show, node };
+  return { show: (m: string) => notify(m), node: null as React.ReactNode };
 }

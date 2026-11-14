@@ -1,3 +1,4 @@
+import { notify } from '../components/Toaster';
 import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSession } from '../App';
@@ -23,6 +24,7 @@ export default function Onboarding() {
     try {
       await api('PUT', '/profile', { roleId, industry, tenure, fears, fearNote });
       await refresh();
+      notify('Profile saved.');
       nav('/');
     } catch (x: any) {
       setError(x.message);
