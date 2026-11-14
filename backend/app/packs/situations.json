@@ -692,6 +692,49 @@
               }
             ]
           }
+        },
+        {
+          "id": "orders",
+          "title": "Three orders from three superiors",
+          "story": "You took over a unit of 24 people. This week three superiors gave you orders: prepare for an inspection, send six people to training, and finish the equipment report. You have people and time for two of them.",
+          "answers": {
+            "title": "Three orders, three superiors",
+            "context": "New in command of the unit. The orders came on the same day.",
+            "hoursPerWeek": 40,
+            "committedHours": 18,
+            "tasks": [
+              {
+                "name": "Prepare the inspection",
+                "effortHours": 16,
+                "deadline": {
+                  "daysFromNow": 4
+                },
+                "requester": "skip",
+                "impact": "blocks",
+                "note": ""
+              },
+              {
+                "name": "Send six people to training",
+                "effortHours": 10,
+                "deadline": {
+                  "daysFromNow": 3
+                },
+                "requester": "manager",
+                "impact": "reputation",
+                "note": "Staff plan for the month depends on it"
+              },
+              {
+                "name": "Equipment report",
+                "effortHours": 8,
+                "deadline": {
+                  "daysFromNow": 5
+                },
+                "requester": "peer",
+                "impact": "reputation",
+                "note": ""
+              }
+            ]
+          }
         }
       ]
     },
@@ -1004,6 +1047,25 @@
             "costOfLate": "medium",
             "askedDeadline": {
               "daysFromNow": 10
+            }
+          }
+        },
+        {
+          "id": "close",
+          "title": "Month-end close plus an audit request",
+          "story": "Month-end close is four days away with a lot of work left, and now the tax authority asked for three years of documents for an audit. Your manager wants to know when you can deliver both.",
+          "answers": {
+            "title": "Month-end close plus the audit pack",
+            "context": "Three people on the team. The documents are in two systems.",
+            "optimisticHours": 50,
+            "likelyHours": 70,
+            "pessimisticHours": 100,
+            "hoursPerWeek": 30,
+            "interruptionsPct": 25,
+            "requester": "manager",
+            "costOfLate": "high",
+            "askedDeadline": {
+              "daysFromNow": 6
             }
           }
         }
@@ -1498,6 +1560,110 @@
             "reversibility": "cannot",
             "whoAffected": "me",
             "confidence": "medium"
+          }
+        },
+        {
+          "id": "budget",
+          "title": "A director: two departments, one budget line",
+          "story": "Sales wants three more people, Operations wants a new warehouse system, and both want the same budget line this quarter. The board will ask why you chose.",
+          "answers": {
+            "title": "Who gets the budget line?",
+            "context": "Decision this month. The board reviews it next quarter.",
+            "criteria": [
+              {
+                "name": "Revenue impact",
+                "weight": 5
+              },
+              {
+                "name": "Risk",
+                "weight": 3
+              },
+              {
+                "name": "Time to value",
+                "weight": 3
+              },
+              {
+                "name": "Strategic fit",
+                "weight": 4
+              }
+            ],
+            "options": [
+              {
+                "name": "Sales: three more people",
+                "note": "",
+                "s1": 4,
+                "s2": 3,
+                "s3": 4,
+                "s4": 3
+              },
+              {
+                "name": "Operations: warehouse system",
+                "note": "",
+                "s1": 3,
+                "s2": 4,
+                "s3": 2,
+                "s4": 5
+              }
+            ],
+            "reversibility": "costly",
+            "whoAffected": "team",
+            "confidence": "medium"
+          }
+        },
+        {
+          "id": "city",
+          "title": "A mayor: road, school roof or flood prevention",
+          "story": "The budget is fixed. Residents push for the road, the council for the school roof, and the engineers warn about floods. You must choose before the council meets on Thursday.",
+          "answers": {
+            "title": "Road, school roof or flood prevention",
+            "context": "A fixed budget. The council meets on Thursday.",
+            "criteria": [
+              {
+                "name": "Safety",
+                "weight": 5
+              },
+              {
+                "name": "Resident support",
+                "weight": 4
+              },
+              {
+                "name": "Cost-effectiveness",
+                "weight": 3
+              },
+              {
+                "name": "Urgency",
+                "weight": 4
+              }
+            ],
+            "options": [
+              {
+                "name": "Road repair",
+                "note": "",
+                "s1": 3,
+                "s2": 5,
+                "s3": 3,
+                "s4": 3
+              },
+              {
+                "name": "School roof",
+                "note": "",
+                "s1": 4,
+                "s2": 3,
+                "s3": 3,
+                "s4": 4
+              },
+              {
+                "name": "Flood prevention",
+                "note": "",
+                "s1": 5,
+                "s2": 2,
+                "s3": 2,
+                "s4": 5
+              }
+            ],
+            "reversibility": "cannot",
+            "whoAffected": "client",
+            "confidence": "low"
           }
         }
       ]

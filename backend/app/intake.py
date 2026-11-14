@@ -18,19 +18,29 @@ KEYWORDS = {
     "competing-priorities": [
         "priorit", "deadline", "too many", "overload", "overtime", "at the same time", "conflicting", "competing",
         "my manager", "boss", "asked me", "tasks", "workload", "no time", "urgent", "this week", "by friday",
-        "which first", "juggl", "swamped", "behind",
+        "which first", "juggl", "swamped", "behind", "orders", "superior", "free hours", "requests", "three asks",
+        # Russian
+        "приоритет", "срочн", "к пятнице", "не успева", "приказ", "начальник", "свободных часов", "просьб", "просит", "на этой неделе", "загруз",
     ],
     "choose-between-options": [
         "choose", "which one", "decide between", "offer", "vendor", "option a", "option b", "should i", "pros and cons",
         "compare", "two candidates", "which tool", "which candidate", "either", "or stay", "trade-off", "tradeoff",
+        "both want", "i must choose", "i have to choose", "have to decide", "same budget", "fixed budget", "residents", "council", "board will",
+        # Russian
+        "выбрать", "выбор", "решить", "что лучше", "или ", "кандидат", "предложени", "бюджет", "совет", "жител", "нужно выбрать", "сравни",
     ],
     "asked-for-a-deadline": [
         "how long", "when can you", "estimate", "timeline", "eta", "by when", "name a date", "commit to a date", "give a date",
         "how many days", "how many hours", "when will it be done", "when it will be ready", "launch date", "quote a date",
+        "audit", "close is in", "hours of work left", "work left", "how soon", "when will",
+        # Russian
+        "сколько времени", "сколько займёт", "когда будет готов", "срок", "часов работы", "аудит", "проверк", "закрытие", "осталось",
     ],
     "client-change-request": [
         "client", "customer", "change request", "scope", "requirement", "new feature", "release", "launch date",
-        "budget", "contract", "stakeholder wants", "add a feature", "late change", "sprint", "invoice", "penalty",
+        "contract", "stakeholder wants", "add a feature", "late change", "sprint", "invoice", "penalty", "person-days",
+        # Russian
+        "клиент", "заказчик", "изменение", "требовани", "релиз", "договор", "человеко-дн", "доработк",
     ],
 }
 MAX_NOTES = 5
@@ -54,11 +64,14 @@ def catalog() -> list[dict]:
     return out
 
 
-def rule_match(text: str) -> list[tuple[str, int]]:
-    """Situations ranked by keyword hits, best first. Ties keep catalog order."""
+def rule_match(text: str, role_id: str | None = None) -> list[tuple[str, int]]:
+    """Situations ranked by keyword hits, best first. Ties (and no match at all) go to what is recommended for the person's
+    position first, then catalog order. Nothing is hidden: a situation that is not listed for the position can still win."""
     t = text.lower()
+    role = packs.get_role(role_id) if role_id else None
+    rec = (role or {}).get("recommended", [])
     scores = [(s["id"], sum(1 for k in KEYWORDS.get(s["id"], []) if k in t)) for s in packs.situations]
-    return sorted(scores, key=lambda x: -x[1])
+    return sorted(scores, key=lambda x: (-x[1], rec.index(x[0]) if x[0] in rec else 99))
 
 
 def _first_sentence(text: str, limit: int) -> str:
@@ -136,7 +149,7 @@ def carry_text(sit: dict, text: str, answers: dict, filled: list):
         filled.append(area["id"])
 
 
-def result(sit: dict, answers: dict, filled: list, notes: list, source: str, ranked: list, text: str = "") -> dict:
+def result(sit: dict, answers: dict, filled: list, notes: list, source: str, ranked: list, text: str = "", role_id: str | None = None) -> dict:
     missing = [q.get("label", q["id"]) for q in sit["questions"]
                if q["id"] not in filled and (q.get("required") or q["type"] == "list") and "default" not in q
                and "defaultDaysFromNow" not in q]
@@ -144,11 +157,11 @@ def result(sit: dict, answers: dict, filled: list, notes: list, source: str, ran
             "notes": notes[:MAX_NOTES], "source": source,
             "alternatives": [sid for sid, _ in ranked if sid != sit["id"]],
             # no keyword of any situation matched: the UI offers "Create a new situation from this text"
-            "noMatch": rule_match(text)[0][1] == 0 if text else False}
+            "noMatch": rule_match(text, role_id)[0][1] == 0 if text else False}
 
 
-def from_keywords(text: str, note: str | None = None) -> dict:
-    ranked = rule_match(text)
+def from_keywords(text: str, note: str | None = None, role_id: str | None = None) -> dict:
+    ranked = rule_match(text, role_id)
     best, score = ranked[0]
     sit = packs.get_situation(best)
     answers, filled = {}, []
@@ -157,14 +170,14 @@ def from_keywords(text: str, note: str | None = None) -> dict:
     if score == 0:
         notes.append("We could not tell which situation this is. Check that this one fits, or pick another.")
     notes.append("Your text was copied into the form. Enter the numbers yourself.")
-    return result(sit, answers, filled, notes, "keywords", ranked, text)
+    return result(sit, answers, filled, notes, "keywords", ranked, text, role_id)
 
 
-def from_ai(text: str, proposal: dict) -> dict:
+def from_ai(text: str, proposal: dict, role_id: str | None = None) -> dict:
     sid = proposal.get("situationId")
     sit = packs.get_situation(sid) if isinstance(sid, str) else None
     if not sit:
-        return from_keywords(text, "The AI could not place this situation, so we matched it by keywords.")
+        return from_keywords(text, "The AI could not place this situation, so we matched it by keywords.", role_id)
     fields = {f.get("id"): f.get("value") for f in proposal.get("fields") or [] if isinstance(f, dict)}
     answers, filled, rejected = sanitize(sit, fields, proposal.get("tasks") if isinstance(proposal.get("tasks"), list) else [])
     carry_text(sit, text, answers, filled)
@@ -172,4 +185,4 @@ def from_ai(text: str, proposal: dict) -> dict:
     if rejected:
         notes.insert(0, "Some values could not be used and were left empty: " + ", ".join(dict.fromkeys(rejected)) + ".")
     ranked = [(sid, 0)] + [(s["id"], 0) for s in packs.situations if s["id"] != sid]
-    return result(sit, answers, filled, notes, "ai", ranked, text)
+    return result(sit, answers, filled, notes, "ai", ranked, text, role_id)

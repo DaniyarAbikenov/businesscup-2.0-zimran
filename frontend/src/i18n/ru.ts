@@ -419,6 +419,9 @@ const ru: Record<string, string> = {
  "Recalculates with worse numbers to see if the conclusion holds.": "Пересчитывает с худшими числами, чтобы увидеть, выдержит ли вывод.",
  "The conclusion holds in both tests.": "Вывод выдерживает обе проверки.",
  "The conclusion is fragile in at least one test.": "Вывод хрупок хотя бы в одной проверке.",
- "This is a calculation on your numbers, not a forecast. Real outcomes depend on people and circumstances not listed here.": "Это расчёт по вашим числам, а не прогноз. Реальный результат зависит от людей и обстоятельств, которых здесь нет."
+ "This is a calculation on your numbers, not a forecast. Real outcomes depend on people and circumstances not listed here.": "Это расчёт по вашим числам, а не прогноз. Реальный результат зависит от людей и обстоятельств, которых здесь нет.",
+ "{pick} (score {score} out of 100, rank {rank}).": "{pick} (оценка {score} из 100, место {rank}).",
+ "{when}, about {p}% chance to make it.": "{when}, шанс успеть около {p}%.",
+ "Highest score: {top}. Lowest risk: {pick} (score {score} out of 100). {note}": "Наивысшая оценка: {top}. Наименьший риск: {pick} (оценка {score} из 100). {note}"
 };
 export default ru;

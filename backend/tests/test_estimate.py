@@ -61,5 +61,5 @@ def test_estimate_flow_through_api(client):
     assert case["debrief"]["points"] and client.post(f"/api/cases/{made['id']}/hint", json={}).status_code in (404, 409)
     assert client.get("/api/documents").json()["documents"][0]["label"] == "Estimate reply"
     pub = {s["id"]: s for s in client.get("/api/packs").json()["situations"]}["asked-for-a-deadline"]
-    assert len(pub["storylines"]) == 3 and len(pub["storylines"][0]["answers"]["askedDeadline"]) == 10  # relative dates resolved
+    assert len(pub["storylines"]) >= 3 and len(pub["storylines"][0]["answers"]["askedDeadline"]) == 10  # relative dates resolved
     assert "*" in pub["applies_to"]

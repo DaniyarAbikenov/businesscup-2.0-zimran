@@ -75,7 +75,7 @@ def test_decision_flow_through_api(client):
     assert case["debrief"]["points"][0].startswith("On your numbers") and client.post(f"/api/cases/{made['id']}/hint", json={}).status_code in (404, 409)
     assert client.get("/api/documents").json()["documents"][0]["label"] == "Decision note"
     pub = {s["id"]: s for s in client.get("/api/packs").json()["situations"]}["choose-between-options"]
-    assert "*" in pub["applies_to"] and len(pub["storylines"]) == 3
+    assert "*" in pub["applies_to"] and len(pub["storylines"]) >= 3
     for st in pub["storylines"]:  # every storyline passes the same validation as the form
         values, errors = validate_answers(pub["questions"], st["answers"])
         assert not errors and not decision.check(values), (st["id"], errors)

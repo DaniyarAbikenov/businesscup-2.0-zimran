@@ -12,7 +12,9 @@ from ..cache import get_redis
 from ..deps import current_user
 from ..errors import ApiError
 from ..msg import tr
-from ..models import User
+from ..db import get_db
+from ..models import Profile, User
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/api")
 log = logging.getLogger("roleshift.intake")
@@ -26,8 +28,10 @@ class IntakeIn(BaseModel):
 
 
 @router.post("/intake")
-def describe(body: IntakeIn, user: User = Depends(current_user), r=Depends(get_redis)):
+def describe(body: IntakeIn, user: User = Depends(current_user), r=Depends(get_redis), db: Session = Depends(get_db)):
     text = body.text.strip()
+    prof = db.get(Profile, user.id)
+    role = prof.role_id if prof else None
     if len(text) < 20:
         raise ApiError(400, "Describe the situation in a few sentences (at least 20 characters).", {"text": "Too short"})
     if body.useAi and not body.privacyAck:
@@ -46,13 +50,13 @@ def describe(body: IntakeIn, user: User = Depends(current_user), r=Depends(get_r
         else:
             try:
                 proposal = llm.extract_situation(text, intake.catalog(), packs.today())
-                out = intake.from_ai(text, proposal)
+                out = intake.from_ai(text, proposal, role)
                 log.info("intake user=%s len=%s source=%s situation=%s filled=%s",
                          user.id, len(text), out["source"], out["situationId"], len(out["filled"]))
                 return out
             except llm.LlmError as e:
                 log.warning("intake ai failed user=%s len=%s reason=%s", user.id, len(text), e)
                 note = "The AI is unavailable right now, so we matched your text by keywords."
-    out = intake.from_keywords(text, note)
+    out = intake.from_keywords(text, note, role)
     log.info("intake user=%s len=%s source=keywords situation=%s", user.id, len(text), out["situationId"])
     return out

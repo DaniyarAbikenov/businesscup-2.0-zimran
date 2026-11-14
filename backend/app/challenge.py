@@ -9,6 +9,12 @@ from .msg import tr
 LEVEL = {"low": 0, "medium": 1, "high": 2}
 
 
+def lvl(x: str) -> str:
+    """The risk word in the active language (English keeps the plain word)."""
+    t = tr(x + " (risk)")
+    return x if t.endswith(" (risk)") else t
+
+
 def _variants(sit: dict, i: dict) -> list[tuple[str, dict]]:
     e = sit["engine"]
     out = []
@@ -62,9 +68,9 @@ def run(sit: dict, inputs: dict, result: dict, labels: dict) -> list[dict]:
         holds = new_best == base_best
         worse = LEVEL[after["riskLevel"]] > LEVEL[base["riskLevel"]]
         if holds and not worse:
-            text = tr('If {what}, "{label}" is still the lowest-risk option ({level} risk).', what=what, label=labels[base_best], level=tr(after["riskLevel"] + " (risk)"))
+            text = tr('If {what}, "{label}" is still the lowest-risk option ({level} risk).', what=what, label=labels[base_best], level=lvl(after["riskLevel"]))
         elif holds:
-            text = tr('If {what}, "{label}" is still the best, but its risk goes from {before} to {after}.', what=what, label=labels[base_best], before=tr(base["riskLevel"] + " (risk)"), after=tr(after["riskLevel"] + " (risk)"))
+            text = tr('If {what}, "{label}" is still the best, but its risk goes from {before} to {after}.', what=what, label=labels[base_best], before=lvl(base["riskLevel"]), after=lvl(after["riskLevel"]))
         else:
             text = tr('If {what}, the best option changes: "{new}" would score lower risk than "{label}". Your conclusion does not hold.', what=what, new=labels[new_best], label=labels[base_best])
         out.append({"what": what, "holds": holds and not worse, "sameBest": holds, "newBest": new_best, "riskBefore": base["riskLevel"], "riskAfter": after["riskLevel"], "text": text})

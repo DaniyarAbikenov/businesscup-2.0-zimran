@@ -38,7 +38,12 @@ function bestLine(c: Case, sit: Situation): string {
   const o = c.result.options.find((x) => x.key === c.result.lowestRiskKey)!;
   const label = sit.options[o.key].label;
   const risk = t('{level} risk', { level: t(o.riskLevel) });
-  if (sit.engine === 'decision') return t('Best by the numbers: {pick} (score {score} out of 100). {note}', { pick: o.pick, score: o.score, note: (c.result as any).notes?.[0] ?? '' });
+  if (sit.engine === 'decision') {
+    const top = (c.result as any).winner as string;
+    return o.pick === top
+      ? t('Best by the numbers: {pick} (score {score} out of 100). {note}', { pick: o.pick, score: o.score, note: (c.result as any).notes?.[0] ?? '' })
+      : t('Highest score: {top}. Lowest risk: {pick} (score {score} out of 100). {note}', { top, pick: o.pick, score: o.score, note: (c.result as any).notes?.[0] ?? '' });
+  }
   if (sit.engine === 'estimate') return t('Best by the numbers: "{label}" ({when}, about {p}% chance to make it, {risk}).', { label, when: o.dateFrom ? t('{from} to {to}', { from: fmtDate(o.dateFrom), to: fmtDate(o.date!) }) : fmtDate(o.date!), p: o.probability, risk });
   if (sit.engine === 'priorities') return t('Best by the numbers: "{label}" {what} ({risk}).', { label, what: o.lateCount ? tn(o.lateCount, 'still leaves {n} task late', 'still leaves {n} tasks late') : t('leaves nothing late'), risk });
   return t('Best by the numbers: "{label}" has the lowest risk ({risk}). New release date {date}, extra cost {cost}.', { label, risk, date: fmtDate(o.newReleaseDate), cost: usd(o.extraCost) });
@@ -355,9 +360,9 @@ function Decided({ c, sit, onChange }: { c: Case; sit: Situation; onChange: (c: 
       <div className="banner ok" role="status">
         {sit.options[c.chosenOption!].label}.{' '}
         {sit.engine === 'decision'
-          ? <>{chosen.pick} (score {chosen.score} out of 100, rank {chosen.rank}).</>
+          ? <>{t('{pick} (score {score} out of 100, rank {rank}).', { pick: chosen.pick, score: chosen.score, rank: chosen.rank })}</>
           : sit.engine === 'estimate'
-          ? <>{chosen.dateFrom ? `${fmtDate(chosen.dateFrom)} to ${fmtDate(chosen.date!)}` : fmtDate(chosen.date!)}, about {chosen.probability}% chance to make it.</>
+          ? <>{t('{when}, about {p}% chance to make it.', { when: chosen.dateFrom ? t('{from} to {to}', { from: fmtDate(chosen.dateFrom), to: fmtDate(chosen.date!) }) : fmtDate(chosen.date!), p: chosen.probability })}</>
           : sit.engine === 'priorities'
           ? <>{chosen.lateCount ? t('{tasks} late, {days} working days in total.', { tasks: tn(chosen.lateCount, '{n} task', '{n} tasks'), days: chosen.totalLateDays }) : t('Every task on time.')}</>
           : <>{chosen.newReleaseDate !== c.inputs.releaseDate && <>New release date {fmtDate(chosen.newReleaseDate)}. </>}Extra cost {usd(chosen.extraCost)}.</>}
