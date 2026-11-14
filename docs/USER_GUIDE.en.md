@@ -1,63 +1,70 @@
 # RoleShift: how to use it
 
-A judgement trainer for the newly promoted. You enter **your own** numbers, make a **guess** first, then see a calculation, decide, get a ready message or document, and later record how it went. The calculation is deterministic: it is not a forecast or advice, and the decision is yours.
+A judgement trainer for the newly promoted. You enter **your own** numbers, make a **guess** first, then see a calculation, decide, get a ready message or document, and later record how it went. The calculation is done by code, not by an AI: the same inputs always give the same numbers. It is a guide based on what you enter, not a forecast.
 
-Test site: https://businesscup-2-0-zimran.vercel.app (English only). The first sign-in after a quiet period can take a few seconds.
+Test site: https://businesscup-2-0-zimran.vercel.app (English only, built for a computer screen). The first request after a quiet period can take a few seconds.
 
 ## 1. Sign in
-Press **"Try the demo"** on the sign-in page: a demo account with examples opens, no sign-up needed. For your own account use an email and password, then pick your position and time in role (this chooses examples and wording).
+Press **Try the demo** on the sign-in page: a temporary demo account with examples opens, no sign-up needed. For your own account use an email and a password, then pick your position and time in the role (this chooses examples and wording).
 
 ![Home](img/01-home.jpg)
 
 ## 2. Pick a situation
-Home shows three "first week" exercises: a client change request, several urgent asks, "when will it be done?". **"Start here: a worked example"** shows a result in seconds. Not sure which fits? Describe it in your own words under "Describe your scenario".
+Home shows three first-week exercises: a client change request, several urgent asks, and "when will it be done?". There is a fourth, choosing between options, under "More exercises". **Start here: a worked example** shows a result in seconds. Not sure what fits? Describe it in your own words under "Describe your scenario".
 
-## 3. Enter your numbers
-Start from a storyline or an empty form. The form is split into 3 or 4 short steps with a progress bar (Next and Back; a step will not continue while a required field is empty). Percentages, hours and ratings are set with a **slider** (type an exact number next to it if you prefer), with a word under the slider showing what you picked. Task and option rows collapse into one-line cards (press Edit to change one), short choices are buttons, and date fields have quick buttons: Today, Tomorrow, This Friday, In 1 week, In 2 weeks. The last step is a **Review** of everything you entered, where you press "Compare my options". Do not enter confidential employer or client information: use rounded or made-up numbers. The **"Money and quality (optional)"** group can stay empty; then the calculation covers time only.
+## 3. Fill in the form: a few short steps
+Each scenario is 2 to 4 steps plus a **Review**, with a progress bar and **Next** / **Back**. A step will not continue while a required field is empty (the fields are highlighted). **Fill with an example** (next to the step counter) loads a ready example; **Start over** clears the form. What you typed survives a reload or the Back button in the same tab.
 
-![A form step with sliders](img/02-form.jpg)
+- **Ratings are sliders with words.** "How critical is this for the client?" runs from *Nice to have* to *Must have*, and the word under the slider shows what you picked.
+- **Quantities** are a slider or a number with − and + buttons and the unit next to it (people, USD, h, days, %).
+- **Dates** have quick buttons: Today, Tomorrow, This Friday, In 1 week, In 2 weeks.
+- **Optional things** sit behind **Add more detail** in each step (a penalty, a partial delivery, the price of an extra hour, a description).
 
-![The review step](img/02b-review.jpg)
+![A step with a word slider and the live panel](img/02a-form-change.jpg)
 
-## 4. Guess, then see the numbers
-Before the result you can guess (how many tasks finish late, which order is best, which date you could promise). You can skip. The server then scores the guess against the numbers, and **Progress** collects your accuracy. This is agreement with the calculator on your numbers, not a judgement of real-life decisions.
+![Numbers with steppers, units and date buttons](img/02b-form-numbers.jpg)
 
-![Your guess first](img/06-guess.jpg)
+**Task and option cards.** Tasks and options are cards you add, reorder, collapse and remove. Choices inside a card are buttons, and ratings (for example 1 to 5 on a criterion) are sliders with a word (Poor ... Excellent).
+
+![Option cards with sliders](img/02d-form-options.jpg)
+
+**The side panel "Where this stands"** updates while you type. It shows the numbers that follow from what you entered and what is still missing. For scenarios with a guess step it keeps the answer hidden so your guess stays honest; "Show the live result instead" reveals it. Nothing is saved.
+
+![Time and who is asking, with the live panel](img/02c-form-estimate.jpg)
+
+**Review** lists what you entered by step, with an **Edit** link for each. Then confirm you entered no confidential information and press **Compare my options**.
+
+![Review](img/03-review.jpg)
+
+## 4. Guess first, then the numbers
+For three scenarios (priorities, a deadline, choosing between options) a screen asks what you think the numbers will say. Answer, or press **Skip**. Afterwards the result page shows your guess next to the calculation, and **Progress** counts how often you matched it. This measures agreement with the calculator on your own numbers, not how good your decisions are in real life.
+
+![Your guess first](img/04-guess.jpg)
 
 ## 5. Read the result
-At the top: "Best by the numbers". Below, one column per option: dates, lateness, "What to watch" and a risk label (a rule of thumb; "Why this label" shows how it was made). If you filled in money and scope, a table **"Time, money, quality: what you pay with"** appears: every way to fix lateness (cut scope, pay for hours, move a deadline) costs something different. Quality is judged by the share of scope cut (up to 15% low risk, up to 35% medium, above that high): a rule, not a measurement. **"Challenge my numbers"** recalculates with worse numbers to see if the conclusion holds.
+At the top is a one-sentence answer, then one column per option with dates or costs, "What to watch" and a risk label. The label is a rule of thumb: **Why this label** lists the points, the thresholds, and a block "What counted in this label" for time, money and quality. If you entered money or scope inputs, a table **Time, money, quality** shows what each choice costs on the three axes.
 
-![Result](img/03-results.jpg)
+![The time, money, quality table and What if](img/05-result-table.jpg)
+
+![Why this label](img/06-why-label.jpg)
+
+**What if?** (before you decide) lets you drag two or three of the numbers that move the outcome and see the answer change next to the saved one. Nothing changes until you press **Save these numbers**; **Reset** puts the sliders back. **Challenge my numbers** recalculates with worse numbers and says whether the conclusion still holds.
+
+![What if](img/07-whatif.jpg)
 
 ## 6. Decide and get the document
-Choose an option, write your reason and press "Save decision…". You get a ready document (priority proposal, estimate reply, decision memo) with a "Ways to fix it and what each costs" section. Edit it, copy it or download .md. Check the facts before sending.
+Choose an option, write your reason and press **Save decision**. You get a ready document (a Change Request, a priority proposal, an estimate reply or a decision note) that you can edit, copy or download as .md. The time, money, quality table stays on the page and is in the document. Check the facts before you send it.
 
-![Document](img/04-document.jpg)
+![Document](img/08-document.jpg)
 
 ## 7. Record the outcome
-Choose when to be asked "how did it go". Optionally an email arrives with "worked / partly / not yet" links (the test site sends no email, SMTP is not connected). **Progress** shows the day out of 90, decisions made, confidence before/after and skills.
+Choose when to be asked "how did it go" and record the outcome later. The test site sends no email unless a mail service is connected. **Progress** shows the day out of 90, decisions made, confidence before and after, and how often your guesses matched the numbers.
 
-![Progress](img/05-progress.jpg)
-
-## Device
-The service is designed for a computer: use a browser on a laptop or desktop. Pages open on a phone, but the forms are long and not optimised for it, so please test on a computer.
-
-## For testers
-- **Sign in:** the "Try the demo" button (a separate temporary account on every press; the data is sample data and can be deleted at any time; there is no shared demo account). For your own position, register and pick it at sign-up (later: Account -> Edit my position).
-- **What to try by role:**
-  - *Team lead*: "Several urgent asks" with the "Money and quality" group filled in, then "Challenge my numbers".
-  - *Director*: "Choose between options" (criteria Time / Cost / Quality).
-  - *Project manager*: "Client change request", then the message to the client.
-  - *Chief accountant*: "When will it be ready?" before a period close (three estimates, safe date).
-  - *Officer*: priorities across orders and deadlines (wording adapts to the position).
-  - *Mayor*: choosing between options on a limited budget.
-- **In every scenario:** make a guess, compare it with the calculation, get the document, set a reminder, press "Compare with a chat assistant" in the footer to read how this differs from asking a chat assistant.
-- **What to write down:** where you got stuck and for how many seconds; what was unclear (a word, field or number); whether you believed the calculation and why; whether you would send the document as is or what you would rewrite; whether you would use it again on a real task (yes / no / only if...); which scenario is missing.
-- Send feedback to whoever gave you the link, with the step and a screenshot.
+![Progress](img/09-progress.jpg)
 
 ## Good to know
-- Guided tours can be switched off ("Do not show tours again") and restored in Account.
-- Demo data is sample data and may be deleted; in your own account you are responsible for what you enter, see "Account and data".
-- Free up to 3 situations of your own; after that a test purchase with no real payment.
-- The product is English only.
-- On the free host the first request after idle can take a few seconds.
+- Guided tips can be switched off ("Do not show tours again") and restarted in Account.
+- Demo data is sample data and can be deleted; in your own account you are responsible for what you enter (see "Account and data").
+- Free for 3 situations of your own, then a one-time pass for $19 with a test checkout (no real payment).
+- Pages open on a phone, but the forms are built for a computer screen.
+- For a short test plan and the correct answers to check, see [AGENT_GUIDE.md](AGENT_GUIDE.md).
