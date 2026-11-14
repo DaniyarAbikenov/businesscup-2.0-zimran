@@ -1,0 +1,30 @@
+{
+ "_note": "Server texts added after the product became English only. Russian and Kazakh are unused, so these are not translated; remove a line when it is.",
+ "keys": [
+  "- {label}: time {t}; money {m}; quality {q}.",
+  "Accept as is",
+  "Accept part of it",
+  "Decline",
+  "Defer to the next release",
+  "Deliver the whole change.",
+  "Money: no costs were entered, so money is not part of this label.",
+  "Money: not counted in this label. The cost is shown in the table.",
+  "Money: the costs you entered are in the table. They do not change this label.",
+  "Money: {n} points from your budget and the client's share (an overrun adds 3, under 15% of the budget left adds 1, a client who pays nothing for a non-must change adds 1). Budget left afterwards: {after}.",
+  "Not set: enter the share you would deliver on the form.",
+  "Nothing is built; the client keeps the original scope.",
+  "Quality: no scope cut was entered, so quality is not part of this label.",
+  "Quality: not counted in this label. The label for this option comes from how the client will react to the priority you gave it.",
+  "Quality: the share of scope cut is rated in the table (up to 15% low, up to 35% medium, above that high). It does not change this label.",
+  "Quality: {n} points for regression risk (10 working days or fewer to the release add 1). The share of scope left out is rated only in the table: up to 15% low, up to 35% medium, above that high.",
+  "The same work costs {later} later; re-planning costs {now} now.",
+  "Time: no points, the release date does not move.",
+  "Time: the label is based on lateness: late tasks, the chance of making a date, or the score gaps, depending on the scenario.",
+  "Time: {n} points from the working days the release slips and the buffer used (slip over 5 days adds 3, 1 to 5 days adds 2, 70% of the buffer used adds 1, a change over 30% of the time left adds 1).",
+  "quality risk {q}",
+  "release date holds",
+  "release slips {n} working days to {date}",
+  "{pct}% delivered now",
+  "{pct}% of the change now; agree what is left out."
+ ]
+}

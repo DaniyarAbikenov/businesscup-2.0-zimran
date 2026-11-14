@@ -136,7 +136,66 @@ def _estimate(sit, i, result):
     return out
 
 
+def _change_request(sit, i, result):
+    """The four things you can do with a late change, on time, money and quality. Partly accepting needs the optional share
+    (partlyPct); without it that row says "not set". Quality: the share of the change left out is rated with the same 15 / 35 % rule."""
+    acc = next(o for o in result["options"] if o["key"] == "accept")
+    dfr = next(o for o in result["options"] if o["key"] == "defer")
+    must = i["priority"] == "must"
+    pct = i.get("partlyPct") or 0
+
+    def row(key, label, note, slip, date, money, delivered, cut, pays, **extra):
+        return {"key": key, "label": label, "note": note,
+                "time": None if slip is None else {"slipDays": slip, "date": date},
+                "money": {"total": money, **extra},
+                "quality": {"cutShare": cut or 0, "risk": quality_risk(cut) if cut else "low", "deliveredPct": delivered},
+                "payWith": pays}
+
+    pen = acc["costBreakdown"]["delayPenalty"]
+    pays = lambda slip, money, cut, goodwill=False: ([k for k, on in (("time", slip), ("money", money), ("quality", cut), ("goodwill", goodwill)) if on])
+    out = [row("accept", tr("Accept as is"), tr("Deliver the whole change."), acc["slipWorkdays"], acc["newReleaseDate"], acc["extraCost"], 100, 0,
+               pays(acc["slipWorkdays"] > 0, acc["extraCost"] > 0, False), penalty=pen)]
+    if 0 < pct < 100:
+        part = next(o for o in _compute(sit, {**i, "changeEffortDays": round(i["changeEffortDays"] * pct / 100, 2)})["options"] if o["key"] == "accept")
+        cut = 1 - pct / 100
+        out.append(row("partly", tr("Accept part of it"), tr("{pct}% of the change now; agree what is left out.", pct=pct), part["slipWorkdays"], part["newReleaseDate"], part["extraCost"],
+                       pct, round(cut, 3), pays(part["slipWorkdays"] > 0, part["extraCost"] > 0, True), penalty=part["costBreakdown"]["delayPenalty"]))
+    else:
+        out.append(row("partly", tr("Accept part of it"), tr("Not set: enter the share you would deliver on the form."), None, None, None, None, 0, [], notSet=True))
+    out.append(row("defer", tr("Defer to the next release"), tr("The same work costs {later} later; re-planning costs {now} now.", later=acc["costBreakdown"]["labor"], now=dfr["extraCost"]),
+                   0, i["releaseDate"], dfr["extraCost"] + (dfr.get("laterCost") or 0), 0, 0, pays(False, True, False, goodwill=i["priority"] != "nice"), later=dfr.get("laterCost") or 0))
+    out.append(row("decline", tr("Decline"), tr("Nothing is built; the client keeps the original scope."), 0, i["releaseDate"], 0, 0, 0, pays(False, False, False, goodwill=i["priority"] != "nice")))
+    return out
+
+
+def label_basis(engine_key: str, o: dict, i: dict, result: dict) -> list[dict]:
+    """What went into this option's risk label, axis by axis, and what did not. Nothing here changes the label: it only says
+    which inputs counted. Quality share thresholds are the table's: up to 15 % low, up to 35 % medium, above that high."""
+    has_money = bool(i.get("extraHourCost") or i.get("hourlyCost") or any(t.get("costPerLateDay") for t in i.get("tasks", []) if isinstance(t, dict)))
+    has_cut = bool(i.get("goodEnoughPct") or i.get("partlyPct") or any(t.get("minEffortHours") for t in i.get("tasks", []) if isinstance(t, dict)))
+    out = []
+    if engine_key == "change_request":
+        pts = {k: sum(r["severity"] for r in o["risks"] if r.get("kind") == k) for k in ("time", "money", "quality")}
+        out.append({"axis": "time", "text": tr("Time: {n} points from the working days the release slips and the buffer used (slip over 5 days adds 3, 1 to 5 days adds 2, 70% of the buffer used adds 1, a change over 30% of the time left adds 1).", n=pts["time"]) if o["key"] == "accept"
+                    else tr("Time: no points, the release date does not move.")})
+        if o["key"] == "accept":
+            out.append({"axis": "money", "text": tr("Money: {n} points from your budget and the client's share (an overrun adds 3, under 15% of the budget left adds 1, a client who pays nothing for a non-must change adds 1). Budget left afterwards: {after}.", n=pts["money"], after=o["budgetAfter"])})
+            out.append({"axis": "quality", "text": tr("Quality: {n} points for regression risk (10 working days or fewer to the release add 1). The share of scope left out is rated only in the table: up to 15% low, up to 35% medium, above that high.", n=pts["quality"])})
+        else:
+            out.append({"axis": "money", "text": tr("Money: not counted in this label. The cost is shown in the table.")})
+            out.append({"axis": "quality", "text": tr("Quality: not counted in this label. The label for this option comes from how the client will react to the priority you gave it.")})
+        return out
+    out.append({"axis": "time", "text": tr("Time: the label is based on lateness: late tasks, the chance of making a date, or the score gaps, depending on the scenario.")})
+    out.append({"axis": "money", "text": tr("Money: the costs you entered are in the table. They do not change this label.") if has_money
+                else tr("Money: no costs were entered, so money is not part of this label.")})
+    out.append({"axis": "quality", "text": tr("Quality: the share of scope cut is rated in the table (up to 15% low, up to 35% medium, above that high). It does not change this label.") if has_cut
+                else tr("Quality: no scope cut was entered, so quality is not part of this label.")})
+    return out
+
+
 def compute(sit: dict, i: dict, result: dict):
+    if sit["engine"] == "change_request":
+        return _change_request(sit, i, result)
     if sit["engine"] == "priorities":
         return _priorities(sit, i, result)
     if sit["engine"] == "estimate":

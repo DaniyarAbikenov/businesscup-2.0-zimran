@@ -66,21 +66,21 @@ def compute(i: dict) -> dict:
 
     ar = []
     if slip > 5:
-        ar.append((3, tr('Release slips {slip} working days to {new_date}. Expect a hard conversation with the client.', slip=slip, new_date=new_date)))
+        ar.append((3, tr('Release slips {slip} working days to {new_date}. Expect a hard conversation with the client.', slip=slip, new_date=new_date), 'time'))
     elif slip > 0:
-        ar.append((2, tr('Release slips {slip} working day{s} to {new_date}.', slip=slip, s='' if slip == 1 else 's', new_date=new_date)))
+        ar.append((2, tr('Release slips {slip} working day{s} to {new_date}.', slip=slip, s='' if slip == 1 else 's', new_date=new_date), 'time'))
     elif i["bufferDays"] > 0 and added / i["bufferDays"] >= 0.7:
-        ar.append((1, tr('The change uses {added} of your {bufferDays} buffer days. Almost no room for surprises.', added=added, bufferDays=i['bufferDays'])))
+        ar.append((1, tr('The change uses {added} of your {bufferDays} buffer days. Almost no room for surprises.', added=added, bufferDays=i['bufferDays']), 'time'))
     if budget_after < 0:
-        ar.append((3, tr('Budget overrun of ${budget_after}. You need approval for more money.', budget_after=fmt(-budget_after))))
+        ar.append((3, tr('Budget overrun of ${budget_after}. You need approval for more money.', budget_after=fmt(-budget_after)), 'money'))
     elif i["budgetRemaining"] > 0 and budget_after < i["budgetRemaining"] * 0.15:
-        ar.append((1, tr('Only ${budget_after} of budget left afterwards (under 15%).', budget_after=fmt(budget_after))))
+        ar.append((1, tr('Only ${budget_after} of budget left afterwards (under 15%).', budget_after=fmt(budget_after)), 'money'))
     if workdays_to_release <= 10:
-        ar.append((1, tr('Only {workdays_to_release} working days to the release. Late changes carry extra regression risk.', workdays_to_release=workdays_to_release)))
+        ar.append((1, tr('Only {workdays_to_release} working days to the release. Late changes carry extra regression risk.', workdays_to_release=workdays_to_release), 'quality'))
     if workdays_to_release > 0 and added > workdays_to_release * 0.3:
-        ar.append((1, tr('The change needs {added} working days, over 30% of the time left.', added=added)))
+        ar.append((1, tr('The change needs {added} working days, over 30% of the time left.', added=added), 'time'))
     if i["clientCoversPct"] == 0 and i["priority"] != "must":
-        ar.append((1, tr('The client pays nothing for this. Consider asking for a funded change order.')))
+        ar.append((1, tr('The client pays nothing for this. Consider asking for a funded change order.'), 'money'))
 
     # ---- Defer ----
     planning = i["dailyRate"] * 1  # ~1 person-day to re-baseline, write it up and talk to the client
@@ -103,9 +103,9 @@ def compute(i: dict) -> dict:
         cr.append((1, tr('Low risk for a nice-to-have if you explain the reason with dates and cost.')))
 
     def mk(key, risks, **extra):
-        score = sum(s for s, _ in risks)
+        score = sum(r[0] for r in risks)
         return {"key": key, "riskScore": score, "riskLevel": level_of(score),
-                "risks": [{"severity": s, "text": t} for s, t in risks], **extra}
+                "risks": [{"severity": r[0], "text": r[1], **({"kind": r[2]} if len(r) > 2 else {})} for r in risks], **extra}
 
     options = [
         mk("accept", ar, newReleaseDate=new_date, slipWorkdays=slip, addedWorkdays=added, bufferLeft=buffer_left,

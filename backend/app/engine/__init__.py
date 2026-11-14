@@ -7,6 +7,8 @@ ENGINES = {"change_request": change_request, "priorities": priorities, "estimate
 def run(sit: dict, inputs: dict) -> dict:
     from .. import levers, msg
     result = ENGINES[sit["engine"]].compute(inputs)
+    for o in result.get("options", []):
+        o["labelBasis"] = levers.label_basis(sit["engine"], o, inputs, result)
     lv = levers.compute(sit, inputs, result)  # time, money and quality: ways to fix lateness, only when optional data was entered
     if lv:
         result["levers"] = lv

@@ -45,6 +45,7 @@ def _build_document(inputs, result, option_key, rationale, role, user_email, dat
     ]
     for o in result["options"]:
         L.append(f"| {sit['options'][o['key']]['label']} | {o['newReleaseDate']} | {usd(o['extraCost'])} | {o['riskLevel']} |")
+    L += _levers_section(result)
     L += ["", tr('## 4. Decision'), f"**{sit['options'][option_key]['label']}.**"]
     if rationale:
         L.append(rationale)
@@ -113,6 +114,14 @@ def _levers_section(result) -> list:
         return []
     L = ["", tr('## Ways to fix it and what each costs')]
     for l in ls:
+        if "slipDays" in (l.get("time") or {}) or (l.get("time") is None and "notSet" in l["money"]):  # a change request row
+            tm = l["time"]
+            t = tr("not set") if tm is None else (tr("release slips {n} working days to {date}", n=tm["slipDays"], date=tm["date"]) if tm["slipDays"] else tr("release date holds"))
+            m = l["money"]["total"]
+            qv = l["quality"]
+            qs = tr("not set") if qv["deliveredPct"] is None else tr("{pct}% delivered now", pct=qv["deliveredPct"]) + (", " + tr("quality risk {q}", q=tr(qv["risk"])) if qv["cutShare"] else "")
+            L.append(tr('- {label}: time {t}; money {m}; quality {q}.', label=l['label'], t=t, m=tr("not set") if m is None else m, q=qs))
+            continue
         t = (tr('{n} late, {d} working days in total', n=l['time']['lateCount'], d=l['time']['lateDays']) if l.get("time") and l["time"]["lateCount"]
              else tr('{date} ({days} working days)', date=l['date'], days=l['days']) if l.get("date") else tr('on time'))
         m = l["money"]["total"]

@@ -159,6 +159,22 @@
           "default": 0
         },
         {
+          "id": "partlyPct",
+          "group": "numbers",
+          "type": "number",
+          "label": "If you accept only part of it: share you would deliver now (%, optional)",
+          "help": "Leave empty if the change cannot be split. The rest is left out or comes later.",
+          "why": "A smaller version changes the date, the cost and the quality risk. With this share we show it as its own row in the comparison.",
+          "required": false,
+          "min": 10,
+          "max": 90,
+          "step": 5,
+          "anchors": [
+            "A small slice",
+            "Almost all"
+          ]
+        },
+        {
           "id": "overheadPct",
           "group": "assumptions",
           "type": "number",
@@ -284,7 +300,8 @@
             "budgetRemaining": 40000,
             "changeEffortDays": 8,
             "bufferDays": 5,
-            "clientCoversPct": 100
+            "clientCoversPct": 100,
+            "partlyPct": 60
           }
         },
         {
@@ -301,7 +318,8 @@
             "budgetRemaining": 40000,
             "changeEffortDays": 12,
             "bufferDays": 2,
-            "delayPenaltyPerDay": 500
+            "delayPenaltyPerDay": 500,
+            "partlyPct": 60
           }
         },
         {
@@ -317,7 +335,8 @@
             "dailyRate": 600,
             "budgetRemaining": 40000,
             "changeEffortDays": 8,
-            "bufferDays": 2
+            "bufferDays": 2,
+            "partlyPct": 60
           }
         }
       ],

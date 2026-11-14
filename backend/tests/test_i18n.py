@@ -96,7 +96,9 @@ def test_server_texts_have_russian_with_matching_placeholders(lang):
     from app import msg
     table = msg.table(lang)
     skip = {"options.{r}.s{v}"}  # a field key, not a text
-    missing = [k for k in _server_keys() if k not in table and k not in skip and re.search(r"[A-Za-z]{4}", k) and "user=%s" not in k]
+    import json, pathlib
+    frozen = set(json.loads((pathlib.Path(__file__).parent / "untranslated.json").read_text())["keys"])  # added after the product became English only
+    missing = [k for k in _server_keys() if k not in table and k not in skip and k not in frozen and re.search(r"[A-Za-z]{4}", k) and "user=%s" not in k]
     assert not missing, missing[:10]
     for en, ru in table.items():
         assert set(PH.findall(ru)) <= set(PH.findall(en)) | {"{sfx}", "{s}"}, (en, ru)  # a translation may drop {sfx} but never invent a placeholder
