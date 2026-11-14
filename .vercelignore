@@ -1,5 +1,4 @@
 backend/tests
-backend/alembic
 docs
 design
 frontend/node_modules
