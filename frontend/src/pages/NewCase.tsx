@@ -6,6 +6,7 @@ import { Intake, Storyline, api } from '../api';
 import { notify } from '../components/Toaster';
 import { TourScreen } from '../tour/TourHost';
 import { Wizard } from '../components/Wizard';
+import { clearDraft, loadDraft, saveDraft } from '../lib/draft';
 import { LivePanel } from '../components/LivePanel';
 import { Button, DateChips, Field, PageHeader, Panel, PrivacyBanner, QuestionGroups, Stepper, initialAnswers } from '../components/ui';
 
@@ -24,10 +25,13 @@ function NewCase() {
   const intake = (loc.state as { intake?: Intake } | null)?.intake;
   const introText = (loc.state as { text?: string } | null)?.text;
   const fromText = intake && intake.situationId === situationId ? intake : null;
-  const [answers, setAnswers] = useState(() => (sit ? initialAnswers(sit.questions, fromText?.answers) : {}));
-  const [story, setStory] = useState<Storyline | null>(null);
+  const exampleOnLoad = !!(loc.state as { example?: string } | null)?.example;
+  const draft0 = useRef(sit && !fromText && !exampleOnLoad ? loadDraft(sit.id) : null);  // an unsaved form from this tab, if any
+  const [answers, setAnswers] = useState(() => draft0.current?.answers ?? (sit ? initialAnswers(sit.questions, fromText?.answers) : {}));
+  const [story, setStory] = useState<Storyline | null>(() => sit?.storylines?.find((x) => x.id === draft0.current?.storyId) ?? null);
+  const [step, setStep] = useState(draft0.current?.step ?? 0);
   const [showIntake, setShowIntake] = useState(!!fromText);
-  const [conf, setConf] = useState('3');
+  const [conf, setConf] = useState(draft0.current?.conf ?? '3');
   const [fields, setFields] = useState<Record<string, string>>({});
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -47,6 +51,7 @@ function NewCase() {
       .then((r) => nav(`/case/${r.case.id}`, { replace: true }))
       .catch((x: any) => { if (x.status === 402) nav('/pricing?from=limit'); else { setError(x.message); setBusy(false); } });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (sit && !guessing && !busy) saveDraft(sit.id, { answers, conf, step, storyId: story?.id ?? null }); }, [answers, conf, step, story]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!sit) return <Navigate to="/" replace />;
 
   const pick = (s: Storyline | null) => {
@@ -59,6 +64,7 @@ function NewCase() {
     setBusy(true); setError('');
     try {
       const r = await api('POST', '/cases', { situationId: sit!.id, privacyAck: ack, confidenceBefore: Number(conf), inputs: answers, ...(prediction ? { prediction } : {}) });
+      clearDraft(sit!.id);
       nav(`/case/${r.case.id}`);
     } catch (x: any) {
       if (x.status === 402) { nav('/pricing?from=limit'); return; }
@@ -125,7 +131,7 @@ function NewCase() {
       )}
       {story && <div className="banner ok" role="note"><strong>{t('Example: {title}.', { title: story.title })}</strong> {t('These are example numbers, not yours. Edit them freely.')}</div>}
       <div className="form-cols"><div className="form-main">
-        <Wizard sit={sit} answers={answers} setAnswers={setAnswers} serverFields={fields} conf={conf} setConf={setConf} ack={ack} setAck={setAck} error={error} busy={busy} onSubmit={submit} onExample={sit.storylines && sit.storylines.length ? () => pick(sit.storylines![0]) : undefined} />
+        <Wizard sit={sit} answers={answers} setAnswers={setAnswers} serverFields={fields} conf={conf} setConf={setConf} ack={ack} setAck={setAck} error={error} busy={busy} step={step} setStep={setStep} onDiscard={() => { clearDraft(sit.id); setAnswers(initialAnswers(sit.questions)); setStory(null); setConf('3'); setStep(0); setFields({}); setError(''); setAck(false); }} onSubmit={submit} onExample={sit.storylines && sit.storylines.length ? () => pick(sit.storylines![0]) : undefined} />
       </div><LivePanel sit={sit} answers={answers} /></div>
     </div>
   );

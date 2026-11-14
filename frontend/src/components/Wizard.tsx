@@ -46,12 +46,12 @@ function shown(q: Q, v: any): string {
   return String(v);
 }
 
-export function Wizard({ sit, answers, setAnswers, serverFields, conf, setConf, ack, setAck, error, busy, onSubmit, onExample }: {
-  onExample?: () => void; sit: Sit; answers: Record<string, any>; setAnswers: (a: Record<string, any>) => void; serverFields: Record<string, string>;
+export function Wizard({ step: rawStep, setStep, onDiscard, sit, answers, setAnswers, serverFields, conf, setConf, ack, setAck, error, busy, onSubmit, onExample }: {
+  step: number; setStep: (n: number) => void; onDiscard?: () => void; onExample?: () => void; sit: Sit; answers: Record<string, any>; setAnswers: (a: Record<string, any>) => void; serverFields: Record<string, string>;
   conf: string; setConf: (v: string) => void; ack: boolean; setAck: (v: boolean) => void; error: string; busy: boolean; onSubmit: (e: FormEvent) => void;
 }) {
   const steps = useMemo(() => stepsOf(sit), [sit]);
-  const [step, setStep] = useState(0);
+  const step = Math.min(Math.max(rawStep, 0), steps.length);  // a stored step from an older form never points past the review
   const [local, setLocal] = useState<Record<string, string>>({});
   const review = step >= steps.length;
   const qsOf = (n: number) => sit.questions.filter((q) => steps[n].groups.includes(q.group ?? ''));
@@ -79,7 +79,7 @@ export function Wizard({ sit, answers, setAnswers, serverFields, conf, setConf, 
   return (
     <div>
       <div className="wiz-progress" data-tour="form-steps" role="group" aria-label={t('Form progress')}>
-        <div className="wiz-label">{t('Step {n} of {total}', { n: step + 1, total })}: <b>{names[step]}</b>{onExample && step === 0 && <button type="button" className="linkbtn" onClick={onExample}>{t('Fill with an example')}</button>}</div>
+        <div className="wiz-label">{t('Step {n} of {total}', { n: step + 1, total })}: <b>{names[step]}</b>{onExample && step === 0 && <button type="button" className="linkbtn" onClick={onExample}>{t('Fill with an example')}</button>}{onDiscard && <button type="button" className="linkbtn" onClick={() => { if (window.confirm(t('Discard what you have typed and start over?'))) onDiscard(); }}>{t('Start over')}</button>}</div>
         <div className="wiz-bar" role="progressbar" aria-valuemin={1} aria-valuemax={total} aria-valuenow={step + 1}>
           {names.map((nm, i) => <button key={nm} type="button" className={'wiz-seg' + (i <= step ? ' on' : '')} disabled={i > step} onClick={() => go(i)} aria-label={nm} aria-current={i === step ? 'step' : undefined} />)}
         </div>
